@@ -20,7 +20,7 @@ Config items are located at `server/config.py`.
 | ENDPOINT            | Server name domain suffixes                                                          |
 | API_PORT            | Proxy API Port                                                                       |
 | API_TOKEN           | Proxy API Token                                                                      |
-| SERVER              | A dict. The keys are the actual server names while the valuse are the display names. |
+| SERVER              | A dict. The keys are the actual server names while the values are the display names. |
 | WEBHOOK_URL         | Webhook URL to regist to Telegram                                                    |
 | WEBHOOK_LISTEN_HOST | The listen host for webhook                                                          |
 | WEBHOOK_LISTEN_PORT | The listen port for webhook                                                          |
@@ -29,13 +29,15 @@ Config items are located at `server/config.py`.
 
 ### Email-sending function
 
-You should implement a `send_email(asn, mnt, code, email)` function in `config.py` and do the email sending in that function. If the send meets an error, a `RuntimeError` should be raised, otherwise the send will be considered successful.
+You should implement a `send_email(asn, mnt, code, email)` function in `config.py` and do the email sending in that function. If the send meets an error, a `RuntimeError` should be raised, otherwise, the send will be considered successful.
 
 ### Privilege code
 
-Privilege code login is provided for administrator's convenience.
+Privilege code login is provided for network operators.
 
-Privilege users can use `/whoami <New AS>` to directly modify their identity, unlock additional settings in `/peer`, remove some restrictions, and receive notifications when others create or delete peers.
+When logging in, you can enter the Privilege Code when selecting email to log in as a privileged user.
+
+Privileged users can use `/whoami <New AS>` to directly modify their identity, unlock additional settings in `/peer`, remove some restrictions, and receive notifications when others create or delete peers.
 
 ## Proxy
 
@@ -56,4 +58,4 @@ Config items are located at `proxy/proxy_config.json`.
 
 ## Have a try
 
-My own bot is deployed at [@Potat0_DN42_Bot](https://t.me/Potat0_DN42_Bot). Welcome to peer with me!
+My bot is deployed at [@Potat0_DN42_Bot](https://t.me/Potat0_DN42_Bot). Welcome to peer with me!
