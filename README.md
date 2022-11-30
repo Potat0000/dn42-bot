@@ -12,7 +12,8 @@ Config items are located at `server/config.py`.
 
 | Config Key          | Description                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------ |
-| BOT_USERNAME        | The telegram username of this bot                                                    |
+| BOT_TOKEN           | Token of Telegram Bot                                                                |
+| BOT_USERNAME        | The Telegram username of this bot                                                    |
 | CONTACT             | Contact information for yourself                                                     |
 | DN42_ASN            | Your DN42 ASN                                                                        |
 | WELCOME_TEXT        | The text shows at the top of /help command                                           |
@@ -20,7 +21,7 @@ Config items are located at `server/config.py`.
 | API_PORT            | Proxy API Port                                                                       |
 | API_TOKEN           | Proxy API Token                                                                      |
 | SERVER              | A dict. The keys are the actual server names while the valuse are the display names. |
-| WEBHOOK_URL         | Webhook URL to regist to telegram                                                    |
+| WEBHOOK_URL         | Webhook URL to regist to Telegram                                                    |
 | WEBHOOK_LISTEN_HOST | The listen host for webhook                                                          |
 | WEBHOOK_LISTEN_PORT | The listen port for webhook                                                          |
 | LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                       |
