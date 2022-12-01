@@ -153,10 +153,25 @@ async def get_info(request):
         out = simple_run_with_output(f"birdc show protocols {the_session}").split('\n')
         if len(out) != 3:
             return web.Response(body="bird error", status=500)
-        out = out[2].strip().split()
+        out = out[2].strip().split(maxsplit=6)
         if out[0] != the_session:
             return web.Response(body="bird error", status=500)
-        bird_status[the_session] = [out[5], ' '.join(out[6:])]
+        bird_status[the_session] = [out[5], "", {}]
+        try:
+            bird_status[the_session][1] = out[6]
+        except IndexError:
+            pass
+        if out[5] == 'Established':
+            out = simple_run_with_output(f"birdc show protocols all {the_session}")
+            out = [i.strip().split('\n') for i in out.split('Channel ')]
+            out = {
+                i[0].strip(): {j.split(':', 1)[0].strip(): j.split(':', 1)[1].strip() for j in i[1:]}
+                for i in out
+                if i[0].strip().startswith('ipv')
+            }
+            for k, v in out.items():
+                if v['State'] == 'UP' and v['Output filter'] == '(unnamed)':
+                    bird_status[the_session][2][k[3]] = v['Routes']
 
     return web.json_response(
         {

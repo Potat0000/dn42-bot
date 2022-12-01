@@ -501,6 +501,11 @@ def get_info(message):
             detail_text += f"    {bird_status[0]}\n"
             if bird_status[1]:
                 detail_text += f"    {bird_status[1]}\n"
+            if len(bird_status[2]) == 2:
+                detail_text += f"    IPv4\n        {bird_status[2]['4']}\n"
+                detail_text += f"    IPv6\n        {bird_status[2]['6']}\n"
+            else:
+                detail_text += f"    {list(bird_status[2].values())[0]}\n"
         else:
             for session in ('4', '6'):
                 bird_status = [v for k, v in peer_info['bird_status'].items() if k.endswith(session)][0]
@@ -508,6 +513,8 @@ def get_info(message):
                 detail_text += f"        {bird_status[0]}\n"
                 if bird_status[1]:
                     detail_text += f"        {bird_status[1]}\n"
+                if session in bird_status[2]:
+                    detail_text += f"        {bird_status[2][session]}\n"
 
         detail_text += "Contact:\n" f"    {tools.get_mnt_by_asn(db[message.chat.id])}\n" f"    {peer_info['desc']}\n"
 
