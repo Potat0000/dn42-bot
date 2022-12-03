@@ -471,8 +471,6 @@ def get_info(message):
             peer_info['my_v4'],
         )
 
-        detail_text += "Session Type:\n" f"    {peer_info['session']}\n"
-
         if peer_info['wg_last_handshake'] == 0:
             detail_text += (
                 "WireGuard Status:\n"
@@ -480,7 +478,6 @@ def get_info(message):
                 "        Never\n"
                 "    Transfer:\n"
                 "        0B received, 0B sent\n"
-                "Bird Status:\n"
             )
         else:
             latest_handshake = datetime.fromtimestamp(peer_info['wg_last_handshake'], tz=timezone.utc)
@@ -494,8 +491,9 @@ def get_info(message):
                 f"        {latest_handshake_td}\n"
                 "    Transfer:\n"
                 f"        {transfer[0]} received, {transfer[1]} sent\n"
-                "Bird Status:\n"
             )
+
+        detail_text += "Bird Status:\n" f"    {peer_info['session']}\n"
         if len(peer_info['bird_status']) == 1:
             bird_status = list(peer_info['bird_status'].values())[0]
             detail_text += f"    {bird_status[0]}\n"
@@ -504,7 +502,7 @@ def get_info(message):
             if len(bird_status[2]) == 2:
                 detail_text += f"    IPv4\n        {bird_status[2]['4']}\n"
                 detail_text += f"    IPv6\n        {bird_status[2]['6']}\n"
-            else:
+            elif bird_status[2]:
                 detail_text += f"    {list(bird_status[2].values())[0]}\n"
         else:
             for session in ('4', '6'):
