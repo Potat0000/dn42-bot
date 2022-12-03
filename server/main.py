@@ -489,26 +489,20 @@ def get_info(message):
         )
 
         if peer_info['wg_last_handshake'] == 0:
-            detail_text += (
-                "WireGuard Status:\n"
-                "    Latest handshake:\n"
-                "        Never\n"
-                "    Transfer:\n"
-                "        0B received, 0B sent\n"
-            )
+            detail_text += "WireGuard Status:\n" "    Latest handshake:\n" "        Never\n" "    Transfer:\n"
         else:
             latest_handshake = datetime.fromtimestamp(peer_info['wg_last_handshake'], tz=timezone.utc)
             latest_handshake_td = tools.td_format(datetime.now(tz=timezone.utc) - latest_handshake)
             latest_handshake = latest_handshake.isoformat().replace('+00:00', 'Z')
-            transfer = [tools.convert_size(i) for i in peer_info['wg_transfer']]
             detail_text += (
                 "WireGuard Status:\n"
                 "    Latest handshake:\n"
                 f"        {latest_handshake}\n"
                 f"        {latest_handshake_td}\n"
                 "    Transfer:\n"
-                f"        {transfer[0]} received, {transfer[1]} sent\n"
             )
+        transfer = [tools.convert_size(i) for i in peer_info['wg_transfer']]
+        detail_text += f"        {transfer[0]} received, {transfer[1]} sent\n"
 
         detail_text += "Bird Status:\n" f"    {peer_info['session']}\n"
         if len(peer_info['bird_status']) == 1:
