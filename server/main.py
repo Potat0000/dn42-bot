@@ -71,6 +71,8 @@ def startup(message):
             )
         elif message.text.strip().split(" ")[1].startswith("whoami_"):
             whoami(message, message.text.strip().split(" ")[1][7:])
+        elif message.text.strip().split(" ")[1] == 'info':
+            get_info(message)
     except BaseException:
         send_welcome(message)
 
@@ -386,6 +388,7 @@ def whoami(message, new_asn=None):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
+    markup = ReplyKeyboardRemove()
     if message.chat.id in db_privilege:
         text = "*[Privilege]*\n"
         if not new_asn and len(message.text.strip().split(" ")) == 2:
@@ -397,10 +400,24 @@ def whoami(message, new_asn=None):
                     pickle.dump((db, db_privilege), f)
             except BaseException:
                 pass
+            else:
+
+                def gen_privilege_markup():
+                    markup = InlineKeyboardMarkup()
+                    markup.row_width = 1
+                    markup.add(
+                        InlineKeyboardButton(
+                            "Show info | 查看信息",
+                            url=f"https://t.me/{config.BOT_USERNAME}?start=info",
+                        )
+                    )
+                    return markup
+
+                markup = gen_privilege_markup()
     else:
         text = ""
     text += "Current login user:\n当前登录用户：\n" f"`{get_asn_mnt_text(db[message.chat.id])}`"
-    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=markup)
 
 
 @bot.message_handler(commands=['info', 'status'], is_for_me=True, is_private_chat=True)
