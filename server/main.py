@@ -484,8 +484,8 @@ def get_info(message):
             config.DN42_ASN,
             f"{region}.{config.ENDPOINT}:{peer_info['port']}",
             peer_info['my_pubkey'],
-            peer_info['my_v6'],
-            peer_info['my_v4'],
+            peer_info['my_v6'] if peer_info['v6'] else '',
+            peer_info['my_v4'] if peer_info['v4'] else '',
         )
 
         if peer_info['wg_last_handshake'] == 0:
