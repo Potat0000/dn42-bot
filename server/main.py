@@ -1515,7 +1515,7 @@ def stats_callback_query(call):
         pass
 
 
-@bot.message_handler(commands=['stats'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['stats'], is_for_me=True)
 def get_stats(message):
     init_arg = ('4', list(config.SERVER.keys())[0])
     stats_text = get_stats_text(*init_arg)
