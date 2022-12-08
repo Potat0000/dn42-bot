@@ -8,11 +8,11 @@ import socket
 import string
 import subprocess
 from collections import namedtuple
-
-from aiohttp import ClientSession
-from IPy import IP
+from time import time
 
 import config
+from aiohttp import ClientSession
+from IPy import IP
 
 
 def gen_random_code(length):
@@ -248,7 +248,7 @@ def get_email(asn):
         return set()
 
 
-def get_test(type, target):
+def get_all(type, target):
     api_result = namedtuple('api_result', ['text', 'status'])
 
     async def async_test():
@@ -280,7 +280,7 @@ def get_test(type, target):
 
 def get_info(asn):
     data = {}
-    for k, v in get_test("info", str(asn)).items():
+    for k, v in get_all("info", str(asn)).items():
         if v.status == 200:
             try:
                 data[k] = json.loads(v.text)
@@ -289,3 +289,33 @@ def get_info(asn):
         elif v.status == 500:
             data[k] = v.text
     return data
+
+
+def gen_get_stats():
+    update_time = 0
+    data = {}
+
+    def inner(*, update=False):
+        nonlocal data, update_time
+        temp = {}
+        if update:
+            raw = get_all("stats", "")
+            for node, raw_data in raw.items():
+                if raw_data.status != 200:
+                    temp[node] = raw_data.text
+                    continue
+                try:
+                    json_data = json.loads(raw_data.text)
+                except json.JSONDecodeError:
+                    temp[node] = raw_data.text
+                else:
+                    temp[node] = {}
+                    for ip_ver in ['4', '6']:
+                        s = [(k, get_mnt_by_asn(k), v) for k, v in json_data[ip_ver].items() if v > 0]
+                        s.sort(key=lambda x: (-x[2], x[0]))
+                        temp[node][ip_ver] = s
+            data, update_time = temp, int(time())
+        else:
+            return data, update_time
+
+    return inner

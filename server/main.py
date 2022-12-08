@@ -4,14 +4,17 @@ import json
 import pickle
 import socket
 import string
+import time
 from datetime import datetime, timezone
 from functools import partial
-from time import sleep
 
+import config
 import requests
 import telebot
+import tools
 from aiohttp import web
 from IPy import IP
+from loop_timer import LoopTimer
 from telebot.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -19,9 +22,6 @@ from telebot.types import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
 )
-
-import config
-import tools
 
 bot = telebot.TeleBot(config.BOT_TOKEN)
 
@@ -96,6 +96,8 @@ def send_welcome(message):
             "        - /peer - Set up a peer 设置一个 Peer\n"
             "        - /remove - Remove a peer 移除一个 Peer\n"
             "        - /info - Show your peer info and status 查看你的 Peer 信息及状态\n"
+            "    Other:\n"
+            "        - /stats - Show preferred routes ranking 显示优选 Routes 排名\n"
             "\n"
             "You can always use /cancel to interrupt current operation.\n"
             "你始终可以使用 /cancel 终止当前正在进行的操作。\n"
@@ -167,7 +169,7 @@ def ping_trace(message):
         reply_markup=gen_peer_me_markup(message),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    raw = tools.get_test('ping' if command == "ping" else "trace", parsed_info.raw)
+    raw = tools.get_all('ping' if command == "ping" else "trace", parsed_info.raw)
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],
@@ -649,7 +651,7 @@ def peer_node_choose(could_peer, message):
         return
 
     peer_info = {
-        "Region": [k for k, v in config.SERVER.items() if v == message.text.strip()][0],
+        "Region": next(k for k, v in config.SERVER.items() if v == message.text.strip()),
         "ASN": db[message.chat.id],
         "Channel": None,
         "MP-BGP": "Not supported",
@@ -1441,8 +1443,96 @@ def remove_peer_confirm(code, region, message):
         )
 
 
+def gen_stats_markup(ip_ver, node):
+    markup = InlineKeyboardMarkup()
+    if ip_ver == '4':
+        markup.row(
+            InlineKeyboardButton("✅ IPv4", callback_data=f"stats_4_{node}"),
+            InlineKeyboardButton("IPv6", callback_data=f"stats_6_{node}"),
+        )
+    elif ip_ver == '6':
+        markup.row(
+            InlineKeyboardButton("IPv4", callback_data=f"stats_4_{node}"),
+            InlineKeyboardButton("✅ IPv6", callback_data=f"stats_6_{node}"),
+        )
+    for k, v in config.SERVER.items():
+        if k == node:
+            markup.row(InlineKeyboardButton(f'✅ {v}', callback_data=f"stats_{ip_ver}_{k}"))
+        else:
+            markup.row(InlineKeyboardButton(v, callback_data=f"stats_{ip_ver}_{k}"))
+    return markup
+
+
+def get_stats_text(ip_ver, node):
+    data, update_time = get_stats_data()
+    if isinstance(data[node], dict):
+        if data[node][ip_ver]:
+            time_delta = int(time.time()) - update_time
+            data = data[node][ip_ver]
+            total_routes = sum(i[2] for i in data)
+            mnt_len = min(max(len(i[1]) for i in data), 20)
+
+            msg = f"IPv{ip_ver} Preferred Route Count".center(33 + mnt_len) + '\n'
+            msg += config.SERVER[node].center(33 + mnt_len) + '\n'
+            msg += f'updated {time_delta}s ago'.rjust(33 + mnt_len) + '\n\n'
+            msg += f"Rank  {'ASN':10}  {'MNT':{mnt_len}}  Count  Weight"
+
+            rank_now = 0
+            last_count = 0
+            for index, (asn, mnt, count) in enumerate(data, 1):
+                if count != last_count:
+                    rank_now = index
+                last_count = count
+                if mnt == f'AS{asn}':
+                    mnt = asn
+                msg += f"\n{rank_now:>4}  {asn:10}  {mnt[:mnt_len]:{mnt_len}}  {count:5}  {count/total_routes:>6.2%}"
+            return f"```\n{msg}\n```", 'Markdown'
+        else:
+            return "No data available.\n暂无数据。", None
+    else:
+        return (
+            f"Error encountered! Please contact {config.CONTACT} with the following information:\n"
+            f"遇到错误！请携带下列信息联系 {config.CONTACT}\n\n"
+            "```\n"
+            f"{data[node]}\n"
+            "```"
+        ), 'HTML'
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("stats_"))
+def stats_callback_query(call):
+    choice = call.data.split("_", 3)[1:3]
+    stats_text = get_stats_text(*choice)
+    try:
+        bot.edit_message_text(
+            stats_text[0],
+            parse_mode=stats_text[1],
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=gen_stats_markup(*choice),
+        )
+    except BaseException:
+        pass
+
+
+@bot.message_handler(commands=['stats'], is_for_me=True, is_private_chat=True)
+def get_stats(message):
+    init_arg = ('4', list(config.SERVER.keys())[0])
+    stats_text = get_stats_text(*init_arg)
+    bot.send_message(message.chat.id, stats_text[0], parse_mode=stats_text[1], reply_markup=gen_stats_markup(*init_arg))
+
+
 bot.enable_save_next_step_handlers(delay=2, filename="./step.save")
 bot.load_next_step_handlers(filename="./step.save")
+
+# ##################################################
+# Timer
+# ##################################################
+
+get_stats_data = tools.gen_get_stats()
+get_stats_data(update=True)
+stats_timer = LoopTimer(900, get_stats_data, "Update Stats Timer", update=True)
+stats_timer.start()
 
 # ##################################################
 # Webhook server
@@ -1451,7 +1541,7 @@ bot.load_next_step_handlers(filename="./step.save")
 WEBHOOK_SECRET = tools.gen_random_code(32)
 
 bot.remove_webhook()
-sleep(0.5)
+time.sleep(0.5)
 bot.set_webhook(url=config.WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
 
 

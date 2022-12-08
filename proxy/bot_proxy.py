@@ -23,6 +23,16 @@ except BaseException:
 routes = web.RouteTableDef()
 
 
+def simple_run(command):
+    try:
+        output = (
+            subprocess.check_output(shlex.split(command), timeout=8, stderr=subprocess.STDOUT).decode("utf-8").strip()
+        )
+    except subprocess.CalledProcessError as e:
+        output = e.output
+    return output
+
+
 @routes.post('/info')
 async def get_info(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
@@ -127,30 +137,19 @@ async def get_info(request):
     if not session_name:
         return web.Response(body="no session", status=500)
 
-    def simple_run_with_output(command):
-        try:
-            output = (
-                subprocess.check_output(shlex.split(command), timeout=8, stderr=subprocess.STDOUT)
-                .decode("utf-8")
-                .strip()
-            )
-        except subprocess.CalledProcessError as e:
-            output = e.output
-        return output
-
-    out = simple_run_with_output(f"wg show dn42_{asn} latest-handshakes").split()
+    out = simple_run(f"wg show dn42_{asn} latest-handshakes").split()
     if out[0] == wg_info[5]:
         wg_last_handshake = int(out[1])
     else:
         return web.Response(body="wg error", status=500)
-    out = simple_run_with_output(f"wg show dn42_{asn} transfer").split()
+    out = simple_run(f"wg show dn42_{asn} transfer").split()
     if out[0] == wg_info[5]:
         wg_transfer = [int(out[1]), int(out[2])]
     else:
         return web.Response(body="wg error", status=500)
     bird_status = {}
     for the_session in session_name:
-        out = simple_run_with_output(f"birdc show protocols {the_session}").split('\n')
+        out = simple_run(f"birdc show protocols {the_session}").split('\n')
         if len(out) != 3:
             return web.Response(body="bird error", status=500)
         out = out[2].strip().split(maxsplit=6)
@@ -162,7 +161,7 @@ async def get_info(request):
         except IndexError:
             pass
         if out[5] == 'Established':
-            out = simple_run_with_output(f"birdc show protocols all {the_session}")
+            out = simple_run(f"birdc show protocols all {the_session}")
             out = [i.strip().split('\n') for i in out.split('Channel ')]
             out = {
                 i[0].strip(): {j.split(':', 1)[0].strip(): j.split(':', 1)[1].strip() for j in i[1:]}
@@ -191,6 +190,46 @@ async def get_info(request):
             'bird_status': bird_status,
         }
     )
+
+
+@routes.post('/stats')
+async def get_stats(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret != SECRET:
+        return web.Response(status=403)
+
+    stats = {'4': {}, '6': {}}
+
+    out = simple_run("birdc show protocols").split('\n')
+    if len(out) < 3:
+        return web.Response(body="bird error", status=500)
+    sessions = []
+    for line in out[2:]:
+        s = line.split()
+        if s[1] == 'BGP' and s[0].startswith('DN42_') and s[5] == 'Established':
+            try:
+                int(s[0].split('_')[1])
+                sessions.append(s[0])
+            except ValueError:
+                if s[0].startswith('DN42_INNER_'):
+                    sessions.append(s[0])
+    for the_session in sessions:
+        out = simple_run(f"birdc show protocols all {the_session}")
+        out = [i.strip().split('\n') for i in out.split('Channel ')]
+        out = {
+            i[0].strip(): {j.split(':', 1)[0].strip(): j.split(':', 1)[1].strip() for j in i[1:]}
+            for i in out
+            if i[0].strip().startswith('ipv')
+        }
+        for k, v in out.items():
+            if v['State'] == 'UP' and v['Output filter'] == '(unnamed)':
+                if the_session.startswith('DN42_INNER_'):
+                    as_name = the_session[5:]
+                else:
+                    as_name = the_session[5:-3]
+                preferred = int(v['Routes'].split(',')[2].split()[0])
+                stats[k[3]][as_name] = preferred
+    return web.json_response(stats)
 
 
 @routes.post('/peer')
@@ -291,12 +330,6 @@ async def setup_peer(request):
         with open(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf", "w") as f:
             f.write(bird)
 
-        def simple_run(command):
-            try:
-                subprocess.run(shlex.split(command), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            except BaseException:
-                pass
-
         simple_run(f"systemctl enable wg-quick@dn42_{peer_info['ASN']}")
         simple_run(f"systemctl start wg-quick@dn42_{peer_info['ASN']}")
         simple_run("birdc c")
@@ -315,12 +348,6 @@ async def remove_peer(request):
             return web.Response(status=400)
     else:
         return web.Response(status=403)
-
-    def simple_run(command):
-        try:
-            subprocess.run(shlex.split(command), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        except BaseException:
-            pass
 
     simple_run(f"systemctl stop wg-quick@dn42_{asn}")
     simple_run(f"systemctl disable wg-quick@dn42_{asn}")
