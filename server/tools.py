@@ -62,9 +62,14 @@ def get_mnt_by_asn(asn):
             if i.startswith('as-name:'):
                 raw_name = i.split(':')[1].strip()
                 if raw_name.endswith('-AS'):
-                    return raw_name[:-3]
-                else:
-                    return raw_name
+                    raw_name = raw_name[:-3]
+                if raw_name.endswith('-DN42'):
+                    raw_name = raw_name[:-5]
+                if raw_name.startswith('DN42-'):
+                    raw_name = raw_name[5:]
+                if raw_name.startswith('AS-'):
+                    raw_name = raw_name[3:]
+                return raw_name
     except BaseException:
         pass
     return f"AS{asn}"
