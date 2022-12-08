@@ -56,6 +56,24 @@ Config items are located at `proxy/proxy_config.json`.
 | MY_DN42_IPv4_ADDRESS       | The DN42 IPv4 Address of this proxy node.            |
 | MY_WG_PUBLIC_KEY           | The WireGuard Public Key of this proxy node.         |
 
+## Command list for BotFather
+
+You can submit the following text to BotFather's `/setcommands` command:
+
+```
+ping  - Ping IP / Domain
+trace - Traceroute IP / Domain
+login - Login to verify your ASN 登录以验证你的 ASN
+logout - Logout current logged ASN 退出当前登录的 ASN
+whoami - Get current login user 获取当前登录用户
+peer - Set up a peer 设置一个 Peer
+remove - Remove a peer 移除一个 Peer
+info - Show your peer info and status 查看你的 Peer 信息及状态
+stats - Show preferred routes ranking 显示优选 Routes 排名
+cancel - Cancel ongoing operations 取消正在进行的操作
+help - Get help text 获取帮助文本
+```
+
 ## Have a try
 
 My bot is deployed at [@Potat0_DN42_Bot](https://t.me/Potat0_DN42_Bot). Welcome to peer with me!
