@@ -311,7 +311,7 @@ def gen_get_stats():
                 else:
                     temp[node] = {}
                     for ip_ver in ['4', '6']:
-                        s = [(k, get_mnt_by_asn(k), v) for k, v in json_data[ip_ver].items() if v > 0]
+                        s = [(k, get_mnt_by_asn(k), v) for k, v in json_data[ip_ver].items()]
                         s.sort(key=lambda x: (-x[2], x[0]))
                         temp[node][ip_ver] = s
             data, update_time = temp, int(time())
