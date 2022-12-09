@@ -75,6 +75,13 @@ def get_mnt_by_asn(asn):
     return f"AS{asn}"
 
 
+def get_asn_mnt_text(asn):
+    if (s := get_mnt_by_asn(asn)) != f"AS{asn}":
+        return f"{s} AS{asn}"
+    else:
+        return f"AS{asn}"
+
+
 def test_ip_domain(testcase):
     testcase = testcase.strip()
     return_tuple = namedtuple('IP_Domain_Info', ['raw', 'ip', 'domain', 'asn', 'mnt', 'dn42'])
@@ -324,3 +331,6 @@ def gen_get_stats():
             return data, update_time
 
     return inner
+
+
+get_stats = gen_get_stats()
