@@ -1443,39 +1443,55 @@ def remove_peer_confirm(code, region, message):
         )
 
 
-def gen_stats_markup(ip_ver, node):
+def gen_stats_markup(ip_ver, simple, node):
     markup = InlineKeyboardMarkup()
+    if simple:
+        simple_str = '1'
+        markup.row(
+            InlineKeyboardButton("To Detailed Mode | 显示详细模式", callback_data=f"stats_{ip_ver}_0_{node}"),
+        )
+    else:
+        simple_str = '0'
+        markup.row(
+            InlineKeyboardButton("To Simple Mode | 显示简洁模式", callback_data=f"stats_{ip_ver}_1_{node}"),
+        )
     if ip_ver == '4':
         markup.row(
-            InlineKeyboardButton("✅ IPv4", callback_data=f"stats_4_{node}"),
-            InlineKeyboardButton("IPv6", callback_data=f"stats_6_{node}"),
+            InlineKeyboardButton("✅ IPv4", callback_data=f"stats_4_{simple_str}_{node}"),
+            InlineKeyboardButton("IPv6", callback_data=f"stats_6_{simple_str}_{node}"),
         )
     elif ip_ver == '6':
         markup.row(
-            InlineKeyboardButton("IPv4", callback_data=f"stats_4_{node}"),
-            InlineKeyboardButton("✅ IPv6", callback_data=f"stats_6_{node}"),
+            InlineKeyboardButton("IPv4", callback_data=f"stats_4_{simple_str}_{node}"),
+            InlineKeyboardButton("✅ IPv6", callback_data=f"stats_6_{simple_str}_{node}"),
         )
     for k, v in config.SERVER.items():
         if k == node:
-            markup.row(InlineKeyboardButton(f'✅ {v}', callback_data=f"stats_{ip_ver}_{k}"))
+            markup.row(InlineKeyboardButton(f'✅ {v}', callback_data=f"stats_{ip_ver}_{simple_str}_{k}"))
         else:
-            markup.row(InlineKeyboardButton(v, callback_data=f"stats_{ip_ver}_{k}"))
+            markup.row(InlineKeyboardButton(v, callback_data=f"stats_{ip_ver}_{simple_str}_{k}"))
     return markup
 
 
-def get_stats_text(ip_ver, node):
+def get_stats_text(ip_ver, simple, node):
     data, update_time = get_stats_data()
     if isinstance(data[node], dict):
-        if data[node][ip_ver]:
-            time_delta = int(time.time()) - update_time
-            data = data[node][ip_ver]
+        time_delta = int(time.time()) - update_time
+        data = data[node][ip_ver]
+        if data:
             total_routes = sum(i[2] for i in data)
-            mnt_len = min(max(len(i[1]) for i in data), 20)
-
-            msg = f"IPv{ip_ver} Preferred Route Count".center(33 + mnt_len) + '\n'
-            msg += config.SERVER[node].center(33 + mnt_len) + '\n'
-            msg += f'updated {time_delta}s ago'.rjust(33 + mnt_len) + '\n\n'
-            msg += f"Rank  {'ASN':10}  {'MNT':{mnt_len}}  Count  Weight"
+            if simple:
+                mnt_len = min(max(len(i[1]) for i in data), 14)
+                msg = f"IPv{ip_ver} Preferred Route Count".center(22 + mnt_len) + '\n'
+                msg += config.SERVER[node].center(22 + mnt_len) + '\n'
+                msg += f'updated {time_delta}s ago'.rjust(22 + mnt_len) + '\n\n'
+                msg += f"Rank {'ASN':10} {'MNT':{mnt_len}} Count"
+            else:
+                mnt_len = min(max(len(i[1]) for i in data), 20)
+                msg = f"IPv{ip_ver} Preferred Route Count".center(33 + mnt_len) + '\n'
+                msg += config.SERVER[node].center(33 + mnt_len) + '\n'
+                msg += f'updated {time_delta}s ago'.rjust(33 + mnt_len) + '\n\n'
+                msg += f"Rank  {'ASN':10}  {'MNT':{mnt_len}}  Count  Weight"
 
             rank_now = 0
             last_count = 0
@@ -1485,10 +1501,20 @@ def get_stats_text(ip_ver, node):
                 last_count = count
                 if mnt == f'AS{asn}':
                     mnt = asn
-                msg += f"\n{rank_now:>4}  {asn:10}  {mnt[:mnt_len]:{mnt_len}}  {count:5}  {count/total_routes:>6.2%}"
-            return f"```\n{msg}\n```", 'Markdown'
+                if len(mnt) > mnt_len:
+                    mnt = mnt[: mnt_len - 3] + '...'
+                if simple:
+                    msg += f"\n{rank_now:>4} {asn:10} {mnt:{mnt_len}} {count:5}"
+                else:
+                    msg += f"\n{rank_now:>4}  {asn:10}  {mnt:{mnt_len}}  {count:5}  {count/total_routes:>6.2%}"
         else:
-            return "No data available.\n暂无数据。", None
+            max_len = max(len(config.SERVER[node]), 26)
+            msg = f"IPv{ip_ver} Preferred Route Count".center(max_len) + '\n'
+            msg += config.SERVER[node].center(max_len) + '\n'
+            msg += f'updated {time_delta}s ago'.rjust(max_len) + '\n\n'
+            msg += "No data available.".center(max_len) + '\n'
+            msg += "暂无数据。".center(max_len)
+        return f"```\n{msg}\n```", 'Markdown'
     else:
         return (
             f"Error encountered! Please contact {config.CONTACT} with the following information:\n"
@@ -1501,7 +1527,8 @@ def get_stats_text(ip_ver, node):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("stats_"))
 def stats_callback_query(call):
-    choice = call.data.split("_", 3)[1:3]
+    choice = call.data.split("_", 4)[1:4]
+    choice[1] = bool(int(choice[1]))
     stats_text = get_stats_text(*choice)
     try:
         bot.edit_message_text(
@@ -1517,7 +1544,7 @@ def stats_callback_query(call):
 
 @bot.message_handler(commands=['stats'], is_for_me=True)
 def get_stats(message):
-    init_arg = ('4', list(config.SERVER.keys())[0])
+    init_arg = ('4', False, list(config.SERVER.keys())[0])
     stats_text = get_stats_text(*init_arg)
     bot.send_message(message.chat.id, stats_text[0], parse_mode=stats_text[1], reply_markup=gen_stats_markup(*init_arg))
 
