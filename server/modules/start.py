@@ -3,21 +3,21 @@ from base import bot
 from modules.help import send_welcome
 from modules.info import get_info
 from modules.whoami import whoami
-from telebot.types import ReplyKeyboardRemove
+from modules.peer import start_peer
+from modules.login import start_login
 
 
 @bot.message_handler(commands=['start'], is_for_me=True, is_private_chat=True)
 def startup(message):
     try:
-        if message.text.strip().split(" ")[1] == "peer":
-            bot.send_message(
-                message.chat.id,
-                "Use /peer to create a Peer with me!\n使用 /peer 与我建立 Peer！",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-        elif message.text.strip().split(" ")[1].startswith("whoami_"):
+        command = message.text.strip().split(" ")[1]
+        if command.startswith("whoami_"):
             whoami(message, message.text.strip().split(" ")[1][7:])
-        elif message.text.strip().split(" ")[1] == 'info':
+        elif command == 'info':
             get_info(message)
+        elif command == 'login':
+            start_login(message)
+        elif command == 'peer':
+            start_peer(message)
     except BaseException:
         send_welcome(message)

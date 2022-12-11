@@ -21,18 +21,15 @@ def start_login(message):
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
-        if len(message.text.strip().split(" ")) != 2:
-            msg = bot.send_message(
-                message.chat.id,
-                "Enter your ASN, without prefix AS\n请输入你的 ASN，不要加 AS 前缀",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-            bot.register_next_step_handler(msg, login_input_asn)
-        else:
-            login_input_asn(message, message.text.strip().split(" ")[1])
+        msg = bot.send_message(
+            message.chat.id,
+            "Enter your ASN, without prefix AS\n请输入你的 ASN，不要加 AS 前缀",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        bot.register_next_step_handler(msg, login_input_asn)
 
 
-def login_input_asn(message, exist_asn=None):
+def login_input_asn(message):
     if message.text.strip() == "/cancel":
         bot.send_message(
             message.chat.id,
@@ -41,7 +38,7 @@ def login_input_asn(message, exist_asn=None):
         )
         return
     try:
-        asn = int(exist_asn if exist_asn else message.text.strip())
+        asn = int(message.text.strip())
     except ValueError:
         bot.send_message(
             message.chat.id,
