@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import pickle
+import traceback
 
 import telebot
+from telebot.handler_backends import BaseMiddleware, CancelUpdate
 
 import config
 
-bot = telebot.TeleBot(config.BOT_TOKEN)
+bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True)
 
 try:
     with open("./user_db.pkl", "rb") as f:
@@ -38,7 +40,50 @@ class IsForMe(telebot.custom_filters.SimpleCustomFilter):
             return True
 
 
+class AntiFloodMiddleware(BaseMiddleware):
+    def __init__(self, limit):
+        self.last_time = {}
+        self.limit = limit
+        self.update_types = ['message']
+
+    def pre_process(self, message, data):
+        if message.from_user.id not in self.last_time:
+            self.last_time[message.from_user.id] = message.date
+            return
+        if message.date - self.last_time[message.from_user.id] < self.limit:
+            # User is flooding
+            bot.send_message(
+                message.chat.id,
+                'You are making request too often\n请勿频繁发送请求',
+                reply_markup=telebot.types.ReplyKeyboardRemove(),
+            )
+            return CancelUpdate()
+        self.last_time[message.from_user.id] = message.date
+
+    def post_process(self, message, data, exception):
+        pass
+
+
+class ExceptionHandlerMiddleware(BaseMiddleware):
+    def __init__(self):
+        self.update_types = ['message']
+
+    def pre_process(self, message, data):
+        pass
+
+    def post_process(self, message, data, exception=None):
+        if exception:
+            bot.send_message(
+                message.chat.id,
+                f"Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}",
+                parse_mode='HTML',
+            )
+            traceback.print_exception(exception)
+
+
 bot.add_custom_filter(IsPrivateChat())
 bot.add_custom_filter(IsForMe())
+bot.setup_middleware(ExceptionHandlerMiddleware())
+bot.setup_middleware(AntiFloodMiddleware(1))
 bot.enable_save_next_step_handlers(delay=2, filename="./step.save")
 bot.load_next_step_handlers(filename="./step.save")
