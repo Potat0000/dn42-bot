@@ -10,22 +10,23 @@ The server directory contains the code for the tg-bot server.
 
 Config items are located at `server/config.py`.
 
-| Config Key          | Description                                                                          |
-| ------------------- | ------------------------------------------------------------------------------------ |
-| BOT_TOKEN           | Token of Telegram Bot                                                                |
-| BOT_USERNAME        | The Telegram username of this bot                                                    |
-| CONTACT             | Contact information for yourself                                                     |
-| DN42_ASN            | Your DN42 ASN                                                                        |
-| WELCOME_TEXT        | The text shows at the top of /help command                                           |
-| ENDPOINT            | Server name domain suffixes                                                          |
-| API_PORT            | Proxy API Port                                                                       |
-| API_TOKEN           | Proxy API Token                                                                      |
-| SERVER              | A dict. The keys are the actual server names while the values are the display names. |
-| WEBHOOK_URL         | Webhook URL to regist to Telegram                                                    |
-| WEBHOOK_LISTEN_HOST | The listen host for webhook                                                          |
-| WEBHOOK_LISTEN_PORT | The listen port for webhook                                                          |
-| LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                       |
-| PRIVILEGE_CODE      | (Optional) Privilege code                                                            |
+| Config Key          | Description                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| BOT_TOKEN           | Token of Telegram Bot                                                                    |
+| BOT_USERNAME        | The Telegram username of this bot                                                        |
+| CONTACT             | Contact information for yourself                                                         |
+| DN42_ASN            | Your DN42 ASN                                                                            |
+| WELCOME_TEXT        | The text shows at the top of /help command                                               |
+| ENDPOINT            | Server name domain suffixes                                                              |
+| API_PORT            | Proxy API Port                                                                           |
+| API_TOKEN           | Proxy API Token                                                                          |
+| SERVER              | A dict. The keys are the actual server names while the values are the display names.     |
+| WEBHOOK_URL         | Webhook URL to regist to Telegram                                                        |
+| WEBHOOK_LISTEN_HOST | The listen host for webhook                                                              |
+| WEBHOOK_LISTEN_PORT | The listen port for webhook                                                              |
+| LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                           |
+| PRIVILEGE_CODE      | (Optional) Privilege code                                                                |
+| SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in. |
 
 ### Email-sending function
 

@@ -69,7 +69,11 @@ def login_choose_email(asn, emails, message):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    if config.PRIVILEGE_CODE and message.text.strip() == config.PRIVILEGE_CODE:
+    if (
+        config.PRIVILEGE_CODE
+        and (not (config.SINGLE_PRIVILEGE and db_privilege))
+        and message.text.strip() == config.PRIVILEGE_CODE
+    ):
         db[message.chat.id] = asn
         db_privilege.add(message.chat.id)
         with open('./user_db.pkl', 'wb') as f:
