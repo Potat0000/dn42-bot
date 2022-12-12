@@ -7,7 +7,7 @@ from modules.peer import start_peer
 from modules.login import start_login
 
 
-@bot.message_handler(commands=['start'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['start'], is_private_chat=True)
 def startup(message):
     try:
         command = message.text.strip().split(" ")[1]

@@ -4,7 +4,7 @@ from base import bot
 from telebot.types import ReplyKeyboardRemove
 
 
-@bot.message_handler(commands=['help'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['help'], is_private_chat=True)
 def send_welcome(message):
     bot.send_message(
         message.chat.id,

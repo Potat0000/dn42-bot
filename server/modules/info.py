@@ -211,7 +211,7 @@ def info_callback_query(call):
         pass
 
 
-@bot.message_handler(commands=['info', 'status'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['info'], is_private_chat=True)
 def get_info(message):
     info_text = get_info_text(message.chat.id, None)
     bot.send_message(message.chat.id, info_text[0], parse_mode=info_text[1], reply_markup=info_text[2])

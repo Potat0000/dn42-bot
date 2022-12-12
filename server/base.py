@@ -64,6 +64,20 @@ class AntiFloodMiddleware(BaseMiddleware):
         pass
 
 
+class OnlyMentionMiddleware(BaseMiddleware):
+    def __init__(self):
+        self.update_types = ['message']
+
+    def pre_process(self, message, data):
+        command = message.text.strip().split(" ")[0].split("@")
+        if len(command) > 1:
+            if command[-1].lower() != config.BOT_USERNAME.lower():
+                return CancelUpdate()
+
+    def post_process(self, message, data, exception):
+        pass
+
+
 class ExceptionHandlerMiddleware(BaseMiddleware):
     def __init__(self):
         self.update_types = ['message']
@@ -82,8 +96,8 @@ class ExceptionHandlerMiddleware(BaseMiddleware):
 
 
 bot.add_custom_filter(IsPrivateChat())
-bot.add_custom_filter(IsForMe())
 bot.setup_middleware(ExceptionHandlerMiddleware())
+bot.setup_middleware(OnlyMentionMiddleware())
 bot.setup_middleware(AntiFloodMiddleware(1))
 bot.enable_save_next_step_handlers(delay=2, filename="./step.save")
 bot.load_next_step_handlers(filename="./step.save")

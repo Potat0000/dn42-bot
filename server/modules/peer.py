@@ -18,7 +18,7 @@ from telebot.types import (
 )
 
 
-@bot.message_handler(commands=['peer'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['peer'], is_private_chat=True)
 def start_peer(message):
     if message.chat.id not in db:
         bot.send_message(

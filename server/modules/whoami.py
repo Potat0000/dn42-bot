@@ -7,7 +7,7 @@ from base import bot, db, db_privilege
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 
-@bot.message_handler(commands=['whoami'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['whoami'], is_private_chat=True)
 def whoami(message, new_asn=None):
     if message.chat.id not in db:
         bot.send_message(

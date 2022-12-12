@@ -18,7 +18,7 @@ def gen_peer_me_markup(message):
     return markup
 
 
-@bot.message_handler(commands=['ping', 'trace', 'traceroute', 'tracert'], is_for_me=True)
+@bot.message_handler(commands=['ping', 'trace', 'traceroute', 'tracert'])
 def ping_trace(message):
     command = message.text.strip().split(" ")[0][1:]
     if len(message.text.strip().split(" ")) != 2:

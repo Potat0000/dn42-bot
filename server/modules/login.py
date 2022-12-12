@@ -8,7 +8,7 @@ from base import bot, db, db_privilege
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
-@bot.message_handler(commands=['login'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['login'], is_private_chat=True)
 def start_login(message):
     if message.chat.id in db:
         bot.send_message(

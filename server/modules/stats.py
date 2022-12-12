@@ -106,7 +106,7 @@ def stats_callback_query(call):
         pass
 
 
-@bot.message_handler(commands=['stats'], is_for_me=True)
+@bot.message_handler(commands=['stats'])
 def get_stats(message):
     init_arg = ('4', False, list(config.SERVER.keys())[0])
     stats_text = get_stats_text(*init_arg)

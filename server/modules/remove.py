@@ -8,7 +8,7 @@ from base import bot, db, db_privilege
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
-@bot.message_handler(commands=['remove'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['remove'], is_private_chat=True)
 def remove_peer(message):
     if message.chat.id not in db:
         bot.send_message(

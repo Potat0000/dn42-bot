@@ -6,7 +6,7 @@ from base import bot, db, db_privilege
 from telebot.types import ReplyKeyboardRemove
 
 
-@bot.message_handler(commands=['logout'], is_for_me=True, is_private_chat=True)
+@bot.message_handler(commands=['logout'], is_private_chat=True)
 def start_logout(message):
     if message.chat.id not in db:
         bot.send_message(
