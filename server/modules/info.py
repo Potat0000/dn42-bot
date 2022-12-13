@@ -56,21 +56,22 @@ def gen_info_markup(node, available_node, session_name):
                     url=f'{config.LG_DOMAIN}/detail/{node}/{session_name[0]}',
                 )
             )
-    for node_name in available_node:
-        if node_name == node:
-            markup.row(
-                InlineKeyboardButton(
-                    text=f'✅ {config.SERVER[node_name]}',
-                    callback_data=f"info_{node_name}",
+    if len(available_node) >= 2:
+        for node_name in available_node:
+            if node_name == node:
+                markup.row(
+                    InlineKeyboardButton(
+                        text=f'✅ {config.SERVER[node_name]}',
+                        callback_data=f"info_{node_name}",
+                    )
                 )
-            )
-        else:
-            markup.row(
-                InlineKeyboardButton(
-                    text=config.SERVER[node_name],
-                    callback_data=f"info_{node_name}",
+            else:
+                markup.row(
+                    InlineKeyboardButton(
+                        text=config.SERVER[node_name],
+                        callback_data=f"info_{node_name}",
+                    )
                 )
-            )
     return markup
 
 
@@ -105,11 +106,14 @@ def get_info_text(chatid, node):
             markup,
         )
     if node is None:
-        return (
-            "Select an available node from the list below to get information\n从下方列表中选择一个可用节点以获取信息",
-            None,
-            gen_info_markup('', available_node, []),
-        )
+        if len(available_node) == 1:
+            node = list(available_node)[0]
+        else:
+            return (
+                "Select an available node from the list below to get information\n从下方列表中选择一个可用节点以获取信息",
+                None,
+                gen_info_markup('', available_node, []),
+            )
 
     if node not in all_peers:
         return (
@@ -132,7 +136,9 @@ def get_info_text(chatid, node):
             gen_info_markup('', available_node, []),
         )
 
-    detail_text = "Information on your side:\n"
+    detail_text = "Node:\n"
+    detail_text += f"    {config.SERVER[node]}\n"
+    detail_text += "Information on your side:\n"
     detail_text += basic_info(
         db[chatid],
         peer_info['clearnet'],
