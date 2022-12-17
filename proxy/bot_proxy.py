@@ -410,6 +410,30 @@ async def trace_test(request):
         return web.Response(status=500)
 
 
+@routes.post('/route')
+async def get_route(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret == SECRET:
+        target = await request.text()
+    else:
+        return web.Response(status=403)
+
+    try:
+        try:
+            output = (
+                subprocess.check_output(
+                    shlex.split(f"birdc show route for {target} primary all"), timeout=3, stderr=subprocess.STDOUT
+                )
+                .decode("utf-8")
+                .strip()
+            )
+        except subprocess.CalledProcessError as e:
+            output = e.output
+        return web.Response(body=output)
+    except BaseException:
+        return web.Response(status=500)
+
+
 app = web.Application()
 app.add_routes(routes)
 web.run_app(app, port=PORT)

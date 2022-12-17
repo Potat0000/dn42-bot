@@ -17,6 +17,8 @@ Config items are located at `server/config.py`.
 | CONTACT             | Contact information for yourself                                                         |
 | DN42_ASN            | Your DN42 ASN                                                                            |
 | WELCOME_TEXT        | The text shows at the top of /help command                                               |
+| WHOIS_ADDRESS       | The address of whois server                                                              |
+| DN42_ONLY           | Whether the tool commands (ping, traceroute, etc.) only allow DN42 networks.             |
 | ENDPOINT            | Server name domain suffixes                                                              |
 | API_PORT            | Proxy API Port                                                                           |
 | API_TOKEN           | Proxy API Token                                                                          |
@@ -64,6 +66,7 @@ You can submit the following text to BotFather's `/setcommands` command:
 ```
 ping  - Ping IP / Domain
 trace - Traceroute IP / Domain
+route - Route to IP / Domain
 whois - Whois
 login - Login to verify your ASN 登录以验证你的 ASN
 logout - Logout current logged ASN 退出当前登录的 ASN

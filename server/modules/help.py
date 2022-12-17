@@ -15,6 +15,7 @@ def send_welcome(message):
             "    Tools:\n"
             "        - /ping [ip/domain]\n"
             "        - /trace [ip/domain]\n"
+            "        - /route [ip/domain]\n"
             "        - /whois [something]\n"
             "    User Manage:\n"
             "        - /login - Login to verify your ASN 登录以验证你的 ASN\n"

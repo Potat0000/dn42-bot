@@ -16,6 +16,7 @@ WELCOME_TEXT = (
 )
 
 WHOIS_ADDRESS = "127.0.0.1"
+DN42_ONLY = False
 
 # API settings
 ENDPOINT = "dn42.domain.tld"  # Also used for tunnel

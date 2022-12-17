@@ -8,6 +8,7 @@ import modules.logout
 import modules.peer
 import modules.ping_trace
 import modules.remove
+import modules.route
 import modules.start
 import modules.stats
 import modules.whoami
