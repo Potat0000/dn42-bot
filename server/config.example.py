@@ -15,6 +15,8 @@ WELCOME_TEXT = (
     "https://dn42.potat0.cc/\n"
 )
 
+WHOIS_ADDRESS = "127.0.0.1"
+
 # API settings
 ENDPOINT = "dn42.domain.tld"  # Also used for tunnel
 API_PORT = 54321

@@ -57,7 +57,9 @@ def td_format(td_object):
 
 def get_mnt_by_asn(asn):
     try:
-        whois = subprocess.check_output(shlex.split(f'whois -h 127.0.0.1 AS{asn}'), timeout=3).decode("utf-8")
+        whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(
+            "utf-8"
+        )
         for i in whois.split('\n'):
             if i.startswith('as-name:'):
                 raw_name = i.split(':')[1].strip()
@@ -124,9 +126,9 @@ def test_ip_domain(testcase):
         dn42 = True
     if dn42 and ip:
         try:
-            whois = subprocess.check_output(shlex.split(f'whois -h 127.0.0.1 -T route,route6 {ip}'), timeout=3).decode(
-                "utf-8"
-            )
+            whois = subprocess.check_output(
+                shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route,route6 {ip}'), timeout=3
+            ).decode("utf-8")
             asn = []
             for i in whois.split('\n'):
                 if i.startswith('origin:'):
@@ -226,7 +228,7 @@ def test_clearnet(address):
 def get_email(asn):
     try:
         whois1 = (
-            subprocess.check_output(shlex.split(f"whois -h 127.0.0.1 AS{asn}"), timeout=3)
+            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} AS{asn}"), timeout=3)
             .decode("utf-8")
             .split("\n")[3:]
         )
@@ -237,7 +239,7 @@ def get_email(asn):
         else:
             return set()
         whois2 = (
-            subprocess.check_output(shlex.split(f"whois -h 127.0.0.1 {admin_c}"), timeout=3)
+            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} {admin_c}"), timeout=3)
             .decode("utf-8")
             .split("\n")[3:]
         )
