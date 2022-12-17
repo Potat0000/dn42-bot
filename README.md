@@ -64,6 +64,7 @@ You can submit the following text to BotFather's `/setcommands` command:
 ```
 ping  - Ping IP / Domain
 trace - Traceroute IP / Domain
+whois - Whois
 login - Login to verify your ASN 登录以验证你的 ASN
 logout - Logout current logged ASN 退出当前登录的 ASN
 whoami - Get current login user 获取当前登录用户

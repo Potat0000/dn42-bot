@@ -2,20 +2,7 @@
 
 import config
 import tools
-from base import bot, db, db_privilege
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-
-def gen_peer_me_markup(message):
-    if message.chat.id in db_privilege:
-        return None
-    if message.chat.type == "private" and message.chat.id in db:
-        if tools.get_info(db[message.chat.id]):
-            return None
-    markup = InlineKeyboardMarkup()
-    markup.row_width = 1
-    markup.add(InlineKeyboardButton("Peer with me | 与我 Peer", url=f"https://t.me/{config.BOT_USERNAME}"))
-    return markup
+from base import bot
 
 
 @bot.message_handler(commands=['ping', 'trace', 'traceroute', 'tracert'])
@@ -25,12 +12,12 @@ def ping_trace(message):
         bot.reply_to(
             message,
             f"Usage: /{command} [ip/domain]\n用法：/{command} [ip/domain]",
-            reply_markup=gen_peer_me_markup(message),
+            reply_markup=tools.gen_peer_me_markup(message),
         )
         return
     parsed_info = tools.test_ip_domain(message.text.strip().split(" ")[1])
     if not parsed_info:
-        bot.reply_to(message, "IP/Domain is wrong\nIP/域名不正确", reply_markup=gen_peer_me_markup(message))
+        bot.reply_to(message, "IP/Domain is wrong\nIP/域名不正确", reply_markup=tools.gen_peer_me_markup(message))
         return
     # if not parsed_info.dn42:
     #     bot.reply_to(
@@ -40,7 +27,7 @@ def ping_trace(message):
     #     )
     #     return
     if not parsed_info.ip:
-        bot.reply_to(message, "Domain can't be resolved 域名无法被解析", reply_markup=gen_peer_me_markup(message))
+        bot.reply_to(message, "Domain can't be resolved 域名无法被解析", reply_markup=tools.gen_peer_me_markup(message))
         return
     msg = bot.reply_to(
         message,
@@ -50,7 +37,7 @@ def ping_trace(message):
             domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
         ),
         parse_mode="Markdown",
-        reply_markup=gen_peer_me_markup(message),
+        reply_markup=tools.gen_peer_me_markup(message),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
     raw = tools.get_all('ping' if command == "ping" else "trace", parsed_info.raw)
@@ -66,5 +53,5 @@ def ping_trace(message):
         parse_mode="Markdown",
         chat_id=message.chat.id,
         message_id=msg.message_id,
-        reply_markup=gen_peer_me_markup(message),
+        reply_markup=tools.gen_peer_me_markup(message),
     )

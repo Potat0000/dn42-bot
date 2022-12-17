@@ -12,7 +12,9 @@ from time import time
 
 import config
 from aiohttp import ClientSession
+from base import db, db_privilege
 from IPy import IP
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def gen_random_code(length):
@@ -260,6 +262,18 @@ def get_email(asn):
             return set()
     except BaseException:
         return set()
+
+
+def gen_peer_me_markup(message):
+    if message.chat.id in db_privilege:
+        return None
+    if message.chat.type == "private" and message.chat.id in db:
+        if get_info(db[message.chat.id]):
+            return None
+    markup = InlineKeyboardMarkup()
+    markup.row_width = 1
+    markup.add(InlineKeyboardButton("Peer with me | 与我 Peer", url=f"https://t.me/{config.BOT_USERNAME}"))
+    return markup
 
 
 def get_all(type, target):

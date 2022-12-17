@@ -11,3 +11,4 @@ import modules.remove
 import modules.start
 import modules.stats
 import modules.whoami
+import modules.whois
