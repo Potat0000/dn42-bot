@@ -28,6 +28,7 @@ def send_welcome(message):
             "    Statistics:\n"
             "        - /rank - Show DN42 global ranking 显示 DN42 总体排名\n"
             "        - /stats - Show DN42 user basic info & statistics 显示 DN42 用户基本信息及数据\n"
+            "        - /peer_list - Show the peer situation of a user 显示某 DN42 用户的 Peer 情况\n"
             "        - /route_stats - Show preferred routes ranking 显示优选 Routes 排名\n"
             "\n"
             "You can always use /cancel to interrupt current operation.\n"

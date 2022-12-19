@@ -84,7 +84,7 @@ def rank_callback_query(call):
 @bot.message_handler(commands=['rank'])
 def get_rank(message):
     if not tools.get_map()[1]:
-        bot.send_message(message.chat.id, "No data available.\n暂无数据。", reply_markup=ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, "No data available.\n暂无数据。", reply_markup=tools.gen_peer_me_markup(message))
         return
     init_arg = (0, 'jerry')
     rank_text = get_rank_text(*init_arg)

@@ -76,6 +76,7 @@ remove - Remove a peer 移除一个 Peer
 info - Show your peer info and status 查看你的 Peer 信息及状态
 rank - Show DN42 global ranking 显示 DN42 总体排名
 stats - Show DN42 user basic info & statistics 显示 DN42 用户基本信息及数据
+peer_list - Show the peer situation of a user 显示某 DN42 用户的 Peer 情况
 route_stats - Show preferred routes ranking 显示优选 Routes 排名
 cancel - Cancel ongoing operations 取消正在进行的操作
 help - Get help text 获取帮助文本

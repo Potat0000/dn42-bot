@@ -6,6 +6,7 @@ import commands.info
 import commands.login
 import commands.logout
 import commands.peer
+import commands.peer_list
 import commands.ping_trace
 import commands.rank
 import commands.remove

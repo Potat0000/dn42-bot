@@ -15,10 +15,10 @@ def route(message):
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    _, data, _ = tools.get_map()
+    data = tools.get_map()[1]
     if not data:
         bot.send_message(
-            message.chat.id, 'No data available.\n暂无数据。', parse_mode='Markdown', reply_markup=ReplyKeyboardRemove()
+            message.chat.id, 'No data available.\n暂无数据。', parse_mode='Markdown', reply_markup=tools.gen_peer_me_markup(message)
         )
         return
     mnt = tools.get_mnt_by_asn(asn)
