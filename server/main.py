@@ -11,6 +11,22 @@ from aiohttp import web
 
 import commands
 
+MIN_AGENT_VERSION = 1
+
+offline_node = []
+old_node = []
+for k, v in tools.get_from_agent('version', None).items():
+    if v.status != 200:
+        offline_node.append(k)
+    elif int(v.text) < MIN_AGENT_VERSION:
+        old_node.append(k)
+if offline_node or old_node:
+    if offline_node:
+        print("Offline node: " + ', '.join(offline_node))
+    if old_node:
+        print("Old node: " + ', '.join(old_node))
+    exit(1)
+
 route_stats_timer = tools.LoopTimer(900, tools.get_route_stats, "Update Route Stats Timer", update=True)
 route_stats_timer.start()
 

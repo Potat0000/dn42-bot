@@ -7,6 +7,8 @@ import subprocess
 from aiohttp import web
 from IPy import IP
 
+AGENT_VERSION = 1
+
 try:
     with open("agent_config.json", 'r') as f:
         raw_config = json.load(f)
@@ -31,6 +33,15 @@ def simple_run(command):
     except subprocess.CalledProcessError as e:
         output = e.output
     return output
+
+
+@routes.post('/version')
+async def version(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret == SECRET:
+        return web.Response(body=str(AGENT_VERSION))
+    else:
+        return web.Response(status=403)
 
 
 @routes.post('/info')
