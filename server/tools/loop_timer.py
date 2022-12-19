@@ -4,7 +4,7 @@
 #   https://www.cnblogs.com/kaerxifa/p/11481047.html
 #   https://stackoverflow.com/a/13151299
 
-from threading import Timer
+from threading import Timer, Thread
 
 
 class LoopTimer:
@@ -40,6 +40,7 @@ class LoopTimer:
             self._timer.daemon = True
             self._timer.start()
             self._is_running = True
+            Thread(target=self.function, args=self.args, kwargs=self.kwargs).start()
 
     def cancel(self):
         if self._is_running:

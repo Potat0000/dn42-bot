@@ -11,7 +11,6 @@ from aiohttp import web
 
 import commands
 
-tools.get_route_stats(update=True)
 route_stats_timer = tools.LoopTimer(900, tools.get_route_stats, "Update Route Stats Timer", update=True)
 route_stats_timer.start()
 
@@ -19,7 +18,7 @@ try:
     with open("./rank.pkl", "rb") as f:
         tools.get_rank(update=pickle.load(f))
 except BaseException:
-    tools.get_rank(update=True)
+    pass
 rank_timer = tools.LoopTimer(900, tools.get_rank, "Update Rank Timer", update=True)
 rank_timer.start()
 
