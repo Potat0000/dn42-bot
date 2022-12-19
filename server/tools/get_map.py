@@ -34,15 +34,16 @@ def jerry_centrality(fullasmap, closeness_centrality, betweenness_centrality):
     return {k: v for k, v in node_centrality}
 
 
-def gen_get_rank():
+def gen_get_map():
     update_time = 0
     data = {}
+    map = {}
 
     def inner(*, update=None):
-        nonlocal data, update_time
+        nonlocal data, map, update_time
         if update:
             if isinstance(update, tuple):
-                data, update_time = update
+                data, update_time, map = update
                 return
             G = nx.Graph()
             for ipver in ['4', '6']:
@@ -52,13 +53,13 @@ def gen_get_rank():
                     for i in range(len(as_path) - 1):
                         G.add_edge(as_path[i], as_path[i + 1])
 
-            temp = {
+            temp_data = {
                 'closeness': nx.closeness_centrality(G),
                 'betweenness': nx.betweenness_centrality(G),
-                'peer': {p: len(G.adj[p]) for p in G.nodes},
+                'peer': {p: len(G[p]) for p in G.nodes},
             }
-            temp['jerry'] = jerry_centrality(G.nodes, temp['closeness'], temp['betweenness'])
-            for rank_type, rank_data in temp.items():
+            temp_data['jerry'] = jerry_centrality(G.nodes, temp_data['closeness'], temp_data['betweenness'])
+            for rank_type, rank_data in temp_data.items():
                 s = [(k, v) for k, v in rank_data.items()]
                 s.sort(key=lambda x: (-x[1], x[0]))
                 rank_now = 0
@@ -69,14 +70,15 @@ def gen_get_rank():
                         rank_now = index
                     last_value = value
                     out.append((rank_now, asn, get_mnt_by_asn(asn, fallback_prefix=''), value))
-                temp[rank_type] = out
-            data, update_time = temp, int(time())
+                temp_data[rank_type] = out
+            temp_map = {asn: set(G[asn]) for asn in G.nodes}
+            data, update_time, map = temp_data, int(time()), temp_map
             with open('./rank.pkl', 'wb') as f:
-                pickle.dump((data, update_time), f)
+                pickle.dump((data, update_time, map), f)
         else:
-            return data, update_time
+            return data, update_time, map
 
     return inner
 
 
-get_rank = gen_get_rank()
+get_map = gen_get_map()

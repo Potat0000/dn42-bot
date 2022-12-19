@@ -17,7 +17,7 @@ rank_type_dict = {
 
 def gen_rank_markup(page, rank_type):
     markup = InlineKeyboardMarkup()
-    total = len(tools.get_rank()[0]['peer'])
+    total = len(tools.get_map()[2])
     last_page = (total - 1) // PAGE_SIZE
     if page == 0:
         markup.row(
@@ -46,7 +46,7 @@ def gen_rank_markup(page, rank_type):
 
 
 def get_rank_text(page, rank_type):
-    data, update_time = tools.get_rank()
+    data, update_time, _ = tools.get_map()
     time_delta = int(time.time()) - update_time
     data = data[rank_type][PAGE_SIZE * page : PAGE_SIZE * (page + 1)]
     mnt_len = 20

@@ -32,10 +32,10 @@ route_stats_timer.start()
 
 try:
     with open("./rank.pkl", "rb") as f:
-        tools.get_rank(update=pickle.load(f))
+        tools.get_map(update=pickle.load(f))
 except BaseException:
     pass
-rank_timer = tools.LoopTimer(900, tools.get_rank, "Update Rank Timer", update=True)
+rank_timer = tools.LoopTimer(900, tools.get_map, "Update Rank Timer", update=True)
 rank_timer.start()
 
 
