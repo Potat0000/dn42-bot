@@ -5,12 +5,13 @@ import tools
 from base import bot
 
 
-@bot.message_handler(commands=['route'])
-def route(message):
+@bot.message_handler(commands=['ping', 'trace', 'traceroute', 'tracert'])
+def ping_trace(message):
+    command = message.text.strip().split(" ")[0][1:]
     if len(message.text.strip().split(" ")) != 2:
         bot.reply_to(
             message,
-            "Usage: /route [ip/domain]\n用法：/route [ip/domain]",
+            f"Usage: /{command} [ip/domain]\n用法：/{command} [ip/domain]",
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
@@ -30,7 +31,8 @@ def route(message):
         return
     msg = bot.reply_to(
         message,
-        "```\nRoute to {ip}{domain} ...\n```".format(
+        "```\n{command_text} {ip}{domain} ...\n```".format(
+            command_text="Ping" if command == "ping" else "Traceroute",
             ip=parsed_info.ip,
             domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
         ),
@@ -38,7 +40,7 @@ def route(message):
         reply_markup=tools.gen_peer_me_markup(message),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    raw = tools.get_all('route', parsed_info.ip)
+    raw = tools.get_from_proxy('ping' if command == "ping" else "trace", parsed_info.raw)
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],

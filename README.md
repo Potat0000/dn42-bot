@@ -74,7 +74,7 @@ whoami - Get current login user 获取当前登录用户
 peer - Set up a peer 设置一个 Peer
 remove - Remove a peer 移除一个 Peer
 info - Show your peer info and status 查看你的 Peer 信息及状态
-stats - Show preferred routes ranking 显示优选 Routes 排名
+route_stats - Show preferred routes ranking 显示优选 Routes 排名
 cancel - Cancel ongoing operations 取消正在进行的操作
 help - Get help text 获取帮助文本
 ```

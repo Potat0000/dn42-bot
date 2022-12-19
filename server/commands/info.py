@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import math
 from datetime import datetime, timezone
 
 import config
@@ -6,6 +7,39 @@ import tools
 from base import bot, db
 from IPy import IP
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+
+# https://stackoverflow.com/a/14822210
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
+
+
+# https://stackoverflow.com/a/13756038
+def td_format(td_object):
+    seconds = int(td_object.total_seconds())
+    if seconds <= 0:
+        return 'now'
+    periods = [
+        # ('year', 60 * 60 * 24 * 365),
+        # ('month', 60 * 60 * 24 * 30),
+        ('day', 60 * 60 * 24),
+        ('hour', 60 * 60),
+        ('minute', 60),
+        ('second', 1),
+    ]
+    strings = []
+    for period_name, period_seconds in periods:
+        if seconds >= period_seconds:
+            period_value, seconds = divmod(seconds, period_seconds)
+            has_s = 's' if period_value > 1 else ''
+            strings.append("%s %s%s" % (period_value, period_name, has_s))
+    return ", ".join(strings) + " ago"
 
 
 def basic_info(asn, endpoint, pubkey, v6, v4):
@@ -159,7 +193,7 @@ def get_info_text(chatid, node):
         detail_text += "WireGuard Status:\n" "    Latest handshake:\n" "        Never\n" "    Transfer:\n"
     else:
         latest_handshake = datetime.fromtimestamp(peer_info['wg_last_handshake'], tz=timezone.utc)
-        latest_handshake_td = tools.td_format(datetime.now(tz=timezone.utc) - latest_handshake)
+        latest_handshake_td = td_format(datetime.now(tz=timezone.utc) - latest_handshake)
         latest_handshake = latest_handshake.isoformat().replace('+00:00', 'Z')
         detail_text += (
             "WireGuard Status:\n"
@@ -168,7 +202,7 @@ def get_info_text(chatid, node):
             f"        {latest_handshake_td}\n"
             "    Transfer:\n"
         )
-    transfer = [tools.convert_size(i) for i in peer_info['wg_transfer']]
+    transfer = [convert_size(i) for i in peer_info['wg_transfer']]
     detail_text += f"        {transfer[0]} received, {transfer[1]} sent\n"
 
     detail_text += "Bird Status:\n" f"    {peer_info['session']}\n"

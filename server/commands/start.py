@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from base import bot
-from modules.help import send_welcome
-from modules.info import get_info
-from modules.whoami import whoami
-from modules.peer import start_peer
-from modules.login import start_login
+from commands.help import send_welcome
+from commands.info import get_info
+from commands.whoami import whoami
+from commands.peer import start_peer
+from commands.login import start_login
 
 
 @bot.message_handler(commands=['start'], is_private_chat=True)

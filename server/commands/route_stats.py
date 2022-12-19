@@ -37,8 +37,8 @@ def gen_stats_markup(ip_ver, simple, node):
     return markup
 
 
-def get_stats_text(ip_ver, simple, node):
-    data, update_time = tools.get_stats()
+def get_route_stats_text(ip_ver, simple, node):
+    data, update_time = tools.get_route_stats()
     if isinstance(data[node], dict):
         time_delta = int(time.time()) - update_time
         data = data[node][ip_ver]
@@ -93,7 +93,7 @@ def get_stats_text(ip_ver, simple, node):
 def stats_callback_query(call):
     choice = call.data.split("_", 4)[1:4]
     choice[1] = bool(int(choice[1]))
-    stats_text = get_stats_text(*choice)
+    stats_text = get_route_stats_text(*choice)
     try:
         bot.edit_message_text(
             stats_text[0],
@@ -106,8 +106,8 @@ def stats_callback_query(call):
         pass
 
 
-@bot.message_handler(commands=['stats'])
-def get_stats(message):
+@bot.message_handler(commands=['route_stats'])
+def get_route_stats(message):
     init_arg = ('4', False, list(config.SERVER.keys())[0])
-    stats_text = get_stats_text(*init_arg)
+    stats_text = get_route_stats_text(*init_arg)
     bot.send_message(message.chat.id, stats_text[0], parse_mode=stats_text[1], reply_markup=gen_stats_markup(*init_arg))

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import re
 import socket
 import string
 from functools import partial
@@ -448,8 +449,91 @@ def peer_clearnet_input(peer_info, message):
         return
 
     if message.text.strip().lower() != "none":
-        if tools.test_clearnet(message.text.strip()):
-            peer_info["Clearnet"] = tools.test_clearnet(message.text.strip())
+
+        def test_clearnet(address):
+            IPv4_Bogon = [
+                IP('0.0.0.0/8'),
+                IP('10.0.0.0/8'),
+                IP('100.64.0.0/10'),
+                IP('127.0.0.0/8'),
+                IP('127.0.53.53'),
+                IP('169.254.0.0/16'),
+                IP('172.16.0.0/12'),
+                IP('192.0.0.0/24'),
+                IP('192.0.2.0/24'),
+                IP('192.168.0.0/16'),
+                IP('198.18.0.0/15'),
+                IP('198.51.100.0/24'),
+                IP('203.0.113.0/24'),
+                IP('224.0.0.0/4'),
+                IP('240.0.0.0/4'),
+                IP('255.255.255.255/32'),
+            ]
+            IPv6_Bogon = [
+                IP('::/128'),
+                IP('::1/128'),
+                IP('::ffff:0:0/96'),
+                IP('::/96'),
+                IP('100::/64'),
+                IP('2001:10::/28'),
+                IP('2001:db8::/32'),
+                IP('fc00::/7'),
+                IP('fe80::/10'),
+                IP('fec0::/10'),
+                IP('ff00::/8'),
+                IP('2002::/24'),
+                IP('2002:a00::/24'),
+                IP('2002:7f00::/24'),
+                IP('2002:a9fe::/32'),
+                IP('2002:ac10::/28'),
+                IP('2002:c000::/40'),
+                IP('2002:c000:200::/40'),
+                IP('2002:c0a8::/32'),
+                IP('2002:c612::/31'),
+                IP('2002:c633:6400::/40'),
+                IP('2002:cb00:7100::/40'),
+                IP('2002:e000::/20'),
+                IP('2002:f000::/20'),
+                IP('2002:ffff:ffff::/48'),
+                IP('2001::/40'),
+                IP('2001:0:a00::/40'),
+                IP('2001:0:7f00::/40'),
+                IP('2001:0:a9fe::/48'),
+                IP('2001:0:ac10::/44'),
+                IP('2001:0:c000::/56'),
+                IP('2001:0:c000:200::/56'),
+                IP('2001:0:c0a8::/48'),
+                IP('2001:0:c612::/47'),
+                IP('2001:0:c633:6400::/56'),
+                IP('2001:0:cb00:7100::/56'),
+                IP('2001:0:e000::/36'),
+                IP('2001:0:f000::/36'),
+                IP('2001:0:ffff:ffff::/64'),
+            ]
+            try:  # Test for IPv4
+                socket.inet_pton(socket.AF_INET, address)
+                if any(IP(address) in i for i in IPv4_Bogon):
+                    return None
+                else:
+                    return str(IP(address))
+            except socket.error:
+                try:  # Test for IPv6
+                    socket.inet_pton(socket.AF_INET6, address)
+                    if any(IP(address) in i for i in IPv6_Bogon):
+                        return None
+                    else:
+                        return str(IP(address))
+                except socket.error:
+                    if not re.search('[a-zA-Z]', address):
+                        return None
+                    try:  # Test for domain
+                        if test_clearnet(socket.gethostbyname(address)) is not None:
+                            return address
+                    except socket.error:
+                        return None
+
+        if test_clearnet(message.text.strip()):
+            peer_info["Clearnet"] = test_clearnet(message.text.strip())
         else:
             if message.chat.id not in db_privilege:
                 msg = bot.send_message(

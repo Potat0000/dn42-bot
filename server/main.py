@@ -8,10 +8,10 @@ import telebot
 import tools
 from aiohttp import web
 
-import modules
+import commands
 
-tools.get_stats(update=True)
-stats_timer = tools.LoopTimer(900, tools.get_stats, "Update Stats Timer", update=True)
+tools.get_route_stats(update=True)
+stats_timer = tools.LoopTimer(900, tools.get_route_stats, "Update Stats Timer", update=True)
 stats_timer.start()
 
 

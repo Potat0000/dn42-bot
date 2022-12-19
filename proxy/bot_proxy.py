@@ -193,7 +193,7 @@ async def get_info(request):
 
 
 @routes.post('/stats')
-async def get_stats(request):
+async def get_route_stats(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret != SECRET:
         return web.Response(status=403)

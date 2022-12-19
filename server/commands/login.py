@@ -1,11 +1,51 @@
 # -*- coding: utf-8 -*-
 import pickle
+import re
+import shlex
+import subprocess
 from functools import partial
 
 import config
 import tools
 from base import bot, db, db_privilege
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+
+
+def get_email(asn):
+    try:
+        whois1 = (
+            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} AS{asn}"), timeout=3)
+            .decode("utf-8")
+            .split("\n")[3:]
+        )
+        for line in whois1:
+            if line.startswith("admin-c:"):
+                admin_c = line.split(":")[1].strip()
+                break
+        else:
+            return set()
+        whois2 = (
+            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} {admin_c}"), timeout=3)
+            .decode("utf-8")
+            .split("\n")[3:]
+        )
+        emails = set()
+        for line in whois2:
+            if line.startswith("e-mail:"):
+                email = line.split(":")[1].strip()
+                if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', email):
+                    emails.add(email)
+        for line in whois2:
+            if line.startswith("contact:"):
+                email = line.split(":")[1].strip()
+                if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', email):
+                    emails.add(email)
+        if emails:
+            return emails
+        else:
+            return set()
+    except BaseException:
+        return set()
 
 
 @bot.message_handler(commands=['login'], is_private_chat=True)
@@ -46,7 +86,7 @@ def login_input_asn(message):
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
-        emails = tools.get_email(asn)
+        emails = get_email(asn)
 
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
