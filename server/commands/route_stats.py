@@ -63,8 +63,6 @@ def get_route_stats_text(ip_ver, simple, node):
                 if count != last_count:
                     rank_now = index
                 last_count = count
-                if mnt == f'AS{asn}':
-                    mnt = asn
                 if len(mnt) > mnt_len:
                     mnt = mnt[: mnt_len - 3] + '...'
                 if simple:

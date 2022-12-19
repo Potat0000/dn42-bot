@@ -22,7 +22,7 @@ def gen_random_code(length):
     )
 
 
-def get_mnt_by_asn(asn):
+def get_mnt_by_asn(asn, fallback_prefix="AS"):
     try:
         whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(
             "utf-8"
@@ -41,7 +41,7 @@ def get_mnt_by_asn(asn):
                 return raw_name
     except BaseException:
         pass
-    return f"AS{asn}"
+    return f"{fallback_prefix}{asn}"
 
 
 def get_asn_mnt_text(asn):

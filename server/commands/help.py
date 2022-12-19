@@ -26,6 +26,7 @@ def send_welcome(message):
             "        - /remove - Remove a peer 移除一个 Peer\n"
             "        - /info - Show your peer info and status 查看你的 Peer 信息及状态\n"
             "    Statistics:\n"
+            "        - /rank - Show DN42 global ranking 显示 DN42 总体排名\n"
             "        - /route_stats - Show preferred routes ranking 显示优选 Routes 排名\n"
             "\n"
             "You can always use /cancel to interrupt current operation.\n"
