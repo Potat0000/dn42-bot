@@ -1,7 +1,7 @@
 import json
 from time import time
 
-from tools.tools import get_from_proxy, get_mnt_by_asn
+from tools.tools import get_from_agent, get_mnt_by_asn
 
 
 def gen_get_route_stats():
@@ -12,7 +12,7 @@ def gen_get_route_stats():
         nonlocal data, update_time
         temp = {}
         if update:
-            raw = get_from_proxy("stats", "")
+            raw = get_from_agent("stats", "")
             for node, raw_data in raw.items():
                 if raw_data.status != 200:
                     temp[node] = raw_data.text

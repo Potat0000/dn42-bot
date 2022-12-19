@@ -121,7 +121,7 @@ def gen_peer_me_markup(message):
     return markup
 
 
-def get_from_proxy(type, target):
+def get_from_agent(type, target):
     api_result = namedtuple('api_result', ['text', 'status'])
 
     async def async_test():
@@ -153,7 +153,7 @@ def get_from_proxy(type, target):
 
 def get_info(asn):
     data = {}
-    for k, v in get_from_proxy("info", str(asn)).items():
+    for k, v in get_from_agent("info", str(asn)).items():
         if v.status == 200:
             try:
                 data[k] = json.loads(v.text)

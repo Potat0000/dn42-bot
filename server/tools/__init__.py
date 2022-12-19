@@ -8,7 +8,7 @@ import tools.tools as tools
 gen_peer_me_markup = tools.gen_peer_me_markup
 gen_random_code = tools.gen_random_code
 get_asn_mnt_text = tools.get_asn_mnt_text
-get_from_proxy = tools.get_from_proxy
+get_from_agent = tools.get_from_agent
 get_info = tools.get_info
 get_mnt_by_asn = tools.get_mnt_by_asn
 get_rank = get_rank.get_rank

@@ -38,7 +38,7 @@ def route(message):
         reply_markup=tools.gen_peer_me_markup(message),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    raw = tools.get_from_proxy('route', parsed_info.ip)
+    raw = tools.get_from_agent('route', parsed_info.ip)
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],

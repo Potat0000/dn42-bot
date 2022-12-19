@@ -8,7 +8,7 @@ from aiohttp import web
 from IPy import IP
 
 try:
-    with open("proxy_config.json", 'r') as f:
+    with open("agent_config.json", 'r') as f:
         raw_config = json.load(f)
     PORT = raw_config['PORT']
     SECRET = raw_config['SECRET']

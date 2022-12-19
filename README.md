@@ -1,6 +1,6 @@
 # Yet Another Telegram DN42 Bot
 
-The project is divided into two parts: server and proxy, which can be deployed separately and have independent `requirements.txt`.
+The project is divided into two parts: server and agent, which can be deployed separately and have independent `requirements.txt`.
 
 ## Server
 
@@ -20,8 +20,8 @@ Config items are located at `server/config.py`.
 | WHOIS_ADDRESS       | The address of whois server                                                              |
 | DN42_ONLY           | Whether the tool commands (ping, traceroute, etc.) only allow DN42 networks.             |
 | ENDPOINT            | Server name domain suffixes                                                              |
-| API_PORT            | Proxy API Port                                                                           |
-| API_TOKEN           | Proxy API Token                                                                          |
+| API_PORT            | Agent API Port                                                                           |
+| API_TOKEN           | Agent API Token                                                                          |
 | SERVER              | A dict. The keys are the actual server names while the values are the display names.     |
 | WEBHOOK_URL         | Webhook URL to regist to Telegram                                                        |
 | WEBHOOK_LISTEN_HOST | The listen host for webhook                                                              |
@@ -42,22 +42,22 @@ When logging in, you can enter the Privilege Code when selecting email to log in
 
 Privileged users can use `/whoami <New AS>` to directly modify their identity, unlock additional settings in `/peer`, remove some restrictions, and receive notifications when others create or delete peers.
 
-## Proxy
+## Agent
 
-The proxy directory contains the code for the "proxy" for tg-bot server.
+The agent directory contains the code for the "agent" for tg-bot server.
 
 ### Config
 
-Config items are located at `proxy/proxy_config.json`.
+Config items are located at `agent/agent_config.json`.
 
-| Config Key                 | Description                                          |
-| -------------------------- | ---------------------------------------------------- |
-| PORT                       | API Port                                             |
-| SECRET                     | API Token                                            |
-| MY_DN42_LINK_LOCAL_ADDRESS | The DN42 IPv6 Link-Local Address of this proxy node. |
-| MY_DN42_ULA_ADDRESS        | The DN42 IPv6 ULA Address of this proxy node.        |
-| MY_DN42_IPv4_ADDRESS       | The DN42 IPv4 Address of this proxy node.            |
-| MY_WG_PUBLIC_KEY           | The WireGuard Public Key of this proxy node.         |
+| Config Key                 | Description                                     |
+| -------------------------- | ----------------------------------------------- |
+| PORT                       | API Port                                        |
+| SECRET                     | API Token                                       |
+| MY_DN42_LINK_LOCAL_ADDRESS | The DN42 IPv6 Link-Local Address of this agent. |
+| MY_DN42_ULA_ADDRESS        | The DN42 IPv6 ULA Address of this agent.        |
+| MY_DN42_IPv4_ADDRESS       | The DN42 IPv4 Address of this agent.            |
+| MY_WG_PUBLIC_KEY           | The WireGuard Public Key of this agent.         |
 
 ## Command list for BotFather
 

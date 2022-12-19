@@ -40,7 +40,7 @@ def ping_trace(message):
         reply_markup=tools.gen_peer_me_markup(message),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    raw = tools.get_from_proxy('ping' if command == "ping" else "trace", parsed_info.raw)
+    raw = tools.get_from_agent('ping' if command == "ping" else "trace", parsed_info.raw)
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],
