@@ -46,7 +46,7 @@ def gen_rank_markup(page, rank_type):
 
 
 def get_rank_text(page, rank_type):
-    data, update_time, _ = tools.get_map()
+    update_time, data, _ = tools.get_map()
     time_delta = int(time.time()) - update_time
     data = data[rank_type][PAGE_SIZE * page : PAGE_SIZE * (page + 1)]
     mnt_len = 20
@@ -83,7 +83,7 @@ def rank_callback_query(call):
 
 @bot.message_handler(commands=['rank'])
 def get_rank(message):
-    if not tools.get_rank()[0]:
+    if not tools.get_map()[1]:
         bot.send_message(message.chat.id, "No data available.\n暂无数据。", reply_markup=ReplyKeyboardRemove())
         return
     init_arg = (0, 'jerry')

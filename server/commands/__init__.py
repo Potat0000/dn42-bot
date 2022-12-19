@@ -12,5 +12,6 @@ import commands.remove
 import commands.route
 import commands.route_stats
 import commands.start
+import commands.stats
 import commands.whoami
 import commands.whois

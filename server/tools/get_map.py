@@ -37,13 +37,13 @@ def jerry_centrality(fullasmap, closeness_centrality, betweenness_centrality):
 def gen_get_map():
     update_time = 0
     data = {}
-    map = {}
+    peer_map = {}
 
     def inner(*, update=None):
-        nonlocal data, map, update_time
+        nonlocal data, peer_map, update_time
         if update:
             if isinstance(update, tuple):
-                data, update_time, map = update
+                data, update_time, peer_map = update
                 return
             G = nx.Graph()
             for ipver in ['4', '6']:
@@ -72,11 +72,11 @@ def gen_get_map():
                     out.append((rank_now, asn, get_mnt_by_asn(asn, fallback_prefix=''), value))
                 temp_data[rank_type] = out
             temp_map = {asn: set(G[asn]) for asn in G.nodes}
-            data, update_time, map = temp_data, int(time()), temp_map
+            data, update_time, peer_map = temp_data, int(time()), temp_map
             with open('./rank.pkl', 'wb') as f:
-                pickle.dump((data, update_time, map), f)
+                pickle.dump((data, update_time, peer_map), f)
         else:
-            return data, update_time, map
+            return update_time, data, peer_map
 
     return inner
 
