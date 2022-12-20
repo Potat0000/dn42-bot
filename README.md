@@ -1,12 +1,36 @@
 # Yet Another Telegram DN42 Bot
 
+## Features
+
+- Tools
+  - [x] Ping
+  - [x] Traceroute
+  - [x] Route
+  - [x] Whois
+- User Manage
+  - [x] Login
+  - [x] Logout
+  - [x] Whoami
+- Peer
+  - [x] New peer
+  - [x] Remove peer
+  - [x] Peer info
+  - [ ] Modify peer
+- Statistics
+  - [x] DN42 global ranking
+  - [x] DN42 user basic info & statistics
+  - [x] Peer situation of a user
+  - [x] Preferred routes ranking
+
+## Deployment
+
 The project is divided into two parts: server and agent, which can be deployed separately and have independent `requirements.txt`.
 
-## Server
+### Server
 
 The server directory contains the code for the tg-bot server.
 
-### Config
+#### Config
 
 Config items are located at `server/config.py`.
 
@@ -30,11 +54,11 @@ Config items are located at `server/config.py`.
 | PRIVILEGE_CODE      | (Optional) Privilege code                                                                |
 | SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in. |
 
-### Email-sending function
+#### Email-sending function
 
 You should implement a `send_email(asn, mnt, code, email)` function in `config.py` and do the email sending in that function. If the send meets an error, a `RuntimeError` should be raised, otherwise, the send will be considered successful.
 
-### Privilege code
+#### Privilege code
 
 Privilege code login is provided for network operators.
 
@@ -42,11 +66,11 @@ When logging in, you can enter the Privilege Code when selecting email to log in
 
 Privileged users can use `/whoami <New AS>` to directly modify their identity, unlock additional settings in `/peer`, remove some restrictions, and receive notifications when others create or delete peers.
 
-## Agent
+### Agent
 
 The agent directory contains the code for the "agent" for tg-bot server.
 
-### Config
+#### Config
 
 Config items are located at `agent/agent_config.json`.
 
