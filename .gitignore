@@ -2,3 +2,4 @@
 /server/config.py
 /.vscode
 /.VSCodeCounter
+__pycache__

@@ -2,10 +2,10 @@
 import pickle
 import traceback
 
+import config
 import telebot
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
-
-import config
+from telebot.types import ReplyKeyboardRemove
 
 bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True)
 
@@ -24,7 +24,11 @@ class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
     def check(message):
         is_private = message.chat.type == "private"
         if not is_private:
-            bot.reply_to(message, "This command can only be used in private chat.\n此命令只能在私聊中使用。")
+            bot.reply_to(
+                message,
+                "This command can only be used in private chat.\n此命令只能在私聊中使用。",
+                reply_markup=ReplyKeyboardRemove(),
+            )
         return is_private
 
 
@@ -55,7 +59,7 @@ class AntiFloodMiddleware(BaseMiddleware):
             bot.send_message(
                 message.chat.id,
                 'You are making request too often\n请勿频繁发送请求',
-                reply_markup=telebot.types.ReplyKeyboardRemove(),
+                reply_markup=ReplyKeyboardRemove(),
             )
             return CancelUpdate()
         self.last_time[message.from_user.id] = message.date
@@ -91,6 +95,7 @@ class ExceptionHandlerMiddleware(BaseMiddleware):
                 message.chat.id,
                 f"Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}",
                 parse_mode='HTML',
+                reply_markup=ReplyKeyboardRemove(),
             )
             traceback.print_exception(exception)
 
