@@ -39,24 +39,26 @@ rank_timer = tools.LoopTimer(900, tools.get_map, "Update Rank Timer", update=Tru
 rank_timer.start()
 
 
-WEBHOOK_SECRET = tools.gen_random_code(32)
-
 bot.remove_webhook()
-time.sleep(0.5)
-bot.set_webhook(url=config.WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
 
+if config.WEBHOOK_URL:
+    time.sleep(0.5)
+    WEBHOOK_SECRET = tools.gen_random_code(32)
+    bot.set_webhook(url=config.WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
 
-async def handle(request):
-    secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
-    if secret == WEBHOOK_SECRET:
-        request_body_dict = await request.json()
-        update = telebot.types.Update.de_json(request_body_dict)
-        bot.process_new_updates([update])
-        return web.Response()
-    else:
-        return web.Response(status=403)
+    async def handle(request):
+        secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+        if secret == WEBHOOK_SECRET:
+            request_body_dict = await request.json()
+            update = telebot.types.Update.de_json(request_body_dict)
+            bot.process_new_updates([update])
+            return web.Response()
+        else:
+            return web.Response(status=403)
 
+    app = web.Application()
+    app.router.add_post('/', handle)
+    web.run_app(app, host=config.WEBHOOK_LISTEN_HOST, port=config.WEBHOOK_LISTEN_PORT)
 
-app = web.Application()
-app.router.add_post('/', handle)
-web.run_app(app, host=config.WEBHOOK_LISTEN_HOST, port=config.WEBHOOK_LISTEN_PORT)
+else:
+    bot.infinity_polling()

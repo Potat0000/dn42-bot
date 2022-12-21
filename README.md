@@ -47,9 +47,9 @@ Config items are located at `server/config.py`.
 | API_PORT            | Agent API Port                                                                           |
 | API_TOKEN           | Agent API Token                                                                          |
 | SERVER              | A dict. The keys are the actual server names while the values are the display names.     |
-| WEBHOOK_URL         | Webhook URL to regist to Telegram                                                        |
-| WEBHOOK_LISTEN_HOST | The listen host for webhook                                                              |
-| WEBHOOK_LISTEN_PORT | The listen port for webhook                                                              |
+| WEBHOOK_URL         | (Optional) Webhook URL to regist to Telegram. Disable webhook by set it to empty string. |
+| WEBHOOK_LISTEN_HOST | (Required if webhook enabled) The listen host for webhook                                |
+| WEBHOOK_LISTEN_PORT | (Required if webhook enabled) The listen port for webhook                                |
 | LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                           |
 | PRIVILEGE_CODE      | (Optional) Privilege code                                                                |
 | SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in. |

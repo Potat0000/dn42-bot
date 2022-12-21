@@ -25,7 +25,7 @@ API_TOKEN = "secret_token"
 SERVER = {'us1': 'US1 | New York - BuyVM', 'jp1': 'JP1 | Tokyo - AWS'}
 
 # Webhook settings
-WEBHOOK_URL = 'https://bot.dn42.domain.tld/'
+WEBHOOK_URL = ''
 WEBHOOK_LISTEN_HOST = '127.0.0.1'
 WEBHOOK_LISTEN_PORT = 3443
 
