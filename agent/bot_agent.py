@@ -7,7 +7,7 @@ import subprocess
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 1
+AGENT_VERSION = 2
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -115,7 +115,7 @@ async def get_info(request):
     if wg_info[6]:
         clearnet = wg_info[6]
     else:
-        clearnet = "None"
+        clearnet = None
 
     desc = "N.A."
     session = ""

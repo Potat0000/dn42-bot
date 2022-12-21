@@ -17,8 +17,7 @@ def remove_peer(message):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    asn = db[message.chat.id]
-    peer_info = tools.get_info(asn)
+    peer_info = tools.get_info(db[message.chat.id])
     if not peer_info:
         bot.send_message(
             message.chat.id,

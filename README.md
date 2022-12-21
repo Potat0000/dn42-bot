@@ -13,9 +13,9 @@
   - [x] Whoami
 - Peer
   - [x] New peer
+  - [x] Modify peer
   - [x] Remove peer
   - [x] Peer info
-  - [ ] Modify peer
 - Statistics
   - [x] DN42 global ranking
   - [x] DN42 user basic info & statistics
@@ -96,6 +96,7 @@ login - Login to verify your ASN 登录以验证你的 ASN
 logout - Logout current logged ASN 退出当前登录的 ASN
 whoami - Get current login user 获取当前登录用户
 peer - Set up a peer 设置一个 Peer
+modify - Modify peer information 修改 Peer 信息
 remove - Remove a peer 移除一个 Peer
 info - Show your peer info and status 查看你的 Peer 信息及状态
 rank - Show DN42 global ranking 显示 DN42 总体排名
