@@ -348,28 +348,6 @@ def post_confirm(message, peer_info):
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
     try:
-        origin = peer_info.pop('Origin')
-        r = requests.post(
-            f"http://{origin}.{config.ENDPOINT}:{config.API_PORT}/remove",
-            data=str(db[message.chat.id]),
-            headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
-            timeout=10,
-        )
-        if r.status_code != 200:
-            raise RuntimeError
-    except BaseException:
-        bot.send_message(
-            message.chat.id,
-            (
-                f"Unable to remove the old information, please try again. If the problem remains, please contact {config.CONTACT}\n"
-                f"无法移除旧信息，请重试。如果问题依旧，请联系 {config.CONTACT}"
-            ),
-            parse_mode="HTML",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
-    sleep(1)
-    try:
         r = requests.post(
             f"http://{peer_info['Region']}.{config.ENDPOINT}:{config.API_PORT}/peer",
             data=json.dumps(peer_info),
@@ -382,10 +360,10 @@ def post_confirm(message, peer_info):
         bot.send_message(
             message.chat.id,
             (
-                "Sorry. The old message has been removed, but there was a problem creating the new message. You may need to recreate it using /peer\n"
-                "抱歉。旧信息已移除，但新信息建立时遇到问题。您可能需要使用 /peer 重新建立。"
+                f"An error was encountered while modifying the information, please try again. If the problem remains, please contact {config.CONTACT}\n"
+                f"修改信息时遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}"
             ),
-            parse_mode="Markdown",
+            parse_mode="HTML",
             reply_markup=ReplyKeyboardRemove(),
         )
         return

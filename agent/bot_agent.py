@@ -7,7 +7,7 @@ import subprocess
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 2
+AGENT_VERSION = 3
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -341,8 +341,9 @@ async def setup_peer(request):
         with open(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf", "w") as f:
             f.write(bird)
 
+        simple_run("systemctl daemon-reload")
         simple_run(f"systemctl enable wg-quick@dn42_{peer_info['ASN']}")
-        simple_run(f"systemctl start wg-quick@dn42_{peer_info['ASN']}")
+        simple_run(f"systemctl restart wg-quick@dn42_{peer_info['ASN']}")
         simple_run("birdc c")
         return web.Response(status=200)
     except BaseException:
