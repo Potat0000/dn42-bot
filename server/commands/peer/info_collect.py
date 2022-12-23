@@ -1,12 +1,99 @@
 # -*- coding: utf-8 -*-
+import json
 import re
 import socket
 import string
 
 import config
-from base import bot, db_privilege
+import requests
+import tools
+from base import bot, db, db_privilege
 from IPy import IP
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telebot.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+)
+
+
+def pre_region(message, peer_info):
+    peered = set(tools.get_info(db[message.chat.id]).keys())
+    pre_peer_info = tools.get_from_agent('pre_peer', None)
+    could_peer = []
+    msg = ''
+    peer_info['Region'] = {}
+    for k, v in pre_peer_info.items():
+        msg += f'- `{config.SERVER[k]}`\n'
+        try:
+            if v.status != 200:
+                raise RuntimeError
+            data = json.loads(v.text)
+        except BaseException:
+            msg += '  `Server error, please try again later.`\n' '  `服务器错误，请稍后重试。`\n\n'
+            continue
+        if 'backup' in peer_info and peer_info['backup']['Region'] == k:
+            msg += '  ❗ Current Node\n'
+        elif k in peered:
+            msg += '  ❗ Already Peered\n'
+        if data['open']:
+            msg += '  ✔️ Open For Peer\n'
+        else:
+            msg += '  ❌ Not Open For Peer\n'
+        if data['max'] == 0:
+            msg += f'  ✔️ Capacity: {data["existed"]} / Unlimited\n'
+        else:
+            if data['existed'] < data['max']:
+                msg += f'  ✔️ Capacity: {data["existed"]} / {data["max"]}\n'
+            else:
+                msg += f'  ❌ Capacity: {data["existed"]} / {data["max"]}\n'
+        if data['msg']:
+            msg += f'  {data["msg"]}\n'
+        msg += '\n'
+        if data['open'] and k not in peered and (data['max'] == 0 or data['existed'] < data['max']):
+            could_peer.append(k)
+            peer_info['Region'][config.SERVER[k]] = (k, data['lla'])
+    msg = bot.send_message(
+        message.chat.id,
+        f"Node List 节点列表\n{msg.strip()}",
+        parse_mode='Markdown',
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    if not could_peer:
+        bot.send_message(
+            message.chat.id,
+            "No node is available for peering at the moment.\n" "目前没有节点可供 Peer。",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row_width = 1
+    for i in could_peer:
+        markup.add(KeyboardButton(config.SERVER[i]))
+    msg = bot.send_message(
+        message.chat.id,
+        "Which node do you want to choose?\n你想选择哪个节点？",
+        reply_markup=markup,
+    )
+    return 'post_region', peer_info, msg
+
+
+def post_region(message, peer_info):
+    if message.text.strip() not in peer_info['Region']:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row_width = 1
+        for i in peer_info['Region']:
+            markup.add(KeyboardButton(i))
+        msg = bot.send_message(
+            message.chat.id,
+            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            reply_markup=markup,
+        )
+        return 'post_region', peer_info, msg
+    peer_info['Request-LinkLocal'] = peer_info['Region'][message.text.strip()][1]
+    peer_info['Region'] = peer_info['Region'][message.text.strip()][0]
+    return 'pre_session_type', peer_info, message
 
 
 def pre_session_type(message, peer_info):
@@ -189,10 +276,7 @@ def post_ipv6(message, peer_info):
 def pre_request_linklocal(message, peer_info):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row_width = 1
-    if peer_info['Request-LinkLocal'] != 'Not required due to not use LLA as IPv6':
-        markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
-    else:
-        markup.add(KeyboardButton("Auto"))
+    markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
     msg = bot.send_message(
         message.chat.id,
         (
@@ -208,27 +292,26 @@ def pre_request_linklocal(message, peer_info):
 
 
 def post_request_linklocal(message, peer_info):
-    if message.text.strip().lower() != "auto":
-        try:  # Test for IPv6
-            socket.inet_pton(socket.AF_INET6, message.text.strip())
-            if IP(message.text.strip()) not in IP("fe80::/64"):
-                raise ValueError
-        except (socket.error, ValueError):
-            markup = ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.row_width = 1
-            markup.add(KeyboardButton("Auto"))
-            msg = bot.send_message(
-                message.chat.id,
-                (
-                    "Invalid DN42 IPv6 Link-Local address, please try again. Use /cancel to interrupt the operation.\n"
-                    "输入不是有效的 DN42 IPv6 Link-Local 地址，请重试。使用 /cancel 终止操作。"
-                ),
-                reply_markup=markup,
-            )
-            return 'post_request_linklocal', peer_info, msg
-        peer_info["Request-LinkLocal"] = message.text.strip()
-    else:
-        peer_info["Request-LinkLocal"] = "Not specified"
+    try:  # Test for IPv6
+        socket.inet_pton(socket.AF_INET6, message.text.strip())
+        if IP(message.text.strip()) not in IP("fe80::/64"):
+            raise ValueError
+    except (socket.error, ValueError):
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row_width = 1
+        markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
+        msg = bot.send_message(
+            message.chat.id,
+            (
+                "Invalid DN42 IPv6 Link-Local address, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不是有效的 DN42 IPv6 Link-Local 地址，请重试。使用 /cancel 终止操作。\n\n"
+                "If you don't know what this is, or don't need to specify it, select the option below.\n"
+                "如果你不知道这是什么，或者不需要指定，直接选择下方的选项。"
+            ),
+            reply_markup=markup,
+        )
+        return 'post_request_linklocal', peer_info, msg
+    peer_info["Request-LinkLocal"] = message.text.strip()
     if peer_info["Channel"] == "IPv6 & IPv4" and peer_info["ENH"] is not True:
         return 'pre_ipv4', peer_info, message
     else:
@@ -562,3 +645,80 @@ def post_contact(message, peer_info):
         return 'post_contact', peer_info, msg
     peer_info["Contact"] = message.text.strip()
     return 'pre_confirm', peer_info, message
+
+
+def post_confirm(message, peer_info):
+    if message.text.strip().lower() != "yes":
+        bot.send_message(
+            message.chat.id,
+            "Current operation has been cancelled.\n当前操作已被取消。",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+    bot.send_chat_action(chat_id=message.chat.id, action='typing')
+    try:
+        r = requests.post(
+            f"http://{peer_info['Region']}.{config.ENDPOINT}:{config.API_PORT}/peer",
+            data=json.dumps(peer_info),
+            headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
+            timeout=10,
+        )
+        if r.status_code == 503:
+            bot.send_message(
+                message.chat.id,
+                (
+                    "This node is not open for peer, or has reached its maximum peer capacity.\n"
+                    "该节点暂未开放 Peer，或已达最大 Peer 容量。"
+                ),
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            return
+        elif r.status_code != 200:
+            raise RuntimeError
+    except BaseException:
+        bot.send_message(
+            message.chat.id,
+            (
+                f"Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n"
+                f"遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}"
+            ),
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+    bot.send_message(
+        message.chat.id,
+        (
+            "Peer information has been updated. Peer 信息已提交。\n"
+            "\n"
+            "Use /info for related information.\n"
+            "使用 /info 查看相关信息。"
+        ),
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+    def gen_privilege_markup():
+        markup = InlineKeyboardMarkup()
+        markup.row_width = 1
+        markup.add(
+            InlineKeyboardButton(
+                "Switch to it | 切换至该身份",
+                url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}",
+            )
+        )
+        return markup
+
+    for i in db_privilege - {message.chat.id}:
+        text = (
+            "*[Privilege]*\n"
+            "Peer Added or Modified!\n新 Peer 或 Peer 信息修改！\n"
+            f"`{tools.get_asn_mnt_text(peer_info['ASN'])}`\n"
+            f"`{config.SERVER[peer_info['Region']]}`"
+        )
+        markup = ReplyKeyboardRemove()
+        if peer_info['ASN'] == db[i]:
+            text += "\n\nAlready as this user 已在该身份"
+        else:
+            markup = gen_privilege_markup()
+        bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)

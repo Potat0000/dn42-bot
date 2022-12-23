@@ -1,22 +1,13 @@
 # -*- coding: utf-8 -*-
-import json
 from collections.abc import Iterable
 from functools import partial
-from time import sleep
 
 import commands.peer.info_collect as info_collect
 import config
-import requests
 import tools
 from base import bot, db, db_privilege
 from IPy import IP
-from telebot.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-)
+from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
 @bot.message_handler(commands=['modify'], is_private_chat=True)
@@ -134,7 +125,7 @@ def post_node_choose(message, peer_info):
         "Port": raw_info['port'],
         "Contact": raw_info['desc'],
     }
-    if IP(raw_info['v6']) in IP("fe80::/64"):
+    if raw_info['v6'] and IP(raw_info['v6']) in IP("fe80::/64"):
         peer_info["Request-LinkLocal"] = raw_info['my_v6']
     if raw_info['session'] == 'IPv6 Session with IPv6 channel only':
         peer_info["Channel"] = "IPv6 only"
@@ -156,9 +147,9 @@ def post_node_choose(message, peer_info):
 
 def pre_action_choose(message, peer_info):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    for i in ['Region', 'Session Type', 'DN42 IP', 'Clearnet Endpoint', 'WireGuard PublicKey', 'Contact']:
-        markup.add(KeyboardButton(i))
+    markup.row(KeyboardButton('Region'), KeyboardButton('Clearnet Endpoint'))
+    markup.row(KeyboardButton('Session Type'), KeyboardButton('WireGuard PublicKey'))
+    markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
     msg = bot.send_message(
         message.chat.id,
         (
@@ -191,12 +182,18 @@ def pre_action_choose(message, peer_info):
 
 
 def post_action_choose(message, peer_info):
-    action_list = ['Region', 'Session Type', 'DN42 IP', 'Clearnet Endpoint', 'WireGuard PublicKey', 'Contact']
-    if message.text.strip() not in action_list:
+    if message.text.strip() not in [
+        'Region',
+        'Session Type',
+        'DN42 IP',
+        'Clearnet Endpoint',
+        'WireGuard PublicKey',
+        'Contact',
+    ]:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.row_width = 1
-        for i in ['Region', 'Session Type', 'DN42 IP', 'Clearnet Endpoint', 'WireGuard PublicKey', 'Contact']:
-            markup.add(KeyboardButton(i))
+        markup.row(KeyboardButton('Region'), KeyboardButton('Clearnet Endpoint'))
+        markup.row(KeyboardButton('Session Type'), KeyboardButton('WireGuard PublicKey'))
+        markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
         msg = bot.send_message(
             message.chat.id,
             ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
@@ -204,7 +201,18 @@ def post_action_choose(message, peer_info):
         )
         return 'post_action_choose', peer_info, msg
     if message.text.strip() == 'Region':
-        return 'pre_region', peer_info, message
+        if (db[message.chat.id] // 10000 != 424242) and (message.chat.id not in db_privilege):
+            bot.send_message(
+                message.chat.id,
+                (
+                    f"Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-migrated, please contact {config.CONTACT} for manual handling.\n"
+                    f"你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行转移，请联系 {config.CONTACT} 进行人工处理。"
+                ),
+                parse_mode='HTML',
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            return
+        return 'pre_region', peer_info, message, 'pre_session_type'
     elif message.text.strip() == 'Session Type':
         return 'pre_session_type', peer_info, message, 'pre_clearnet'
     elif message.text.strip() == 'DN42 IP':
@@ -227,59 +235,10 @@ def post_action_choose(message, peer_info):
         return 'pre_contact', peer_info, message
 
 
-def pre_region(message, peer_info):
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    could_peer = set(config.SERVER.keys()) - set(tools.get_info(db[message.chat.id]).keys())
-    if (db[message.chat.id] // 10000 != 424242) and (message.chat.id not in db_privilege):
-        bot.send_message(
-            message.chat.id,
-            (
-                f"Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-migrated, please contact {config.CONTACT} for manual handling.\n"
-                f"你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行转移，请联系 {config.CONTACT} 进行人工处理。"
-            ),
-            parse_mode='HTML',
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
-    if not could_peer:
-        bot.send_message(
-            message.chat.id,
-            ("You have peered with all my nodes and cannot be migrated.\n你已经和我的所有节点 Peer 了，无法进行转移。\n"),
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
-    for i in could_peer:
-        markup.add(KeyboardButton(config.SERVER[i]))
-    msg = bot.send_message(
-        message.chat.id,
-        "Which node do you want to migrate to?\n你想迁移到哪个节点？",
-        reply_markup=markup,
-    )
-    return 'post_region', peer_info, msg
-
-
-def post_region(message, peer_info):
-    could_peer = [config.SERVER[i] for i in set(config.SERVER.keys()) - set(tools.get_info(db[message.chat.id]).keys())]
-    if message.text.strip() not in could_peer:
-        markup = ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.row_width = 1
-        for i in could_peer:
-            markup.add(KeyboardButton(i))
-        msg = bot.send_message(
-            message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
-            reply_markup=markup,
-        )
-        return 'post_region', peer_info, msg
-    peer_info['Region'] = next(k for k, v in config.SERVER.items() if v == message.text.strip())
-    if message.chat.id in db_privilege:
-        return 'pre_port_myside', peer_info, message, 'pre_pubkey'
-    else:
-        return 'pre_confirm', peer_info, message
-
-
 def pre_confirm(message, peer_info):
+    if not (peer_info['IPv6'] and IP(peer_info['IPv6']) in IP("fe80::/64")):
+        peer_info['Request-LinkLocal'] = "Not required due to not use LLA as IPv6"
+
     old_peer_info = peer_info.pop('backup')
     if old_peer_info == peer_info:
         msg = bot.send_message(
@@ -336,70 +295,3 @@ def pre_confirm(message, peer_info):
         reply_markup=ReplyKeyboardRemove(),
     )
     return 'post_confirm', peer_info, msg
-
-
-def post_confirm(message, peer_info):
-    if message.text.strip().lower() != "yes":
-        bot.send_message(
-            message.chat.id,
-            "Current operation has been cancelled.\n当前操作已被取消。",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
-    bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    try:
-        r = requests.post(
-            f"http://{peer_info['Region']}.{config.ENDPOINT}:{config.API_PORT}/peer",
-            data=json.dumps(peer_info),
-            headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
-            timeout=10,
-        )
-        if r.status_code != 200:
-            raise RuntimeError
-    except BaseException:
-        bot.send_message(
-            message.chat.id,
-            (
-                f"An error was encountered while modifying the information, please try again. If the problem remains, please contact {config.CONTACT}\n"
-                f"修改信息时遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}"
-            ),
-            parse_mode="HTML",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
-    bot.send_message(
-        message.chat.id,
-        (
-            "Peer information has been modified. Peer 信息已修改。\n"
-            "\n"
-            "Use /info for related information.\n"
-            "使用 /info 查看相关信息。"
-        ),
-        parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-
-    def gen_privilege_markup():
-        markup = InlineKeyboardMarkup()
-        markup.row_width = 1
-        markup.add(
-            InlineKeyboardButton(
-                "Switch to it | 切换至该身份",
-                url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}",
-            )
-        )
-        return markup
-
-    for i in db_privilege - {message.chat.id}:
-        text = (
-            "*[Privilege]*\n"
-            "Peer Modified!   Peer 信息修改！\n"
-            f"`{tools.get_asn_mnt_text(peer_info['ASN'])}`\n"
-            f"`{config.SERVER[peer_info['Region']]}`"
-        )
-        markup = ReplyKeyboardRemove()
-        if peer_info['ASN'] == db[i]:
-            text += "\n\nAlready as this user 已在该身份"
-        else:
-            markup = gen_privilege_markup()
-        bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)

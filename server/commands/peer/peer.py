@@ -1,19 +1,12 @@
 # -*- coding: utf-8 -*-
-import json
 from functools import partial
 
 import commands.peer.info_collect as info_collect
 import config
-import requests
 import tools
 from base import bot, db, db_privilege
-from telebot.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-)
+from IPy import IP
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 
 @bot.message_handler(commands=['peer'], is_private_chat=True)
@@ -115,38 +108,9 @@ def init(message, peer_info):
     return 'pre_region', peer_info, message
 
 
-def pre_region(message, peer_info):
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    could_peer = set(config.SERVER.keys()) - set(tools.get_info(db[message.chat.id]).keys())
-    for i in could_peer:
-        markup.add(KeyboardButton(config.SERVER[i]))
-    msg = bot.send_message(
-        message.chat.id,
-        "Which of my nodes do you want to peer with?\n你想要与我的哪个节点 Peer？",
-        reply_markup=markup,
-    )
-    return 'post_region', peer_info, msg
-
-
-def post_region(message, peer_info):
-    could_peer = [config.SERVER[i] for i in set(config.SERVER.keys()) - set(tools.get_info(db[message.chat.id]).keys())]
-    if message.text.strip() not in could_peer:
-        markup = ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.row_width = 1
-        for i in could_peer:
-            markup.add(KeyboardButton(i))
-        msg = bot.send_message(
-            message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
-            reply_markup=markup,
-        )
-        return 'post_region', peer_info, msg
-    peer_info['Region'] = next(k for k, v in config.SERVER.items() if v == message.text.strip())
-    return 'pre_session_type', peer_info, message
-
-
 def pre_confirm(message, peer_info):
+    if not (peer_info['IPv6'] and IP(peer_info['IPv6']) in IP("fe80::/64")):
+        peer_info['Request-LinkLocal'] = "Not required due to not use LLA as IPv6"
     all_text = (
         "Region:\n"
         f"    {config.SERVER[peer_info['Region']]}\n"
@@ -178,63 +142,3 @@ def pre_confirm(message, peer_info):
         reply_markup=ReplyKeyboardRemove(),
     )
     return 'post_confirm', peer_info, msg
-
-
-def post_confirm(message, peer_info):
-    if message.text.strip().lower() == "yes":
-        try:
-            r = requests.post(
-                f"http://{peer_info['Region']}.{config.ENDPOINT}:{config.API_PORT}/peer",
-                data=json.dumps(peer_info),
-                headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
-                timeout=10,
-            )
-            if r.status_code != 200:
-                raise RuntimeError
-            bot.send_message(
-                message.chat.id,
-                ("Peer has been created. Peer 已建立。\n" "\n" "Use /info for related information.\n" "使用 /info 查看相关信息。"),
-                parse_mode="Markdown",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-
-            def gen_privilege_markup():
-                markup = InlineKeyboardMarkup()
-                markup.row_width = 1
-                markup.add(
-                    InlineKeyboardButton(
-                        "Switch to it | 切换至该身份",
-                        url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}",
-                    )
-                )
-                return markup
-
-            for i in db_privilege - {message.chat.id}:
-                text = (
-                    "*[Privilege]*\n"
-                    "New Peer!   新 Peer！\n"
-                    f"`{tools.get_asn_mnt_text(peer_info['ASN'])}`\n"
-                    f"`{config.SERVER[peer_info['Region']]}`"
-                )
-                markup = ReplyKeyboardRemove()
-                if peer_info['ASN'] == db[i]:
-                    text += "\n\nAlready as this user 已在该身份"
-                else:
-                    markup = gen_privilege_markup()
-                bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)
-        except BaseException:
-            bot.send_message(
-                message.chat.id,
-                (
-                    f"Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n"
-                    f"遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}"
-                ),
-                parse_mode="HTML",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-    else:
-        bot.send_message(
-            message.chat.id,
-            "Current operation has been cancelled.\n当前操作已被取消。",
-            reply_markup=ReplyKeyboardRemove(),
-        )

@@ -7,13 +7,16 @@ import subprocess
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 3
+AGENT_VERSION = 4
 
 try:
     with open("agent_config.json", 'r') as f:
         raw_config = json.load(f)
     PORT = raw_config['PORT']
     SECRET = raw_config['SECRET']
+    OPEN = raw_config['OPEN']
+    MAX_PEERS = raw_config['MAX_PEERS'] if raw_config['MAX_PEERS'] > 0 else 0
+    EXTRA_MSG = raw_config['EXTRA_MSG']
     MY_DN42_LINK_LOCAL_ADDRESS = IP(raw_config['MY_DN42_LINK_LOCAL_ADDRESS'])
     MY_DN42_ULA_ADDRESS = IP(raw_config['MY_DN42_ULA_ADDRESS'])
     MY_DN42_IPv4_ADDRESS = IP(raw_config['MY_DN42_IPv4_ADDRESS'])
@@ -35,6 +38,17 @@ def simple_run(command):
     return output
 
 
+def get_current_peer_num():
+    wg_conf = [i[5:-5] for i in os.listdir('/etc/wireguard') if i.startswith('dn42_') and i.endswith('.conf')]
+    bird_conf = [i[:-5] for i in os.listdir('/etc/bird/dn42_peers') if i.endswith('.conf')]
+    wg_conf_len = len([i for i in wg_conf if i.isdigit()])
+    bird_conf_len = len([i for i in bird_conf if i.isdigit()])
+    if wg_conf_len != bird_conf_len:
+        return None
+    else:
+        return wg_conf_len
+
+
 @routes.post('/version')
 async def version(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
@@ -42,6 +56,25 @@ async def version(request):
         return web.Response(body=str(AGENT_VERSION))
     else:
         return web.Response(status=403)
+
+
+@routes.post('/pre_peer')
+async def pre_peer(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret != SECRET:
+        return web.Response(status=403)
+    current_peer_num = get_current_peer_num()
+    if current_peer_num is None:
+        return web.Response(body="wireguard and bird config not match", status=500)
+    return web.json_response(
+        {
+            'existed': current_peer_num,
+            'max': MAX_PEERS,
+            'open': OPEN,
+            'lla': str(MY_DN42_LINK_LOCAL_ADDRESS),
+            'msg': EXTRA_MSG,
+        }
+    )
 
 
 @routes.post('/info')
@@ -253,6 +286,15 @@ async def setup_peer(request):
             return web.Response(status=400)
     else:
         return web.Response(status=403)
+
+    current_peer_num = get_current_peer_num()
+    if current_peer_num is None:
+        return web.Response(body="wireguard and bird config not match", status=500)
+    if not (
+        os.path.exists(f"/etc/wireguard/dn42_{peer_info['ASN']}.conf")
+        and os.path.exists(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf")
+    ) and (current_peer_num >= MAX_PEERS or not OPEN):
+        return web.Response(status=503)
 
     try:
         ula = None

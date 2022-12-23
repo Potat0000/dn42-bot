@@ -147,6 +147,7 @@ def get_from_agent(type, target):
     asyncio.set_event_loop(loop)
     raw = loop.run_until_complete(async_test())
     data = {i.result()[0]: i.result()[1] for i in raw}
+    data = {i: data[i] for i in config.SERVER}
 
     return data
 

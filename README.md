@@ -78,6 +78,9 @@ Config items are located at `agent/agent_config.json`.
 | -------------------------- | ----------------------------------------------- |
 | PORT                       | API Port                                        |
 | SECRET                     | API Token                                       |
+| OPEN                       | Whether open peer                               |
+| MAX_PEERS                  | Maximum number of Peer (0 for no limit)         |
+| EXTRA_MSG                  | Extra message of this agent.                    |
 | MY_DN42_LINK_LOCAL_ADDRESS | The DN42 IPv6 Link-Local Address of this agent. |
 | MY_DN42_ULA_ADDRESS        | The DN42 IPv6 ULA Address of this agent.        |
 | MY_DN42_IPv4_ADDRESS       | The DN42 IPv4 Address of this agent.            |

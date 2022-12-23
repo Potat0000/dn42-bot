@@ -11,7 +11,7 @@ from aiohttp import web
 
 import commands
 
-MIN_AGENT_VERSION = 3
+MIN_AGENT_VERSION = 4
 
 offline_node = []
 old_node = []
