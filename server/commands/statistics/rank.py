@@ -3,6 +3,7 @@ import time
 
 import tools
 from base import bot
+from commands.statistics.stats import stats
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 PAGE_SIZE = 30
@@ -86,6 +87,12 @@ def get_rank(message):
     if not tools.get_map()[1]:
         bot.send_message(message.chat.id, "No data available.\n暂无数据。", reply_markup=tools.gen_peer_me_markup(message))
         return
-    init_arg = (0, 'jerry')
-    rank_text = get_rank_text(*init_arg)
-    bot.send_message(message.chat.id, rank_text[0], parse_mode=rank_text[1], reply_markup=gen_rank_markup(*init_arg))
+    try:
+        int(message.text.strip().split(" ")[1])
+        stats(message)
+    except (ValueError, IndexError):
+        init_arg = (0, 'jerry')
+        rank_text = get_rank_text(*init_arg)
+        bot.send_message(
+            message.chat.id, rank_text[0], parse_mode=rank_text[1], reply_markup=gen_rank_markup(*init_arg)
+        )

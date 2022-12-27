@@ -5,7 +5,7 @@ from telebot.types import ReplyKeyboardRemove
 
 
 @bot.message_handler(commands=['stats'])
-def route(message):
+def stats(message):
     try:
         asn = int(message.text.strip().split(" ")[1])
     except (ValueError, IndexError):
