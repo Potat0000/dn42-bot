@@ -36,14 +36,27 @@ def whois(message):
         )
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    try:
-        whois_result = (
-            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} {whois_str}"), timeout=3)
-            .decode("utf-8")
-            .strip()
-        )
-    except BaseException:
-        whois_result = 'Something went wrong.\n发生了一些错误。'
+    whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
+    while True:
+        try:
+            whois_result = subprocess.check_output(shlex.split(whois_command), timeout=3).decode("utf-8").strip()
+        except BaseException:
+            whois_result = 'Something went wrong.\n发生了一些错误。'
+            break
+        if len(whois_result.split('\n')) > 1 and '% 404' not in whois_result:
+            break
+        whois_result = ''
+        try:
+            asn = int(whois_str)
+            if asn < 10000:
+                whois_str = f"AS424242{asn:04d}"
+            elif 20000 <= asn < 30000:
+                whois_str = f"AS42424{asn}"
+            else:
+                whois_str = f"AS{asn}"
+            whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
+        except ValueError:
+            whois_command = f"whois -I {message.text.strip().split(' ')[1]}"
     bot.reply_to(
         message,
         f"```\n{whois_result}```",
