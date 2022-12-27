@@ -7,7 +7,7 @@ import subprocess
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 4
+AGENT_VERSION = 5
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -293,7 +293,7 @@ async def setup_peer(request):
     if not (
         os.path.exists(f"/etc/wireguard/dn42_{peer_info['ASN']}.conf")
         and os.path.exists(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf")
-    ) and (current_peer_num >= MAX_PEERS or not OPEN):
+    ) and ((MAX_PEERS != 0 and current_peer_num >= MAX_PEERS) or not OPEN):
         return web.Response(status=503)
 
     try:
