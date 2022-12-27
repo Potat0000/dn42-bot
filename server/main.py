@@ -4,10 +4,11 @@ import pickle
 import time
 
 import config
-from base import bot
+import sentry_sdk
 import telebot
 import tools
 from aiohttp import web
+from base import bot
 
 import commands
 
@@ -26,6 +27,12 @@ if offline_node or old_node:
     if old_node:
         print("Old node: " + ', '.join(old_node))
     exit(1)
+
+if config.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=config.SENTRY_DSN,
+        traces_sample_rate=1.0,
+    )
 
 route_stats_timer = tools.LoopTimer(900, tools.get_route_stats, "Update Route Stats Timer", update=True)
 route_stats_timer.start()

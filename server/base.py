@@ -3,18 +3,10 @@ import pickle
 import traceback
 
 import config
+import sentry_sdk
 import telebot
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import ReplyKeyboardRemove
-
-bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True)
-
-try:
-    with open("./user_db.pkl", "rb") as f:
-        db, db_privilege = pickle.load(f)
-except BaseException:
-    db = {}
-    db_privilege = set()
 
 
 class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
@@ -97,8 +89,22 @@ class ExceptionHandlerMiddleware(BaseMiddleware):
                 parse_mode='HTML',
                 reply_markup=ReplyKeyboardRemove(),
             )
-            traceback.print_exception(exception)
 
+
+class ExceptionHandler(telebot.ExceptionHandler):
+    def handle(exception):
+        if config.SENTRY_DSN:
+            sentry_sdk.capture_exception(exception)
+
+
+bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True, exception_handler=ExceptionHandler)
+
+try:
+    with open("./user_db.pkl", "rb") as f:
+        db, db_privilege = pickle.load(f)
+except BaseException:
+    db = {}
+    db_privilege = set()
 
 bot.add_custom_filter(IsPrivateChat())
 bot.setup_middleware(ExceptionHandlerMiddleware())

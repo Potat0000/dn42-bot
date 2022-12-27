@@ -33,6 +33,7 @@ WEBHOOK_LISTEN_PORT = 3443
 LG_DOMAIN = 'https://lg.dn42.domain.tld'
 PRIVILEGE_CODE = "123456"
 SINGLE_PRIVILEGE = False
+SENTRY_DSN = ''
 
 
 # Email-sending function

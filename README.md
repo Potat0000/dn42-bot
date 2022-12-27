@@ -53,6 +53,7 @@ Config items are located at `server/config.py`.
 | LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                           |
 | PRIVILEGE_CODE      | (Optional) Privilege code                                                                |
 | SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in. |
+| SENTRY_DSN          | (Optional) Sentry DSN. Leave empty to disable Sentry exception tracking.                 |
 
 #### Email-sending function
 
