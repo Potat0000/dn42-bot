@@ -60,17 +60,22 @@ def start_login(message):
             parse_mode="Markdown",
             reply_markup=ReplyKeyboardRemove(),
         )
-    else:
+        return
+    try:
+        asn = int(message.text.strip().split()[1])
+        login_input_asn(asn, message)
+    except (IndexError, ValueError):
         msg = bot.send_message(
             message.chat.id,
             "Enter your ASN, without prefix AS\n请输入你的 ASN，不要加 AS 前缀",
             reply_markup=ReplyKeyboardRemove(),
         )
-        bot.register_next_step_handler(msg, login_input_asn)
+        bot.register_next_step_handler(msg, partial(login_input_asn, None))
 
 
-def login_input_asn(message):
-    if message.text.strip() == "/cancel":
+def login_input_asn(exist_asn, message):
+    raw = exist_asn if exist_asn else message.text.strip()
+    if raw == "/cancel":
         bot.send_message(
             message.chat.id,
             "Current operation has been cancelled.\n当前操作已被取消。",
@@ -78,7 +83,7 @@ def login_input_asn(message):
         )
         return
     try:
-        asn = int(message.text.strip())
+        asn = int(raw)
     except ValueError:
         bot.send_message(
             message.chat.id,
@@ -98,10 +103,10 @@ def login_input_asn(message):
             ("Select the email address to receive the verification code.\n" "选择接收验证码的邮箱。"),
             reply_markup=markup,
         )
-        bot.register_next_step_handler(msg, partial(login_choose_email, asn, emails))
+        bot.register_next_step_handler(msg, partial(login_choose_email, asn, emails, msg.message_id))
 
 
-def login_choose_email(asn, emails, message):
+def login_choose_email(asn, emails, last_msg_id, message):
     if message.text.strip() == "/cancel":
         bot.send_message(
             message.chat.id,
@@ -118,6 +123,8 @@ def login_choose_email(asn, emails, message):
         db_privilege.add(message.chat.id)
         with open('./user_db.pkl', 'wb') as f:
             pickle.dump((db, db_privilege), f)
+        bot.delete_message(message.chat.id, message.message_id)
+        bot.delete_message(message.chat.id, last_msg_id)
         bot.send_message(
             message.chat.id,
             ("*[Privilege]*\n" f"Welcome! `{tools.get_asn_mnt_text(asn)}`\n" f"欢迎你！`{tools.get_asn_mnt_text(asn)}`"),

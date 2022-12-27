@@ -13,7 +13,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 def start_peer(message):
     peer_info = {
         "Region": None,
-        "ASN": db[message.chat.id],
+        "ASN": None,
         "Channel": None,
         "MP-BGP": "Not supported",
         "ENH": None,
@@ -105,6 +105,7 @@ def init(message, peer_info):
         parse_mode='HTML',
         reply_markup=ReplyKeyboardRemove(),
     )
+    peer_info['ASN'] = db[message.chat.id]
     return 'pre_region', peer_info, message
 
 
