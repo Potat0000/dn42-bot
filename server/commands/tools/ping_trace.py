@@ -8,7 +8,7 @@ from base import bot
 @bot.message_handler(commands=['ping', 'trace', 'traceroute', 'tracert'])
 def ping_trace(message):
     command = message.text.strip().split(" ")[0][1:]
-    if len(message.text.strip().split(" ")) != 2:
+    if len(message.text.strip().split(" ")) < 2:
         bot.reply_to(
             message,
             f"Usage: /{command} [ip/domain]\n用法：/{command} [ip/domain]",
@@ -44,7 +44,7 @@ def ping_trace(message):
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],
-            text=v.text if v.status == 200 else 'Something went wrong.\n发生了一些错误。',
+            text=v.text.strip() if v.status == 200 else 'Something went wrong.\n发生了一些错误。',
         )
         for k, v in raw.items()
     )

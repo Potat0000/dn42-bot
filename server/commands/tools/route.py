@@ -7,7 +7,7 @@ from base import bot
 
 @bot.message_handler(commands=['route'])
 def route(message):
-    if len(message.text.strip().split(" ")) != 2:
+    if len(message.text.strip().split(" ")) < 2:
         bot.reply_to(
             message,
             "Usage: /route [ip/domain]\n用法：/route [ip/domain]",
@@ -42,7 +42,7 @@ def route(message):
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],
-            text=v.text if v.status == 200 else 'Something went wrong.\n发生了一些错误。',
+            text=v.text.strip() if v.status == 200 else 'Something went wrong.\n发生了一些错误。',
         )
         for k, v in raw.items()
     )

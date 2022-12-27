@@ -11,7 +11,7 @@ from base import bot
 
 @bot.message_handler(commands=['whois'])
 def whois(message):
-    if len(message.text.strip().split(" ")) != 2:
+    if len(message.text.strip().split(" ")) < 2:
         bot.reply_to(
             message,
             "Usage: /whois [something]\n用法：/whois [something]",
