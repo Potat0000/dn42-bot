@@ -648,6 +648,7 @@ def post_contact(message, peer_info):
 
 
 def post_confirm(message, peer_info):
+    progress_type = peer_info.pop('ProgressType')
     if message.text.strip().lower() != "yes":
         bot.send_message(
             message.chat.id,
@@ -686,39 +687,46 @@ def post_confirm(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
+    if progress_type == 'peer':
+        msg_text = 'Peer has been created. Peer 已建立。\n'
+    elif progress_type == 'modify':
+        msg_text = 'Peer information has been modified. Peer 信息已修改。\n'
     bot.send_message(
         message.chat.id,
-        (
-            "Peer information has been updated. Peer 信息已提交。\n"
-            "\n"
-            "Use /info for related information.\n"
-            "使用 /info 查看相关信息。"
-        ),
+        (f"{msg_text}" "\n" "Use /info for related information.\n" "使用 /info 查看相关信息。"),
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardRemove(),
     )
 
-    def gen_privilege_markup():
-        markup = InlineKeyboardMarkup()
-        markup.row_width = 1
-        markup.add(
-            InlineKeyboardButton(
-                "Switch to it | 切换至该身份",
-                url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}",
-            )
-        )
-        return markup
-
+    if progress_type == 'peer':
+        msg_text = 'New Peer!   新 Peer！\n'
+    elif progress_type == 'modify':
+        msg_text = 'Peer Modified!   Peer 信息修改！\n'
     for i in db_privilege - {message.chat.id}:
         text = (
             "*[Privilege]*\n"
-            "Peer Added or Modified!\n新 Peer 或 Peer 信息修改！\n"
+            f"{msg_text}"
             f"`{tools.get_asn_mnt_text(peer_info['ASN'])}`\n"
             f"`{config.SERVER[peer_info['Region']]}`"
         )
         markup = ReplyKeyboardRemove()
         if peer_info['ASN'] == db[i]:
             text += "\n\nAlready as this user 已在该身份"
+            markup = InlineKeyboardMarkup()
+            markup.row_width = 1
+            markup.add(
+                InlineKeyboardButton(
+                    "Show info | 查看信息",
+                    url=f"https://t.me/{config.BOT_USERNAME}?start=info",
+                )
+            )
         else:
-            markup = gen_privilege_markup()
+            markup = InlineKeyboardMarkup()
+            markup.row_width = 1
+            markup.add(
+                InlineKeyboardButton(
+                    "Switch to it | 切换至该身份",
+                    url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}",
+                )
+            )
         bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)
