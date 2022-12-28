@@ -41,6 +41,8 @@ class OnlyMentionMiddleware(BaseMiddleware):
         self.update_types = ['message']
 
     def pre_process(self, message, data):
+        if not message.text:
+            return CancelUpdate()
         command = message.text.strip().split(" ")[0].split("@")
         if len(command) > 1:
             if command[-1].lower() != config.BOT_USERNAME.lower():
