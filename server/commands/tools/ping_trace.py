@@ -48,13 +48,15 @@ def ping_trace(message):
             raw = raw_new
     except (IndexError, KeyError):
         pass
-    output = "\n\n".join(
-        "{server}\n```\n{text}```".format(
-            server=config.SERVER[k],
-            text=v.text.strip() if v.status == 200 else 'Something went wrong.\n发生了一些错误。',
-        )
-        for k, v in raw.items()
-    )
+    output = []
+    for k, v in raw.items():
+        if v.status == 200:
+            output.append("{server}\n```\n{text}```".format(server=config.SERVER[k], text=v.text.strip()))
+        elif v.status == 408:
+            output.append(f"{config.SERVER[k]}\n```\nRequest Timeout 请求超时```")
+        else:
+            output.append(f"{config.SERVER[k]}\n```\nSomething went wrong.\n发生了一些错误。```")
+    output = "\n\n".join(output)
     bot.edit_message_text(
         output,
         parse_mode="Markdown",

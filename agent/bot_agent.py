@@ -7,7 +7,7 @@ import subprocess
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 5
+AGENT_VERSION = 6
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -434,6 +434,8 @@ async def ping_test(request):
             )
         except subprocess.CalledProcessError as e:
             output = e.output
+        except subprocess.TimeoutExpired:
+            return web.Response(status=408)
         return web.Response(body=output)
     except BaseException:
         return web.Response(status=500)
@@ -454,6 +456,8 @@ async def trace_test(request):
             ).decode("utf-8")
         except subprocess.CalledProcessError as e:
             output = e.output
+        except subprocess.TimeoutExpired:
+            return web.Response(status=408)
         else:
             pattern = r"(?m)^\s*\d*\s*\*\n"
             if total := len(re.findall(pattern, output)):
@@ -483,6 +487,8 @@ async def get_route(request):
             )
         except subprocess.CalledProcessError as e:
             output = e.output
+        except subprocess.TimeoutExpired:
+            return web.Response(status=408)
         return web.Response(body=output)
     except BaseException:
         return web.Response(status=500)

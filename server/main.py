@@ -12,7 +12,7 @@ from base import bot
 
 import commands
 
-MIN_AGENT_VERSION = 5
+MIN_AGENT_VERSION = 6
 
 offline_node = []
 old_node = []
