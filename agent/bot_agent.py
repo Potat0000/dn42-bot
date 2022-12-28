@@ -4,10 +4,11 @@ import re
 import shlex
 import subprocess
 
+import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 6
+AGENT_VERSION = 7
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -24,6 +25,12 @@ try:
 except BaseException:
     print("Failed to load config file. Exiting.")
     exit(1)
+
+if raw_config['SENTRY_DSN']:
+    sentry_sdk.init(
+        dsn=raw_config['SENTRY_DSN'],
+        traces_sample_rate=1.0,
+    )
 
 routes = web.RouteTableDef()
 
