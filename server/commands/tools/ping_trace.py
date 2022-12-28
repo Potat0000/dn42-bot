@@ -41,6 +41,13 @@ def ping_trace(message):
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
     raw = tools.get_from_agent('ping' if command == "ping" else "trace", parsed_info.raw)
+    try:
+        specific_server = [i.lower() for i in message.text.strip().split(" ")[2:]]
+        raw_new = {k: v for k, v in raw.items() if k in specific_server}
+        if raw_new:
+            raw = raw_new
+    except (IndexError, KeyError):
+        pass
     output = "\n\n".join(
         "{server}\n```\n{text}```".format(
             server=config.SERVER[k],

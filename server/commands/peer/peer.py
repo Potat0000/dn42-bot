@@ -25,8 +25,6 @@ def start_peer(message):
         "Port": None,
         "Contact": None,
     }
-    if db[message.chat.id] // 10000 == 424242:
-        peer_info["Port"] = str(peer_info['ASN'])[-5:]
     step_manage('init', peer_info, message)
 
 
@@ -106,6 +104,7 @@ def init(message, peer_info):
         reply_markup=ReplyKeyboardRemove(),
     )
     peer_info['ASN'] = db[message.chat.id]
+    peer_info["Port"] = '2' + str(peer_info['ASN'])[-4:]
     return 'pre_region', peer_info, message
 
 

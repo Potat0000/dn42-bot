@@ -23,7 +23,7 @@ def stats(message):
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    mnt = tools.get_mnt_by_asn(asn)
+    mnt = tools.get_whoisinfo_by_asn(asn)
     try:
         centrality = next(i for i in data['jerry'] if i[1] == asn)
         centrality = f'{centrality[3]:.4f}  #{centrality[0]}'

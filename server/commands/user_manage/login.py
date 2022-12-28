@@ -159,7 +159,7 @@ def login_choose_email(asn, emails, last_msg_id, message):
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
     code = tools.gen_random_code(32)
     try:
-        config.send_email(asn, tools.get_mnt_by_asn(asn), code, message.text.strip())
+        config.send_email(asn, tools.get_whoisinfo_by_asn(asn), code, message.text.strip())
     except RuntimeError:
         bot.send_message(
             message.chat.id,

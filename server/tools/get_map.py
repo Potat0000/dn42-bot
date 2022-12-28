@@ -3,7 +3,7 @@ from time import time
 
 import bgpkit
 import networkx as nx
-from tools.tools import get_mnt_by_asn
+from tools.tools import get_whoisinfo_by_asn
 
 
 # https://github.com/isjerryxiao/rushed_dn42_map/blob/c7bc49eb8c59ba9309e2e7eed425105154802a0a/map.py#L92-L111
@@ -69,7 +69,7 @@ def gen_get_map():
                     if value != last_value:
                         rank_now = index
                     last_value = value
-                    out.append((rank_now, asn, get_mnt_by_asn(asn, fallback_prefix=''), value))
+                    out.append((rank_now, asn, get_whoisinfo_by_asn(asn, 'as-name'), value))
                 temp_data[rank_type] = out
             temp_map = {asn: set(G[asn]) for asn in G.nodes}
             data, update_time, peer_map = temp_data, int(time()), temp_map

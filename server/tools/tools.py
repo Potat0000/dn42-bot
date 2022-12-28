@@ -22,30 +22,27 @@ def gen_random_code(length):
     )
 
 
-def get_mnt_by_asn(asn, fallback_prefix="AS"):
+def get_whoisinfo_by_asn(asn, item='mnt-by'):
     try:
         whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(
             "utf-8"
         )
         for i in whois.split('\n'):
-            if i.startswith('as-name:'):
+            if i.startswith(f'{item}:'):
                 raw_name = i.split(':')[1].strip()
-                if raw_name.endswith('-AS'):
-                    raw_name = raw_name[:-3]
-                if raw_name.endswith('-DN42'):
-                    raw_name = raw_name[:-5]
-                if raw_name.startswith('DN42-'):
-                    raw_name = raw_name[5:]
-                if raw_name.startswith('AS-'):
-                    raw_name = raw_name[3:]
+                for w in ['AS', 'DN42', 'MNT']:
+                    if raw_name.endswith(f'-{w}'):
+                        raw_name = raw_name[: -(len(w) + 1)]
+                    if raw_name.startswith(f'{w}-'):
+                        raw_name = raw_name[(len(w) + 1) :]
                 return raw_name
     except BaseException:
         pass
-    return f"{fallback_prefix}{asn}"
+    return None
 
 
 def get_asn_mnt_text(asn):
-    if (s := get_mnt_by_asn(asn)) != f"AS{asn}":
+    if s := get_whoisinfo_by_asn(asn):
         return f"{s} AS{asn}"
     else:
         return f"AS{asn}"

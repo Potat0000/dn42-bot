@@ -26,7 +26,7 @@ def route(message):
         return
     msg = ''
     for peer_asn in sorted(peer_map[asn]):
-        msg += f"{peer_asn:<10}  {tools.get_mnt_by_asn(peer_asn)}\n"
+        msg += f"{peer_asn:<10}  {tools.get_whoisinfo_by_asn(peer_asn, 'as-name')}\n"
     bot.reply_to(
         message,
         f'```\n{msg}```',

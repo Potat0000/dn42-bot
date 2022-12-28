@@ -159,7 +159,6 @@ def get_info_text(chatid, node):
     peer_info = all_peers[node]
     if not isinstance(peer_info, dict):
         return (
-            chatid,
             (
                 f"{config.SERVER[node]}:\n"
                 f"Error occurred. Please contact {config.CONTACT} with following message.\n"
@@ -226,7 +225,7 @@ def get_info_text(chatid, node):
             if session in bird_status[2]:
                 detail_text += f"        {bird_status[2][session]}\n"
 
-    detail_text += "Contact:\n" f"    {tools.get_mnt_by_asn(db[chatid])}\n" f"    {peer_info['desc']}\n"
+    detail_text += "Contact:\n" f"    {tools.get_whoisinfo_by_asn(db[chatid])}\n" f"    {peer_info['desc']}\n"
 
     return (
         f"```\n{detail_text.strip()}```",
