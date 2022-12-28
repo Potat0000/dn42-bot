@@ -38,11 +38,11 @@ def get_whoisinfo_by_asn(asn, item='mnt-by'):
                 return raw_name
     except BaseException:
         pass
-    return None
+    return str(asn)
 
 
 def get_asn_mnt_text(asn):
-    if s := get_whoisinfo_by_asn(asn):
+    if (s := get_whoisinfo_by_asn(asn)) != str(asn):
         return f"{s} AS{asn}"
     else:
         return f"AS{asn}"

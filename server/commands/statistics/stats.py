@@ -23,27 +23,37 @@ def stats(message):
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    mnt = tools.get_whoisinfo_by_asn(asn)
-    try:
-        centrality = next(i for i in data['jerry'] if i[1] == asn)
-        centrality = f'{centrality[3]:.4f}  #{centrality[0]}'
-    except StopIteration:
-        centrality = "N/A"
-    try:
-        closeness = next(i for i in data['closeness'] if i[1] == asn)
-        closeness = f'{closeness[3]:.5f}  #{closeness[0]}'
-    except StopIteration:
-        closeness = "N/A"
-    try:
-        betweenness = next(i for i in data['betweenness'] if i[1] == asn)
-        betweenness = f'{betweenness[3]:.5f}  #{betweenness[0]}'
-    except StopIteration:
-        betweenness = "N/A"
-    try:
-        peer = next(i for i in data['peer'] if i[1] == asn)
-        peer = f'{str(peer[3]).ljust(7)}  #{peer[0]}'
-    except StopIteration:
-        peer = "N/A"
+    asn_list = [asn]
+    if asn < 10000:
+        asn_list.append(4242420000 + asn)
+        asn_list.append(asn)
+    elif 20000 <= asn < 30000:
+        asn_list.append(4242400000 + asn)
+        asn_list.append(asn)
+    for asn in asn_list:
+        mnt = tools.get_whoisinfo_by_asn(asn)
+        try:
+            centrality = next(i for i in data['jerry'] if i[1] == asn)
+            centrality = f'{centrality[3]:.4f}  #{centrality[0]}'
+        except StopIteration:
+            centrality = "N/A"
+        try:
+            closeness = next(i for i in data['closeness'] if i[1] == asn)
+            closeness = f'{closeness[3]:.5f}  #{closeness[0]}'
+        except StopIteration:
+            closeness = "N/A"
+        try:
+            betweenness = next(i for i in data['betweenness'] if i[1] == asn)
+            betweenness = f'{betweenness[3]:.5f}  #{betweenness[0]}'
+        except StopIteration:
+            betweenness = "N/A"
+        try:
+            peer = next(i for i in data['peer'] if i[1] == asn)
+            peer = f'{str(peer[3]).ljust(7)}  #{peer[0]}'
+        except StopIteration:
+            peer = "N/A"
+        if not centrality == closeness == betweenness == peer == "N/A":
+            break
     msg = (
         f'asn          {asn}\n'
         f'mnt          {mnt}\n'
