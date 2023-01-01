@@ -5,6 +5,7 @@ import socket
 import string
 
 import config
+import dns.resolver as dns
 import requests
 import tools
 from base import bot, db, db_privilege
@@ -34,9 +35,9 @@ def pre_region(message, peer_info):
             msg += '  `Server error, please try again later.`\n' '  `服务器错误，请稍后重试。`\n\n'
             continue
         if 'backup' in peer_info and peer_info['backup']['Region'] == k:
-            msg += '  ❗ Current Node\n'
+            msg += '  ℹ️ Current Node\n'
         elif k in peered:
-            msg += '  ❗ Already Peered\n'
+            msg += '  ℹ️ Already Peered\n'
         if data['open']:
             msg += '  ✔️ Open For Peer\n'
         else:
@@ -48,12 +49,23 @@ def pre_region(message, peer_info):
                 msg += f'  ✔️ Capacity: {data["existed"]} / {data["max"]}\n'
             else:
                 msg += f'  ❌ Capacity: {data["existed"]} / {data["max"]}\n'
+        if data['net_support']['ipv4']:
+            if data['net_support']['ipv4_nat']:
+                msg += '  ⚠️ IPv4: Behind NAT\n'
+            else:
+                msg += '  ✔️ IPv4: Yes\n'
+        else:
+            msg += '  ⚠️ IPv4: No\n'
+        if data['net_support']['ipv6']:
+            msg += '  ✔️ IPv6: Yes\n'
+        else:
+            msg += '  ⚠️ IPv6: No\n'
         if data['msg']:
             msg += f'  {data["msg"]}\n'
         msg += '\n'
         if data['open'] and k not in peered and (data['max'] == 0 or data['existed'] < data['max']):
             could_peer.append(k)
-            peer_info['Region'][config.SERVER[k]] = (k, data['lla'])
+            peer_info['Region'][config.SERVER[k]] = (k, data['lla'], data['net_support'])
     msg = bot.send_message(
         message.chat.id,
         f"Node List 节点列表\n{msg.strip()}",
@@ -92,6 +104,7 @@ def post_region(message, peer_info):
         )
         return 'post_region', peer_info, msg
     peer_info['Request-LinkLocal'] = peer_info['Region'][message.text.strip()][1]
+    peer_info['Net_Support'] = peer_info['Region'][message.text.strip()][2]
     peer_info['Region'] = peer_info['Region'][message.text.strip()][0]
     return 'pre_session_type', peer_info, message
 
@@ -363,13 +376,32 @@ def pre_clearnet(message, peer_info):
         markup.add(KeyboardButton(endpoint))
     else:
         markup = ReplyKeyboardRemove()
+    if peer_info['Net_Support']['ipv4'] and peer_info['Net_Support']['ipv6']:
+        msg = ('You can use IPv4 or IPv6 to establish a tunnel with me.', '你可以使用 IPv4 或者 IPv6 与我建立隧道。')
+    elif peer_info['Net_Support']['ipv4']:
+        msg = ('You can only use IPv4 to establish a tunnel with me.', '你只能使用 IPv4 与我建立隧道。')
+    elif peer_info['Net_Support']['ipv6']:
+        msg = ('You can only use IPv6 to establish a tunnel with me.', '你只能使用 IPv6 与我建立隧道。')
+    if peer_info['Net_Support']['ipv4'] and peer_info['Net_Support']['ipv4_nat']:
+        msg = (
+            msg[0] + ' Since my IPv4 is behind NAT, you are required to provide a clearnet address.',
+            msg[1] + '由于我的 IPv4 位于 NAT 之后，所以需要你提供公网地址。',
+        )
+    msg = msg[0] + '\n' + msg[1]
+    if peer_info['Net_Support']['ipv6'] or (
+        peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat']
+    ):
+        msg += (
+            '\n\n'
+            "If you don't have a static clearnet address or is behind NAT, please enter `none`\n"
+            "如果你没有静态公网地址，或你的服务器在 NAT 网络中，请输入 `none`"
+        )
     msg = bot.send_message(
         message.chat.id,
         (
             "Input your clearnet address for WireGuard tunnel, without port.\n"
             "请输入你用于 WireGurad 隧道的公网地址，不包含端口。\n\n"
-            "If you don't have a static clearnet address or is behind NAT, please enter `none`\n"
-            "如果你没有静态公网地址，或你的服务器在 NAT 网络中，请输入 `none`"
+            f"{msg}"
         ),
         parse_mode="Markdown",
         reply_markup=markup,
@@ -443,62 +475,86 @@ def post_clearnet(message, peer_info):
             if any(IP(address) in i for i in IPv4_Bogon):
                 return None
             else:
-                return str(IP(address))
+                return str(IP(address)), 'ipv4'
         except socket.error:
             try:  # Test for IPv6
                 socket.inet_pton(socket.AF_INET6, address)
                 if any(IP(address) in i for i in IPv6_Bogon):
                     return None
                 else:
-                    return str(IP(address))
-            except socket.error:
+                    return str(IP(address)), 'ipv6'
+            except socket.error:  # Test for domain
                 if not re.search('[a-zA-Z]', address):
                     return None
-                try:  # Test for domain
-                    if test_clearnet(socket.gethostbyname(address)) is not None:
-                        return address
-                except socket.error:
+                support = None
+                try:
+                    if any(test_clearnet(i.address) for i in dns.resolve(address, 'A')):
+                        support = 'ipv4'
+                except dns.NoAnswer:
+                    pass
+                try:
+                    if any(test_clearnet(i.address) for i in dns.resolve(address, 'AAAA')):
+                        if support:
+                            support = 'dual'
+                        else:
+                            support = 'ipv6'
+                except dns.NoAnswer:
+                    pass
+                if support:
+                    return address, support
+                else:
                     return None
 
-    if message.text.strip().lower() != "none":
-        if test_clearnet(message.text.strip()):
-            peer_info["Clearnet"] = test_clearnet(message.text.strip())
-        else:
-            if message.chat.id not in db_privilege:
-                msg = bot.send_message(
-                    message.chat.id,
-                    (
-                        "Invalid or unreachable clearnet address, please try again.\n"
-                        "输入不是有效的公网地址或该地址不可达，请重试。\n"
-                        f"The check procedure may sometimes be wrong, if it is confirmed to be valid, just resubmit. If the error keeps occurring please contact {config.CONTACT}\n"
-                        f"判定程序可能出错。如果确认有效，重新提交即可。重复出错请联系 {config.CONTACT}\n"
-                        "Use /cancel to interrupt the operation.\n"
-                        "使用 /cancel 终止操作。"
-                    ),
-                    reply_markup=ReplyKeyboardRemove(),
-                    parse_mode="HTML",
-                )
-                return 'post_clearnet', peer_info, msg
-            else:
-                bot.send_message(
-                    message.chat.id,
-                    (
-                        "*[Privilege]*\n"
-                        "Invalid or unreachable clearnet address.\n"
-                        "输入不是有效的公网地址或该地址不可达。\n"
-                        "Use the privilege to continue the process. Use /cancel to exit if there is a mistake.\n"
-                        "使用特权，流程继续。如确认有误使用 /cancel 退出。"
-                    ),
-                    parse_mode='Markdown',
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-                peer_info["Clearnet"] = message.text.strip()
-        return 'pre_clearnet_port', peer_info, message
-    else:
+    if message.text.strip().lower() == "none" and (
+        peer_info['Net_Support']['ipv6']
+        or (peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat'])
+    ):
         if message.chat.id in db_privilege:
             return 'pre_port_myside', peer_info, message
         else:
             return 'pre_pubkey', peer_info, message
+
+    msg = None
+    if test_result := test_clearnet(message.text.strip()):
+        if test_result[1] == 'ipv4' and not peer_info['Net_Support']['ipv4']:
+            msg = "IPv4 is not supported on this node", "该节点不支持IPv4"
+        elif test_result[1] == 'ipv6' and not peer_info['Net_Support']['ipv6']:
+            msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
+        else:
+            peer_info["Clearnet"] = test_clearnet(message.text.strip())[0]
+    else:
+        msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
+    if msg:
+        if message.chat.id not in db_privilege:
+            msg = bot.send_message(
+                message.chat.id,
+                (
+                    f"{msg[0]}, please try again.\n"
+                    f"{msg[1]}，请重试。\n"
+                    f"The check procedure may sometimes be wrong, if it is confirmed to be valid, just resubmit. If the error keeps occurring please contact {config.CONTACT}\n"
+                    f"判定程序可能出错。如果确认有效，重新提交即可。重复出错请联系 {config.CONTACT}\n"
+                    "Use /cancel to interrupt the operation.\n"
+                    "使用 /cancel 终止操作。"
+                ),
+                reply_markup=ReplyKeyboardRemove(),
+                parse_mode="HTML",
+            )
+            return 'post_clearnet', peer_info, msg
+        else:
+            bot.send_message(
+                message.chat.id,
+                (
+                    "*[Privilege]*\n"
+                    f"{msg[0]}.\n"
+                    f"{msg[1]}。\n"
+                    "Use the privilege to continue the process. Use /cancel to exit if there is a mistake.\n"
+                    "使用特权，流程继续。如确认有误使用 /cancel 退出。"
+                ),
+                parse_mode='Markdown',
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            peer_info["Clearnet"] = message.text.strip()
+    return 'pre_clearnet_port', peer_info, message
 
 
 def pre_clearnet_port(message, peer_info):

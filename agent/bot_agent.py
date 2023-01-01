@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 7
+AGENT_VERSION = 8
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -17,6 +17,7 @@ try:
     SECRET = raw_config['SECRET']
     OPEN = raw_config['OPEN']
     MAX_PEERS = raw_config['MAX_PEERS'] if raw_config['MAX_PEERS'] > 0 else 0
+    NET_SUPPORT = raw_config['NET_SUPPORT']
     EXTRA_MSG = raw_config['EXTRA_MSG']
     MY_DN42_LINK_LOCAL_ADDRESS = IP(raw_config['MY_DN42_LINK_LOCAL_ADDRESS'])
     MY_DN42_ULA_ADDRESS = IP(raw_config['MY_DN42_ULA_ADDRESS'])
@@ -78,6 +79,7 @@ async def pre_peer(request):
             'existed': current_peer_num,
             'max': MAX_PEERS,
             'open': OPEN,
+            'net_support': NET_SUPPORT,
             'lla': str(MY_DN42_LINK_LOCAL_ADDRESS),
             'msg': EXTRA_MSG,
         }
@@ -239,6 +241,7 @@ async def get_info(request):
             'wg_last_handshake': wg_last_handshake,
             'wg_transfer': wg_transfer,
             'bird_status': bird_status,
+            'net_support': NET_SUPPORT,
         }
     )
 

@@ -124,6 +124,7 @@ def post_node_choose(message, peer_info):
         "PublicKey": raw_info['pubkey'],
         "Port": raw_info['port'],
         "Contact": raw_info['desc'],
+        "Net_Support": raw_info['net_support'],
     }
     if raw_info['v6'] and IP(raw_info['v6']) in IP("fe80::/64"):
         peer_info["Request-LinkLocal"] = raw_info['my_v6']
