@@ -344,7 +344,7 @@ async def setup_peer(request):
             "[Peer]\n"
             "PublicKey = {pubkey}\n"
             "Endpoint = {clearnet}\n"
-            "AllowedIPs = 172.20.0.0/14, 10.0.0.0/8, fd00::/8, fe80::/64\n"
+            "AllowedIPs = 172.20.0.0/14, 10.0.0.0/8, 172.31.0.0/16, fd00::/8, fe80::/64\n"
         )
         final_wg_text = wg.format(
             comment=f"{peer_info['ASN']} - {peer_info['Contact']}",
