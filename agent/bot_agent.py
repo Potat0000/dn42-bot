@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 8
+AGENT_VERSION = 9
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -42,7 +42,7 @@ def simple_run(command):
             subprocess.check_output(shlex.split(command), timeout=8, stderr=subprocess.STDOUT).decode("utf-8").strip()
         )
     except subprocess.CalledProcessError as e:
-        output = e.output
+        output = e.output.decode("utf-8").strip()
     return output
 
 
@@ -425,6 +425,32 @@ async def remove_peer(request):
         pass
     simple_run("birdc c")
     return web.Response(status=200)
+
+
+@routes.post('/restart')
+async def restart_peer(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret == SECRET:
+        try:
+            asn = int(await request.text())
+        except BaseException:
+            return web.Response(status=400)
+    else:
+        return web.Response(status=403)
+
+    out_wg = simple_run(f"systemctl restart wg-quick@dn42_{asn}")
+    out_v4 = simple_run(f"birdc restart DN42_{asn}_v4")
+    out_v6 = simple_run(f"birdc restart DN42_{asn}_v6")
+    if 'syntax error' in out_v4 and 'syntax error' in out_v6:
+        if out_wg:
+            return web.Response(status=404, body='asn not found')
+        else:
+            return web.Response(status=500, body='bird error')
+    else:
+        if out_wg:
+            return web.Response(status=500, body='wg error')
+        else:
+            return web.Response(status=200)
 
 
 @routes.post('/ping')
