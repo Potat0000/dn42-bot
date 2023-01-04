@@ -705,6 +705,7 @@ def post_contact(message, peer_info):
 
 def post_confirm(message, peer_info):
     progress_type = peer_info.pop('ProgressType')
+    info_text = peer_info.pop('InfoText')
     if message.text.strip().lower() != "yes":
         bot.send_message(
             message.chat.id,
@@ -759,17 +760,11 @@ def post_confirm(message, peer_info):
     elif progress_type == 'modify':
         msg_text = 'Peer Modified!   Peer 信息修改！\n'
     for i in db_privilege - {message.chat.id}:
-        text = (
-            "*[Privilege]*\n"
-            f"{msg_text}"
-            f"`{tools.get_asn_mnt_text(peer_info['ASN'])}`\n"
-            f"`{config.SERVER[peer_info['Region']]}`"
-        )
-        markup = ReplyKeyboardRemove()
+        text = "*[Privilege]*\n" f"{msg_text}" f"```\n{info_text}```"
+        markup = InlineKeyboardMarkup()
+        markup.row_width = 1
         if peer_info['ASN'] == db[i]:
             text += "\n\nAlready as this user 已在该身份"
-            markup = InlineKeyboardMarkup()
-            markup.row_width = 1
             markup.add(
                 InlineKeyboardButton(
                     "Show info | 查看信息",
@@ -777,8 +772,6 @@ def post_confirm(message, peer_info):
                 )
             )
         else:
-            markup = InlineKeyboardMarkup()
-            markup.row_width = 1
             markup.add(
                 InlineKeyboardButton(
                     "Switch to it | 切换至该身份",

@@ -295,5 +295,6 @@ def pre_confirm(message, peer_info):
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
+    peer_info['InfoText'] = all_text
     peer_info['ProgressType'] = 'modify'
     return 'post_confirm', peer_info, msg
