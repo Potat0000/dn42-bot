@@ -30,14 +30,10 @@ except BaseException:
 if raw_config['SENTRY_DSN']:
     sentry_sdk.init(
         dsn=raw_config['SENTRY_DSN'],
-        traces_sample_rate=1.0,
+        traces_sample_rate=0,
     )
 
 routes = web.RouteTableDef()
-
-
-def error_report(body):
-    return web.Response(body=body, status=500)
 
 
 def simple_run(command, timeout=3):
@@ -63,7 +59,23 @@ def get_current_peer_num():
         return wg_conf_len
 
 
+def set_sentry(func):
+    async def wrapper(request):
+        if raw_config['SENTRY_DSN']:
+            with sentry_sdk.start_transaction(name=f"Agent {request.rel_url}", sampled=True) as transaction:
+                transaction.set_tag('url', request.rel_url)
+                transaction.set_data("data", await request.text())
+                ret = await func(request)
+                transaction.set_http_status(ret.status)
+            return ret
+        else:
+            return func(request)
+
+    return wrapper
+
+
 @routes.post('/version')
+@set_sentry
 async def version(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
@@ -73,13 +85,14 @@ async def version(request):
 
 
 @routes.post('/pre_peer')
+@set_sentry
 async def pre_peer(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret != SECRET:
         return web.Response(status=403)
     current_peer_num = get_current_peer_num()
     if current_peer_num is None:
-        return error_report("wireguard and bird config not match")
+        return web.Response(body="wireguard and bird config not match", status=500)
     return web.json_response(
         {
             'existed': current_peer_num,
@@ -93,13 +106,13 @@ async def pre_peer(request):
 
 
 @routes.post('/info')
+@set_sentry
 async def get_info(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
         try:
             asn = int(await request.text())
-        except BaseException as e:
-            sentry_sdk.capture_exception(e)
+        except BaseException:
             return web.Response(status=400)
     else:
         return web.Response(status=403)
@@ -107,12 +120,11 @@ async def get_info(request):
     wg_exist = os.path.isfile(f'/etc/wireguard/dn42_{asn}.conf')
     bird_exist = os.path.isfile(f'/etc/bird/dn42_peers/{asn}.conf')
     if not wg_exist and not bird_exist:
-        sentry_sdk.capture_exception(Exception(f"ASN {asn} not found"))
         return web.Response(status=404)
     elif wg_exist and not bird_exist:
-        return error_report('wg only')
+        return web.Response(body='wg only', status=500)
     elif not wg_exist and bird_exist:
-        return error_report('bird only')
+        return web.Response(body='bird only', status=500)
 
     wg_regex = (
         r"\[Interface\]\n"
@@ -154,7 +166,7 @@ async def get_info(request):
     try:
         wg_info = re.search(wg_regex, wg_raw, re.MULTILINE).groups()
     except BaseException:
-        return error_report('wg error')
+        return web.Response(body='wg error', status=500)
     if wg_info[2]:
         v6 = wg_info[2]
         my_v6 = wg_info[1]
@@ -188,7 +200,7 @@ async def get_info(request):
             elif session == "IPv6 Session with IPv6 channel only":
                 session = "IPv6 & IPv4 Session with their own channels"
             else:
-                return error_report('session error')
+                return web.Response(body='session error', status=500)
         else:
             session = "IPv4 Session with IPv6 & IPv4 Channels"
         try:
@@ -196,26 +208,26 @@ async def get_info(request):
         except BaseException:
             pass
     if not session_name:
-        return error_report('no session')
+        return web.Response(body='no session', status=500)
 
     out = simple_run(f"wg show dn42_{asn} latest-handshakes").split()
     if out[0] == wg_info[5]:
         wg_last_handshake = int(out[1])
     else:
-        return error_report('wg error')
+        return web.Response(body='wg error', status=500)
     out = simple_run(f"wg show dn42_{asn} transfer").split()
     if out[0] == wg_info[5]:
         wg_transfer = [int(out[1]), int(out[2])]
     else:
-        return error_report('wg error')
+        return web.Response(body='wg error', status=500)
     bird_status = {}
     for the_session in session_name:
         out = simple_run(f"birdc show protocols {the_session}").split('\n')
         if len(out) != 3:
-            return error_report('bird error')
+            return web.Response(body='bird error', status=500)
         out = out[2].strip().split(maxsplit=6)
         if out[0] != the_session:
-            return error_report('bird error')
+            return web.Response(body='bird error', status=500)
         bird_status[the_session] = [out[5], "", {}]
         try:
             bird_status[the_session][1] = out[6]
@@ -264,7 +276,7 @@ async def get_route_stats(request):
 
     out = simple_run("birdc show protocols").split('\n')
     if len(out) < 3:
-        return error_report('bird error')
+        return web.Response(body='bird error', status=500)
     sessions = []
     for line in out[2:]:
         s = line.split()
@@ -295,25 +307,24 @@ async def get_route_stats(request):
 
 
 @routes.post('/peer')
+@set_sentry
 async def setup_peer(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
         try:
             peer_info = await request.json()
-        except BaseException as e:
-            sentry_sdk.capture_exception(e)
+        except BaseException:
             return web.Response(status=400)
     else:
         return web.Response(status=403)
 
     current_peer_num = get_current_peer_num()
     if current_peer_num is None:
-        return error_report('wireguard and bird config not match')
+        return web.Response(body='wireguard and bird config not match', status=500)
     if not (
         os.path.exists(f"/etc/wireguard/dn42_{peer_info['ASN']}.conf")
         and os.path.exists(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf")
     ) and ((MAX_PEERS != 0 and current_peer_num >= MAX_PEERS) or not OPEN):
-        sentry_sdk.capture_exception(Exception('Not open for peer, or has reached maximum peer capacity.'))
         return web.Response(status=503)
 
     ula = None
@@ -410,13 +421,13 @@ async def setup_peer(request):
 
 
 @routes.post('/remove')
+@set_sentry
 async def remove_peer(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
         try:
             asn = int(await request.text())
-        except BaseException as e:
-            sentry_sdk.capture_exception(e)
+        except BaseException:
             return web.Response(status=400)
     else:
         return web.Response(status=403)
@@ -436,13 +447,13 @@ async def remove_peer(request):
 
 
 @routes.post('/restart')
+@set_sentry
 async def restart_peer(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
         try:
             asn = int(await request.text())
-        except BaseException as e:
-            sentry_sdk.capture_exception(e)
+        except BaseException:
             return web.Response(status=400)
     else:
         return web.Response(status=403)
@@ -452,18 +463,18 @@ async def restart_peer(request):
     out_v6 = simple_run(f"birdc restart DN42_{asn}_v6")
     if 'syntax error' in out_v4 and 'syntax error' in out_v6:
         if out_wg:
-            sentry_sdk.capture_exception(Exception(f"ASN {asn} not found"))
             return web.Response(status=404)
         else:
-            return error_report('bird error')
+            return web.Response(body='bird error', status=500)
     else:
         if out_wg:
-            return error_report('wg error')
+            return web.Response(body='wg error', status=500)
         else:
             return web.Response(status=200)
 
 
 @routes.post('/ping')
+@set_sentry
 async def ping_test(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
@@ -472,13 +483,13 @@ async def ping_test(request):
         return web.Response(status=403)
     try:
         output = simple_run(f"ping -c 5 -w 6 {target}", timeout=8)
-    except subprocess.TimeoutExpired as e:
-        sentry_sdk.capture_exception(e)
+    except subprocess.TimeoutExpired:
         return web.Response(status=408)
     return web.Response(body=output)
 
 
 @routes.post('/trace')
+@set_sentry
 async def trace_test(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
@@ -487,8 +498,7 @@ async def trace_test(request):
         return web.Response(status=403)
     try:
         output = simple_run(f"traceroute -q1 -N32 -w1 {target}", timeout=8)
-    except subprocess.TimeoutExpired as e:
-        sentry_sdk.capture_exception(e)
+    except subprocess.TimeoutExpired:
         return web.Response(status=408)
     else:
         pattern = r"(?m)^\s*\d*\s*\*$"
@@ -499,6 +509,7 @@ async def trace_test(request):
 
 
 @routes.post('/route')
+@set_sentry
 async def get_route(request):
     secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
     if secret == SECRET:
@@ -507,8 +518,7 @@ async def get_route(request):
         return web.Response(status=403)
     try:
         output = simple_run(f"birdc show route for {target} primary all")
-    except subprocess.TimeoutExpired as e:
-        sentry_sdk.capture_exception(e)
+    except subprocess.TimeoutExpired:
         return web.Response(status=408)
     return web.Response(body=output)
 

@@ -9,10 +9,76 @@ import telebot
 import tools
 from aiohttp import web
 from base import bot
+from telebot.handler_backends import BaseMiddleware, CancelUpdate
+from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
 
 import commands
 
 MIN_AGENT_VERSION = 9
+
+
+class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
+    key = 'is_private_chat'
+
+    @staticmethod
+    def check(message):
+        is_private = message.chat.type == "private"
+        if not is_private:
+            bot.reply_to(
+                message,
+                "This command can only be used in private chat.\n此命令只能在私聊中使用。",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        return is_private
+
+
+class IsForMe(telebot.custom_filters.SimpleCustomFilter):
+    key = 'is_for_me'
+
+    @staticmethod
+    def check(message):
+        command = message.text.strip().split(" ")[0].split("@")
+        if len(command) > 1:
+            return command[-1].lower() == config.BOT_USERNAME.lower()
+        else:
+            return True
+
+
+class OnlyMentionMiddleware(BaseMiddleware):
+    def __init__(self):
+        self.update_types = ['message']
+
+    def pre_process(self, message, data):
+        if not message.text:
+            return CancelUpdate()
+        command = message.text.strip().split(" ")[0].split("@")
+        if len(command) > 1:
+            if command[-1].lower() != config.BOT_USERNAME.lower():
+                return CancelUpdate()
+        if config.SENTRY_DSN and command[0].startswith("/"):
+            self.transaction = sentry_sdk.start_transaction(name=f"Server {command[0]}", sampled=True)
+
+    def post_process(self, message, data, exception):
+        if self.transaction:
+            self.transaction.finish()
+
+
+class ExceptionHandlerMiddleware(BaseMiddleware):
+    def __init__(self):
+        self.update_types = ['message']
+
+    def pre_process(self, message, data):
+        pass
+
+    def post_process(self, message, data, exception=None):
+        if exception:
+            bot.send_message(
+                message.chat.id,
+                f"Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}",
+                parse_mode='HTML',
+                reply_markup=ReplyKeyboardRemove(),
+            )
+
 
 offline_node = []
 old_node = []
@@ -31,7 +97,7 @@ if offline_node or old_node:
 if config.SENTRY_DSN:
     sentry_sdk.init(
         dsn=config.SENTRY_DSN,
-        traces_sample_rate=1.0,
+        traces_sample_rate=0,
     )
 
 route_stats_timer = tools.LoopTimer(900, tools.get_route_stats, "Update Route Stats Timer", update=True)
@@ -44,6 +110,42 @@ except BaseException:
     pass
 rank_timer = tools.LoopTimer(900, tools.get_map, "Update Rank Timer", update=True)
 rank_timer.start()
+
+bot.add_custom_filter(IsPrivateChat())
+bot.setup_middleware(ExceptionHandlerMiddleware())
+bot.setup_middleware(OnlyMentionMiddleware())
+
+cmd_list = {
+    'ping': ('Ping IP / Domain', True),
+    'trace': ('Traceroute IP / Domain', True),
+    'route': ('Route to IP / Domain', True),
+    'whois': ('Whois', True),
+    'login': ('Login to verify your ASN 登录以验证你的 ASN', False),
+    'logout': ('Logout current logged ASN 退出当前登录的 ASN', False),
+    'whoami': ('Get current login user 获取当前登录用户', False),
+    'peer': ('Set up a peer 设置一个 Peer', False),
+    'modify': ('Modify peer information 修改 Peer 信息', False),
+    'remove': ('Remove a peer 移除一个 Peer', False),
+    'info': ('Show your peer info and status 查看你的 Peer 信息及状态', False),
+    'restart': ('Restart tunnel and bird session 重启隧道及 Bird 会话', False),
+    'rank': ('Show DN42 global ranking 显示 DN42 总体排名', True),
+    'stats': ('Show DN42 user basic info & statistics 显示 DN42 用户基本信息及数据', True),
+    'peer_list': ('Show the peer situation of a user 显示某 DN42 用户的 Peer 情况', True),
+    'route_stats': ('Show preferred routes ranking 显示优选 Routes 排名', True),
+    'cancel': ('Cancel ongoing operations 取消正在进行的操作', True),
+    'help': ('Get help text 获取帮助文本', True),
+}
+bot.delete_my_commands()
+bot.set_my_commands(
+    [telebot.types.BotCommand(cmd, desc) for cmd, (desc, public_available) in cmd_list.items() if public_available]
+)
+bot.set_my_commands(
+    [telebot.types.BotCommand(cmd, desc) for cmd, (desc, _) in cmd_list.items()],
+    scope=BotCommandScopeAllPrivateChats(),
+)
+
+bot.enable_save_next_step_handlers(delay=2, filename="./step.save")
+bot.load_next_step_handlers(filename="./step.save")
 
 
 bot.remove_webhook()
