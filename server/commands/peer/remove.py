@@ -116,43 +116,6 @@ def remove_peer_confirm(code, region, message):
             )
             if r.status_code != 200:
                 raise RuntimeError
-            if db[message.chat.id] // 10000 == 424242:
-                bot.send_message(
-                    message.chat.id,
-                    (
-                        "Peer information has been deleted.\n"
-                        "Peer 信息已删除。\n"
-                        "\n"
-                        "You can always re-create it using /peer.\n"
-                        "你可以随时使用 /peer 重新建立。"
-                    ),
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-            else:
-                bot.send_message(
-                    message.chat.id,
-                    (
-                        "Peer information has been deleted.\n"
-                        "Peer 信息已删除。\n"
-                        "\n"
-                        f"Contact {config.CONTACT} if you need to re-peer.\n"
-                        f"如需重新 Peer 请联系 {config.CONTACT}"
-                    ),
-                    parse_mode="HTML",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
-            for i in db_privilege - {message.chat.id}:
-                bot.send_message(
-                    i,
-                    (
-                        "*[Privilege]*\n"
-                        "Peer Removed!   有 Peer 被删除！\n"
-                        f"`{tools.get_asn_mnt_text(db[message.chat.id])}`\n"
-                        f"`{config.SERVER[region]}`"
-                    ),
-                    parse_mode="Markdown",
-                    reply_markup=ReplyKeyboardRemove(),
-                )
         except BaseException:
             bot.send_message(
                 message.chat.id,
@@ -161,6 +124,44 @@ def remove_peer_confirm(code, region, message):
                     f"遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}"
                 ),
                 parse_mode="HTML",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+            return
+        if db[message.chat.id] // 10000 == 424242:
+            bot.send_message(
+                message.chat.id,
+                (
+                    "Peer information has been deleted.\n"
+                    "Peer 信息已删除。\n"
+                    "\n"
+                    "You can always re-create it using /peer.\n"
+                    "你可以随时使用 /peer 重新建立。"
+                ),
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        else:
+            bot.send_message(
+                message.chat.id,
+                (
+                    "Peer information has been deleted.\n"
+                    "Peer 信息已删除。\n"
+                    "\n"
+                    f"Contact {config.CONTACT} if you need to re-peer.\n"
+                    f"如需重新 Peer 请联系 {config.CONTACT}"
+                ),
+                parse_mode="HTML",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        for i in db_privilege - {message.chat.id}:
+            bot.send_message(
+                i,
+                (
+                    "*[Privilege]*\n"
+                    "Peer Removed!   有 Peer 被删除！\n"
+                    f"`{tools.get_asn_mnt_text(db[message.chat.id])}`\n"
+                    f"`{config.SERVER[region]}`"
+                ),
+                parse_mode="Markdown",
                 reply_markup=ReplyKeyboardRemove(),
             )
     else:

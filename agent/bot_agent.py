@@ -64,7 +64,6 @@ def set_sentry(func):
         if raw_config['SENTRY_DSN']:
             with sentry_sdk.start_transaction(name=f"Agent {request.rel_url}", sampled=True) as transaction:
                 transaction.set_tag('url', request.rel_url)
-                transaction.set_data("data", await request.text())
                 ret = await func(request)
                 transaction.set_http_status(ret.status)
             return ret

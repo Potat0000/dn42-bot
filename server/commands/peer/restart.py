@@ -97,12 +97,6 @@ def restart_peer_confirm(region, message):
         )
         if r.status_code != 200:
             raise RuntimeError
-        bot.send_message(
-            message.chat.id,
-            ("The tunnel and Bird sessions have been restarted.\n" "隧道及 Bird 会话已重启。\n"),
-            parse_mode="Markdown",
-            reply_markup=ReplyKeyboardRemove(),
-        )
     except BaseException:
         bot.send_message(
             message.chat.id,
@@ -113,3 +107,10 @@ def restart_peer_confirm(region, message):
             parse_mode="HTML",
             reply_markup=ReplyKeyboardRemove(),
         )
+        return
+    bot.send_message(
+        message.chat.id,
+        ("The tunnel and Bird sessions have been restarted.\n" "隧道及 Bird 会话已重启。\n"),
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove(),
+    )

@@ -8,7 +8,7 @@ import sentry_sdk
 import telebot
 import tools
 from aiohttp import web
-from base import bot
+from base import bot, db, db_privilege
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
 
@@ -44,7 +44,7 @@ class IsForMe(telebot.custom_filters.SimpleCustomFilter):
             return True
 
 
-class OnlyMentionMiddleware(BaseMiddleware):
+class MyMiddleware(BaseMiddleware):
     def __init__(self):
         self.update_types = ['message']
 
@@ -56,21 +56,41 @@ class OnlyMentionMiddleware(BaseMiddleware):
             if command[-1].lower() != config.BOT_USERNAME.lower():
                 return CancelUpdate()
         if config.SENTRY_DSN and command[0].startswith("/"):
-            self.transaction = sentry_sdk.start_transaction(name=f"Server {command[0]}", sampled=True)
+            self.transaction = sentry_sdk.start_transaction(
+                name=f"Server {command[0]}",
+                op=message.text.strip(),
+                sampled=True,
+            )
+            if message.from_user.username:
+                self.transaction.set_tag("username", message.from_user.username)
+                sentry_sdk.set_user(
+                    {
+                        "username": f"{message.from_user.full_name} @{message.from_user.username}",
+                        "id": message.from_user.id,
+                    }
+                )
+            else:
+                sentry_sdk.set_user(
+                    {
+                        "username": f"{message.from_user.full_name}",
+                        "id": message.from_user.id,
+                    }
+                )
+                sentry_sdk.set_user({"id": message.from_user.id})
+            self.transaction.set_tag("user_fullname", message.from_user.full_name)
+            self.transaction.set_tag("chat_id", message.chat.id)
+            self.transaction.set_tag("chat_type", message.chat.type)
+            if message.chat.type == "private":
+                if message.chat.id in db_privilege:
+                    self.transaction.set_tag("privilege", "True")
+                    self.transaction.set_tag("ASN", db[message.chat.id])
+                elif message.chat.id in db:
+                    self.transaction.set_tag("ASN", db[message.chat.id])
+            else:
+                if message.chat.title:
+                    self.transaction.set_tag("title", message.chat.title)
 
     def post_process(self, message, data, exception):
-        if self.transaction:
-            self.transaction.finish()
-
-
-class ExceptionHandlerMiddleware(BaseMiddleware):
-    def __init__(self):
-        self.update_types = ['message']
-
-    def pre_process(self, message, data):
-        pass
-
-    def post_process(self, message, data, exception=None):
         if exception:
             bot.send_message(
                 message.chat.id,
@@ -78,6 +98,13 @@ class ExceptionHandlerMiddleware(BaseMiddleware):
                 parse_mode='HTML',
                 reply_markup=ReplyKeyboardRemove(),
             )
+        if self.transaction:
+            if exception:
+                self.transaction.set_status("error")
+                sentry_sdk.capture_exception(exception)
+            else:
+                self.transaction.set_status("ok")
+            self.transaction.finish()
 
 
 offline_node = []
@@ -112,8 +139,7 @@ rank_timer = tools.LoopTimer(900, tools.get_map, "Update Rank Timer", update=Tru
 rank_timer.start()
 
 bot.add_custom_filter(IsPrivateChat())
-bot.setup_middleware(ExceptionHandlerMiddleware())
-bot.setup_middleware(OnlyMentionMiddleware())
+bot.setup_middleware(MyMiddleware())
 
 cmd_list = {
     'ping': ('Ping IP / Domain', True),
