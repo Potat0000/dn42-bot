@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import tools
-from base import bot
+from base import bot, db
 from telebot.types import ReplyKeyboardRemove
 
 
@@ -9,12 +9,15 @@ def stats(message):
     try:
         asn = int(message.text.strip().split(" ")[1])
     except (ValueError, IndexError):
-        bot.reply_to(
-            message,
-            "Usage: /stats [asn]\n用法：/stats [asn]",
-            reply_markup=tools.gen_peer_me_markup(message),
-        )
-        return
+        if message.chat.type == 'private' and message.chat.id in db:
+            asn = db[message.chat.id]
+        else:
+            bot.reply_to(
+                message,
+                "Usage: /stats [asn]\n用法：/stats [asn]",
+                reply_markup=tools.gen_peer_me_markup(message),
+            )
+            return
     data = tools.get_map()[1]
     if not data:
         bot.reply_to(

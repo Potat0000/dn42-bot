@@ -7,15 +7,16 @@ from base import bot
 
 @bot.message_handler(commands=['ping', 'trace', 'traceroute', 'tracert'])
 def ping_trace(message):
-    command = message.text.strip().split(" ")[0][1:]
-    if len(message.text.strip().split(" ")) < 2:
+    command = message.text.strip().split(" ")
+    if len(command) < 2:
         bot.reply_to(
             message,
             f"Usage: /{command} [ip/domain]\n用法：/{command} [ip/domain]",
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    parsed_info = tools.test_ip_domain(message.text.strip().split(" ")[1])
+    parsed_info = tools.test_ip_domain(command[1])
+    command = command[0].split('@')[0][1:]
     if not parsed_info:
         bot.reply_to(message, "IP/Domain is wrong\nIP/域名不正确", reply_markup=tools.gen_peer_me_markup(message))
         return

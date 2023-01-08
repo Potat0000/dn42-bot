@@ -12,7 +12,7 @@ def startup(message):
     try:
         command = message.text.strip().split(" ")[1]
         if command.startswith("whoami_"):
-            whoami(message, message.text.strip().split(" ")[1][7:])
+            whoami(message, command[7:])
         elif command == 'info':
             get_info(message)
         elif command == 'login':

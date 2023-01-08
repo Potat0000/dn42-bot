@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import tools
-from base import bot
+from base import bot, db
 from telebot.types import ReplyKeyboardRemove
 
 
@@ -9,13 +9,16 @@ def route(message):
     try:
         asn = int(message.text.strip().split(" ")[1])
     except (ValueError, IndexError):
-        command = message.text.strip().split(" ")[0]
-        bot.reply_to(
-            message,
-            f"Usage: /{command} [asn]\n用法：/{command} [asn]",
-            reply_markup=tools.gen_peer_me_markup(message),
-        )
-        return
+        if message.chat.type == 'private' and message.chat.id in db:
+            asn = db[message.chat.id]
+        else:
+            command = message.text.strip().split(" ")[0].split('@')[0][1:]
+            bot.reply_to(
+                message,
+                f"Usage: /{command} [asn]\n用法：/{command} [asn]",
+                reply_markup=tools.gen_peer_me_markup(message),
+            )
+            return
     peer_map = tools.get_map()[2]
     if asn not in peer_map:
         bot.reply_to(
