@@ -225,7 +225,9 @@ def get_info_text(chatid, node):
             if session in bird_status[2]:
                 detail_text += f"        {bird_status[2][session]}\n"
 
-    detail_text += "Contact:\n" f"    {tools.get_whoisinfo_by_asn(db[chatid])}\n" f"    {peer_info['desc']}\n"
+    detail_text += "Contact:\n" f"    {tools.get_whoisinfo_by_asn(db[chatid])}\n"
+    if tools.get_whoisinfo_by_asn(db[chatid]) != peer_info['desc']:
+        detail_text += f"    {peer_info['desc']}\n"
 
     return (
         f"```\n{detail_text.strip()}```",
@@ -251,6 +253,6 @@ def info_callback_query(call):
 
 
 @bot.message_handler(commands=['info'], is_private_chat=True)
-def get_info(message):
-    info_text = get_info_text(message.chat.id, None)
+def get_info(message, node=None):
+    info_text = get_info_text(message.chat.id, node)
     bot.send_message(message.chat.id, info_text[0], parse_mode=info_text[1], reply_markup=info_text[2])

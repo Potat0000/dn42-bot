@@ -8,7 +8,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 
 
 @bot.message_handler(commands=['whoami'], is_private_chat=True)
-def whoami(message, new_asn=None):
+def whoami(message, new_asn=None, info_node=None):
     if message.chat.id not in db:
         bot.send_message(
             message.chat.id,
@@ -31,12 +31,16 @@ def whoami(message, new_asn=None):
             else:
 
                 def gen_privilege_markup():
+                    if info_node:
+                        info_node_text = f'_{info_node}'
+                    else:
+                        info_node_text = ''
                     markup = InlineKeyboardMarkup()
                     markup.row_width = 1
                     markup.add(
                         InlineKeyboardButton(
                             "Show info | 查看信息",
-                            url=f"https://t.me/{config.BOT_USERNAME}?start=info",
+                            url=f"https://t.me/{config.BOT_USERNAME}?start=info{info_node_text}",
                         )
                     )
                     return markup

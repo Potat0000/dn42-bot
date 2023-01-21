@@ -280,7 +280,8 @@ def pre_confirm(message, peer_info):
     diff_print('PublicKey', 'PublicKey:   ')
     all_text += "Contact:\n"
     all_text += f"    {tools.get_whoisinfo_by_asn(db[message.chat.id])}\n"
-    diff_print('Contact')
+    if not tools.get_whoisinfo_by_asn(db[message.chat.id]) == peer_info['Contact'] == old_peer_info['Contact']:
+        diff_print('Contact')
 
     msg = bot.send_message(
         message.chat.id,

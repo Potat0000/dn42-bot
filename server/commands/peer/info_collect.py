@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
-import re
 import socket
 import string
 
 import config
-import dns.resolver as dns
 import requests
 import tools
 from base import bot, db, db_privilege
-from dns.exception import DNSException
 from IPy import IP
 from telebot.types import (
     InlineKeyboardButton,
@@ -411,101 +408,6 @@ def pre_clearnet(message, peer_info):
 
 
 def post_clearnet(message, peer_info):
-    def test_clearnet(address):
-        IPv4_Bogon = [
-            IP('0.0.0.0/8'),
-            IP('10.0.0.0/8'),
-            IP('100.64.0.0/10'),
-            IP('127.0.0.0/8'),
-            IP('127.0.53.53'),
-            IP('169.254.0.0/16'),
-            IP('172.16.0.0/12'),
-            IP('192.0.0.0/24'),
-            IP('192.0.2.0/24'),
-            IP('192.168.0.0/16'),
-            IP('198.18.0.0/15'),
-            IP('198.51.100.0/24'),
-            IP('203.0.113.0/24'),
-            IP('224.0.0.0/4'),
-            IP('240.0.0.0/4'),
-            IP('255.255.255.255/32'),
-        ]
-        IPv6_Bogon = [
-            IP('::/128'),
-            IP('::1/128'),
-            IP('::ffff:0:0/96'),
-            IP('::/96'),
-            IP('100::/64'),
-            IP('2001:10::/28'),
-            IP('2001:db8::/32'),
-            IP('fc00::/7'),
-            IP('fe80::/10'),
-            IP('fec0::/10'),
-            IP('ff00::/8'),
-            IP('2002::/24'),
-            IP('2002:a00::/24'),
-            IP('2002:7f00::/24'),
-            IP('2002:a9fe::/32'),
-            IP('2002:ac10::/28'),
-            IP('2002:c000::/40'),
-            IP('2002:c000:200::/40'),
-            IP('2002:c0a8::/32'),
-            IP('2002:c612::/31'),
-            IP('2002:c633:6400::/40'),
-            IP('2002:cb00:7100::/40'),
-            IP('2002:e000::/20'),
-            IP('2002:f000::/20'),
-            IP('2002:ffff:ffff::/48'),
-            IP('2001::/40'),
-            IP('2001:0:a00::/40'),
-            IP('2001:0:7f00::/40'),
-            IP('2001:0:a9fe::/48'),
-            IP('2001:0:ac10::/44'),
-            IP('2001:0:c000::/56'),
-            IP('2001:0:c000:200::/56'),
-            IP('2001:0:c0a8::/48'),
-            IP('2001:0:c612::/47'),
-            IP('2001:0:c633:6400::/56'),
-            IP('2001:0:cb00:7100::/56'),
-            IP('2001:0:e000::/36'),
-            IP('2001:0:f000::/36'),
-            IP('2001:0:ffff:ffff::/64'),
-        ]
-        try:  # Test for IPv4
-            socket.inet_pton(socket.AF_INET, address)
-            if any(IP(address) in i for i in IPv4_Bogon):
-                return None
-            else:
-                return str(IP(address)), 'ipv4'
-        except socket.error:
-            try:  # Test for IPv6
-                socket.inet_pton(socket.AF_INET6, address)
-                if any(IP(address) in i for i in IPv6_Bogon):
-                    return None
-                else:
-                    return str(IP(address)), 'ipv6'
-            except socket.error:  # Test for domain
-                if not re.search('[a-zA-Z]', address):
-                    return None
-                support = None
-                try:
-                    if any(test_clearnet(i.address) for i in dns.resolve(address, 'A')):
-                        support = 'ipv4'
-                except DNSException:
-                    pass
-                try:
-                    if any(test_clearnet(i.address) for i in dns.resolve(address, 'AAAA')):
-                        if support:
-                            support = 'dual'
-                        else:
-                            support = 'ipv6'
-                except DNSException:
-                    pass
-                if support:
-                    return address, support
-                else:
-                    return None
-
     if message.text.strip().lower() == "none" and (
         peer_info['Net_Support']['ipv6']
         or (peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat'])
@@ -516,13 +418,13 @@ def post_clearnet(message, peer_info):
             return 'pre_pubkey', peer_info, message
 
     msg = None
-    if test_result := test_clearnet(message.text.strip()):
-        if test_result[1] == 'ipv4' and not peer_info['Net_Support']['ipv4']:
+    if test_result := tools.test_clearnet(message.text.strip()):
+        if test_result.ipver == 'ipv4' and not peer_info['Net_Support']['ipv4']:
             msg = "IPv4 is not supported on this node", "该节点不支持IPv4"
-        elif test_result[1] == 'ipv6' and not peer_info['Net_Support']['ipv6']:
+        elif test_result.ipver == 'ipv6' and not peer_info['Net_Support']['ipv6']:
             msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
         else:
-            peer_info["Clearnet"] = test_clearnet(message.text.strip())[0]
+            peer_info["Clearnet"] = test_result.raw
     else:
         msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
     if msg:
@@ -666,10 +568,16 @@ def post_pubkey(message, peer_info):
 
 
 def pre_contact(message, peer_info):
+    button = []
     if peer_info['Contact']:
+        button.append(peer_info['Contact'])
+    if message.chat.id in db_privilege and tools.get_whoisinfo_by_asn(db[message.chat.id]) not in button:
+        button.append(tools.get_whoisinfo_by_asn(db[message.chat.id]))
+    if button:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
-        markup.add(KeyboardButton(peer_info['Contact']))
+        for i in button:
+            markup.add(KeyboardButton(i))
     else:
         markup = ReplyKeyboardRemove()
     msg = bot.send_message(
@@ -707,7 +615,10 @@ def post_contact(message, peer_info):
 def post_confirm(message, peer_info):
     progress_type = peer_info.pop('ProgressType')
     info_text = peer_info.pop('InfoText')
-    if message.text.strip() != "YES":
+    check_text = message.text.strip()
+    if progress_type == 'peer':
+        check_text = check_text.upper()
+    if check_text != "YES":
         bot.send_message(
             message.chat.id,
             "Current operation has been cancelled.\n当前操作已被取消。",
@@ -769,14 +680,14 @@ def post_confirm(message, peer_info):
             markup.add(
                 InlineKeyboardButton(
                     "Show info | 查看信息",
-                    url=f"https://t.me/{config.BOT_USERNAME}?start=info",
+                    url=f"https://t.me/{config.BOT_USERNAME}?start=info_{peer_info['Region']}",
                 )
             )
         else:
             markup.add(
                 InlineKeyboardButton(
                     "Switch to it | 切换至该身份",
-                    url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}",
+                    url=f"https://t.me/{config.BOT_USERNAME}?start=whoami_{peer_info['ASN']}_{peer_info['Region']}",
                 )
             )
         bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)
