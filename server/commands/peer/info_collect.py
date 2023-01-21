@@ -9,6 +9,7 @@ import dns.resolver as dns
 import requests
 import tools
 from base import bot, db, db_privilege
+from dns.exception import DNSException
 from IPy import IP
 from telebot.types import (
     InlineKeyboardButton,
@@ -490,7 +491,7 @@ def post_clearnet(message, peer_info):
                 try:
                     if any(test_clearnet(i.address) for i in dns.resolve(address, 'A')):
                         support = 'ipv4'
-                except dns.NoAnswer:
+                except DNSException:
                     pass
                 try:
                     if any(test_clearnet(i.address) for i in dns.resolve(address, 'AAAA')):
@@ -498,7 +499,7 @@ def post_clearnet(message, peer_info):
                             support = 'dual'
                         else:
                             support = 'ipv6'
-                except dns.NoAnswer:
+                except DNSException:
                     pass
                 if support:
                     return address, support

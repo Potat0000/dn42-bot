@@ -52,7 +52,8 @@ def gen_get_map():
                     as_path = [int(i) for i in elem['as_path'].split(' ')]
                     for i in range(len(as_path) - 1):
                         G.add_edge(as_path[i], as_path[i + 1])
-
+            if not G.nodes:
+                return
             temp_data = {
                 'closeness': nx.closeness_centrality(G),
                 'betweenness': nx.betweenness_centrality(G),
