@@ -13,6 +13,5 @@ get_info = tools.get_info
 get_map = get_map.get_map
 get_route_stats = get_route_stats.get_route_stats
 get_whoisinfo_by_asn = tools.get_whoisinfo_by_asn
-test_clearnet = tools.test_clearnet
 test_ip_domain = tools.test_ip_domain
 LoopTimer = loop_timer.LoopTimer

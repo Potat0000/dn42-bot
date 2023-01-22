@@ -1,7 +1,6 @@
 import asyncio
 import json
 import random
-import re
 import shlex
 import socket
 import string
@@ -9,7 +8,8 @@ import subprocess
 from collections import namedtuple
 
 import config
-import dns.resolver as dns
+import dns.resolver
+import dns.reversename
 from aiohttp import ClientSession
 from base import db, db_privilege
 from dns.exception import DNSException
@@ -50,7 +50,65 @@ def get_asn_mnt_text(asn):
         return f"AS{asn}"
 
 
-def test_clearnet(address):
+def basic_ip_domain_test(address):
+    resolver = dns.resolver.Resolver()
+    resolver.nameservers = ['127.0.0.1', '172.20.0.53', '172.23.0.53', '8.8.8.8', '8.8.4.4']
+    resolver.timeout = 0.15
+    resolver.lifetime = 1
+    test_result = namedtuple('test_result', ['raw', 'ipv4', 'ipv6', 'domain'])
+    try:  # Test for IPv4
+        socket.inet_pton(socket.AF_INET, address)
+        domain = None
+        try:
+            domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), "PTR")[0])
+        except BaseException:
+            pass
+        if str(IP(address)) == domain:
+            domain = None
+        return test_result(str(IP(address)), str(IP(address)), None, domain)
+    except (socket.error, OSError):
+        try:  # Test for IPv6
+            socket.inet_pton(socket.AF_INET6, address)
+            domain = None
+            try:
+                domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), "PTR")[0])
+            except BaseException:
+                pass
+            if str(IP(address)) == domain:
+                domain = None
+            return test_result(str(IP(address)), None, str(IP(address)), domain)
+        except (socket.error, OSError):  # Test for domain
+            ipv4 = None
+            ipv6 = None
+            try:
+                for i in resolver.resolve(address, 'A'):
+                    try:
+                        socket.inet_pton(socket.AF_INET, i.address)
+                    except (socket.error, OSError):
+                        pass
+                    else:
+                        ipv4 = i.address
+                        break
+            except DNSException:
+                pass
+            try:
+                for i in resolver.resolve(address, 'AAAA'):
+                    try:
+                        socket.inet_pton(socket.AF_INET6, i.address)
+                    except (socket.error, OSError):
+                        pass
+                    else:
+                        ipv6 = i.address
+                        break
+            except DNSException:
+                pass
+            if ipv4 or ipv6:
+                return test_result(address, ipv4, ipv6, address)
+            else:
+                return None
+
+
+def test_ip_domain(testcase):
     IPv4_Bogon = [
         IP('0.0.0.0/8'),
         IP('10.0.0.0/8'),
@@ -110,96 +168,63 @@ def test_clearnet(address):
         IP('2001:0:f000::/36'),
         IP('2001:0:ffff:ffff::/64'),
     ]
-    test_result = namedtuple('test_result', ['raw', 'ip', 'domain', 'ipver'])
-    try:  # Test for IPv4
-        socket.inet_pton(socket.AF_INET, address)
-        if any(IP(address) in i for i in IPv4_Bogon):
-            return None
-        else:
-            domain = None
-            try:
-                domain = socket.gethostbyaddr(str(IP(address)))[0]
-            except BaseException:
-                pass
-            if str(IP(address)) == domain:
-                domain = None
-            return test_result(str(IP(address)), str(IP(address)), domain, 'ipv4')
-    except socket.error:
-        try:  # Test for IPv6
-            socket.inet_pton(socket.AF_INET6, address)
-            if any(IP(address) in i for i in IPv6_Bogon):
-                return None
-            else:
-                domain = None
-                try:
-                    domain = socket.gethostbyaddr(str(IP(address)))[0]
-                except BaseException:
-                    pass
-                if str(IP(address)) == domain:
-                    domain = None
-                return test_result(str(IP(address)), str(IP(address)), domain, 'ipv6')
-        except socket.error:  # Test for domain
-            if not re.search('[a-zA-Z]', address):
-                return None
-            support = None
-            try:
-                for i in dns.resolve(address, 'A'):
-                    if test_clearnet(i.address):
-                        ip = i.address
-                        support = 'ipv4'
-                        break
-            except DNSException:
-                pass
-            try:
-                for i in dns.resolve(address, 'AAAA'):
-                    if test_clearnet(i.address):
-                        ip = i.address
-                        if support:
-                            support = 'dual'
-                        else:
-                            support = 'ipv6'
-                        break
-            except DNSException:
-                pass
-            if support:
-                return test_result(address, ip, address, support)
-            else:
-                return None
-
-
-def test_ip_domain(testcase):
     testcase = testcase.strip()
-    return_tuple = namedtuple('IP_Domain_Info', ['raw', 'ip', 'domain', 'asn', 'mnt', 'dn42'])
+    return_tuple = namedtuple('IP_Domain_Info', ['raw', 'ipv4', 'ipv6', 'domain', 'asn', 'mnt', 'dn42', 'clearnet'])
     asn = None
     mnt = None
     dn42 = False
-    test_result = test_clearnet(testcase)
+    clearnet = False
+    test_result = basic_ip_domain_test(testcase)
     if not test_result:
         return None
     raw = test_result.raw
-    ip = test_result.ip
+    ipv4 = test_result.ipv4
+    ipv6 = test_result.ipv6
     domain = test_result.domain
 
-    if domain and domain.endswith('.dn42'):
+    if raw.endswith('.dn42'):
         dn42 = True
-    elif ip and (ip in IP('172.20.0.0/14') or ip in IP('fc00::/7')):
+    elif domain and domain.endswith('.dn42'):
         dn42 = True
-    if dn42 and ip:
+    elif (raw == ipv4 or raw == ipv6) and ((ipv4 and ipv4 in IP('172.20.0.0/14')) or (ipv6 and ipv6 in IP('fc00::/7'))):
+        dn42 = True
+    if dn42:
         try:
-            whois = subprocess.check_output(
-                shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route,route6 {ip}'), timeout=3
+            whois4 = subprocess.check_output(
+                shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route {ipv4}'), timeout=3
             ).decode("utf-8")
-            asn = []
-            for i in whois.split('\n'):
+            whois6 = subprocess.check_output(
+                shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route6 {ipv6}'), timeout=3
+            ).decode("utf-8")
+            asn = set()
+            for i in whois4.split('\n') + whois6.split('\n'):
                 if i.startswith('origin:'):
-                    asn.append(i.split(':')[1].strip())
+                    asn.add(i.split(':')[1].strip())
                 elif i.startswith('mnt-by:'):
                     mnt = i.split(':')[1].strip()
-            asn = ', '.join(asn)
+            if asn:
+                asn = ', '.join(asn)
+            else:
+                raise RuntimeError
         except BaseException:
             dn42 = False
             asn = None
-    return return_tuple(raw, str(ip) if ip else None, domain, asn, mnt, dn42)
+    if not dn42:
+        clearnet4 = False
+        clearnet6 = False
+        if ipv4 and all(ipv4 not in i for i in IPv4_Bogon):
+            clearnet4 = True
+        if ipv6 and all(ipv6 not in i for i in IPv6_Bogon):
+            clearnet6 = True
+        if not (clearnet4 or clearnet6):
+            clearnet = False
+        else:
+            clearnet = True
+            if clearnet4 and not clearnet6:
+                ipv6 = None
+            elif clearnet6 and not clearnet4:
+                ipv4 = None
+    return return_tuple(raw, ipv4, ipv6, domain, asn, mnt, dn42, clearnet)
 
 
 def gen_peer_me_markup(message):

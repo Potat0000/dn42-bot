@@ -264,7 +264,7 @@ def post_ipv6(message, peer_info):
         socket.inet_pton(socket.AF_INET6, message.text.strip())
         if IP(message.text.strip()) not in IP("fc00::/7") and IP(message.text.strip()) not in IP("fe80::/64"):
             raise ValueError
-    except (socket.error, ValueError):
+    except (socket.error, OSError, ValueError):
         msg = bot.send_message(
             message.chat.id,
             (
@@ -307,7 +307,7 @@ def post_request_linklocal(message, peer_info):
         socket.inet_pton(socket.AF_INET6, message.text.strip())
         if IP(message.text.strip()) not in IP("fe80::/64"):
             raise ValueError
-    except (socket.error, ValueError):
+    except (socket.error, OSError, ValueError):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
@@ -350,7 +350,7 @@ def post_ipv4(message, peer_info):
         socket.inet_pton(socket.AF_INET, message.text.strip())
         if IP(message.text.strip()) not in IP("172.20.0.0/14"):
             raise ValueError
-    except (socket.error, ValueError):
+    except (socket.error, OSError, ValueError):
         msg = bot.send_message(
             message.chat.id,
             (
@@ -418,13 +418,16 @@ def post_clearnet(message, peer_info):
             return 'pre_pubkey', peer_info, message
 
     msg = None
-    if test_result := tools.test_clearnet(message.text.strip()):
-        if test_result.ipver == 'ipv4' and not peer_info['Net_Support']['ipv4']:
-            msg = "IPv4 is not supported on this node", "该节点不支持IPv4"
-        elif test_result.ipver == 'ipv6' and not peer_info['Net_Support']['ipv6']:
-            msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
+    if test_result := tools.test_ip_domain(message.text.strip()):
+        if test_result.clearnet:
+            if (test_result.ipv4 and not test_result.ipv6) and not peer_info['Net_Support']['ipv4']:
+                msg = "IPv4 is not supported on this node", "该节点不支持IPv4"
+            elif (test_result.ipv6 and not test_result.ipv4) and not peer_info['Net_Support']['ipv6']:
+                msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
+            else:
+                peer_info["Clearnet"] = test_result.raw
         else:
-            peer_info["Clearnet"] = test_result.raw
+            msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
     else:
         msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
     if msg:
