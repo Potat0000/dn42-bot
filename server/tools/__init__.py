@@ -2,7 +2,6 @@
 
 import tools.get_map as get_map
 import tools.get_route_stats as get_route_stats
-import tools.loop_timer as loop_timer
 import tools.tools as tools
 
 gen_peer_me_markup = tools.gen_peer_me_markup
@@ -14,4 +13,3 @@ get_map = get_map.get_map
 get_route_stats = get_route_stats.get_route_stats
 get_whoisinfo_by_asn = tools.get_whoisinfo_by_asn
 test_ip_domain = tools.test_ip_domain
-LoopTimer = loop_timer.LoopTimer

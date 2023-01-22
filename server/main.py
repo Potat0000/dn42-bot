@@ -8,7 +8,9 @@ import sentry_sdk
 import telebot
 import tools
 from aiohttp import web
+from apscheduler.schedulers.background import BackgroundScheduler
 from base import bot, db, db_privilege
+from pytz import utc
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
 
@@ -127,16 +129,17 @@ if config.SENTRY_DSN:
         traces_sample_rate=0,
     )
 
-route_stats_timer = tools.LoopTimer(900, tools.get_route_stats, "Update Route Stats Timer", update=True)
-route_stats_timer.start()
-
 try:
     with open("./rank.pkl", "rb") as f:
         tools.get_map(update=pickle.load(f))
 except BaseException:
-    pass
-rank_timer = tools.LoopTimer(900, tools.get_map, "Update Rank Timer", update=True)
-rank_timer.start()
+    tools.get_map(update=True)
+tools.get_route_stats(update=True)
+
+scheduler = BackgroundScheduler(timezone=utc)
+scheduler.add_job(tools.get_route_stats, 'cron', kwargs={'update': True}, minute='1/10')
+scheduler.add_job(tools.get_map, 'cron', kwargs={'update': True}, minute='1/10')
+scheduler.start()
 
 bot.add_custom_filter(IsPrivateChat())
 bot.setup_middleware(MyMiddleware())
