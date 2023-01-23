@@ -8,7 +8,7 @@ from base import bot, db, db_privilege
 from expiringdict import ExpiringDict
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-cache = ExpiringDict(max_len=500, max_age_seconds=3600)
+cache = ExpiringDict(max_len=500, max_age_seconds=259200)
 
 
 def gen_generaltest_markup(chat, data_id, node):
@@ -57,6 +57,7 @@ def generaltest_callback_query(call):
 def generaltest(message):
     command = message.text.strip().split(" ")
     if len(command) < 2:
+        command = command[0].split('@')[0][1:]
         if command.endswith("4") or command.endswith("6"):
             cmd = command[:-1]
         else:
