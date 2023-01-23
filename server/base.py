@@ -2,12 +2,14 @@
 import pickle
 
 import config
+import sentry_sdk
 import telebot
 
 
 class ExceptionHandler(telebot.ExceptionHandler):
     def handle(exception):
-        pass
+        if exception:
+            sentry_sdk.capture_exception(exception)
 
 
 bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True, exception_handler=ExceptionHandler)

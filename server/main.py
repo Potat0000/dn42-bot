@@ -103,7 +103,6 @@ class MyMiddleware(BaseMiddleware):
         if self.transaction:
             if exception:
                 self.transaction.set_status("error")
-                sentry_sdk.capture_exception(exception)
             else:
                 self.transaction.set_status("ok")
             self.transaction.finish()
