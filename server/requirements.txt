@@ -1,6 +1,7 @@
 aiohttp==3.8.3
 APScheduler==3.9.1.post1
 dnspython==2.3.0
+expiringdict==1.2.2
 IPy==1.01
 networkx==2.8.8
 pybgpkit==0.3.0

@@ -133,7 +133,7 @@ def login_choose_email(asn, emails, last_msg_id, message):
         )
         return
     if message.text.strip() not in emails:
-        msg = bot.send_message(
+        bot.send_message(
             message.chat.id,
             (
                 "Sorry. For now, you can only use the email address you registered in the DN42 Registry to authenticate.\n"
@@ -145,7 +145,7 @@ def login_choose_email(asn, emails, last_msg_id, message):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    bot.send_message(
+    msg = bot.send_message(
         message.chat.id,
         (
             "Sending verification code...\n"
@@ -161,6 +161,7 @@ def login_choose_email(asn, emails, last_msg_id, message):
     try:
         config.send_email(asn, tools.get_whoisinfo_by_asn(asn), code, message.text.strip())
     except RuntimeError:
+        bot.delete_message(message.chat.id, msg.message_id)
         bot.send_message(
             message.chat.id,
             (
@@ -170,14 +171,16 @@ def login_choose_email(asn, emails, last_msg_id, message):
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
-        bot.send_message(
-            message.chat.id,
-            "Verification code has been sent to your email\n验证码已发送至您的邮箱。",
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        bot.delete_message(message.chat.id, msg.message_id)
         msg = bot.send_message(
             message.chat.id,
-            "Enter your verification code\n请输入验证码",
+            (
+                "Verification code has been sent to your email.\n"
+                "验证码已发送至您的邮箱。\n"
+                "\n"
+                "Enter your verification code:\n"
+                "请输入验证码："
+            ),
             reply_markup=ReplyKeyboardRemove(),
         )
         bot.register_next_step_handler(msg, partial(login_verify_code, asn, code))
