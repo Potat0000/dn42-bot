@@ -1,4 +1,3 @@
-import asyncio
 import json
 import random
 import shlex
@@ -10,10 +9,10 @@ from collections import namedtuple
 import config
 import dns.resolver
 import dns.reversename
-from aiohttp import ClientSession
 from base import db, db_privilege
 from dns.exception import DNSException
 from IPy import IP
+from requests_futures.sessions import FuturesSession
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
@@ -242,32 +241,28 @@ def gen_peer_me_markup(message):
 def get_from_agent(type, target):
     api_result = namedtuple('api_result', ['text', 'status'])
 
-    async def async_test():
-        async def run(region):
-            try:
-                async with ClientSession() as session:
-                    async with session.post(
-                        f"http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}",
-                        data=target,
-                        headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
-                        timeout=10,
-                    ) as r:
-                        data = await r.text()
-                        return (region, api_result(data, r.status))
-            except BaseException:
-                return (region, api_result("", 500))
+    session = FuturesSession()
+    futures = []
+    for region in config.SERVER:
+        future = session.post(
+            f"http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}",
+            data=target,
+            headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
+            timeout=10,
+        )
+        future.region = region
+        futures.append(future)
 
-        task_list = [asyncio.create_task(run(region)) for region in config.SERVER.keys()]
-        done, _ = await asyncio.wait(task_list)
-        return done
+    result = {}
+    for future in futures:
+        try:
+            resp = future.result()
+        except BaseException:
+            result[future.region] = api_result('', 500)
+            continue
+        result[future.region] = api_result(resp.text, resp.status_code)
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    raw = loop.run_until_complete(async_test())
-    data = {i.result()[0]: i.result()[1] for i in raw}
-    data = {i: data[i] for i in config.SERVER}
-
-    return data
+    return result
 
 
 def get_info(asn):
