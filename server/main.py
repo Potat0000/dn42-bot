@@ -100,12 +100,15 @@ class MyMiddleware(BaseMiddleware):
                 parse_mode='HTML',
                 reply_markup=ReplyKeyboardRemove(),
             )
-        if self.transaction:
-            if exception:
-                self.transaction.set_status("error")
-            else:
-                self.transaction.set_status("ok")
-            self.transaction.finish()
+        try:
+            if self.transaction:
+                if exception:
+                    self.transaction.set_status("error")
+                else:
+                    self.transaction.set_status("ok")
+                self.transaction.finish()
+        except BaseException:
+            pass
 
 
 offline_node = []

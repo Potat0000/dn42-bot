@@ -9,6 +9,7 @@ from collections import namedtuple
 import config
 import dns.resolver
 import dns.reversename
+import requests
 from base import db, db_privilege
 from dns.exception import DNSException
 from IPy import IP
@@ -257,6 +258,9 @@ def get_from_agent(type, target):
     for future in futures:
         try:
             resp = future.result()
+        except requests.exceptions.Timeout:
+            result[future.region] = api_result('', 408)
+            continue
         except BaseException:
             result[future.region] = api_result('', 500)
             continue

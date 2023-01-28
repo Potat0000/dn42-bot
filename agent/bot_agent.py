@@ -209,16 +209,24 @@ async def get_info(request):
     if not session_name:
         return web.Response(body='no session', status=500)
 
-    out = simple_run(f"wg show dn42_{asn} latest-handshakes").split()
-    if out[0] == wg_info[5]:
-        wg_last_handshake = int(out[1])
+    out = simple_run(f"wg show dn42_{asn} latest-handshakes")
+    if out:
+        out = out.split()
+        if out[0] == wg_info[5]:
+            wg_last_handshake = int(out[1])
+        else:
+            return web.Response(body='wg error', status=500)
     else:
-        return web.Response(body='wg error', status=500)
-    out = simple_run(f"wg show dn42_{asn} transfer").split()
-    if out[0] == wg_info[5]:
-        wg_transfer = [int(out[1]), int(out[2])]
+        wg_last_handshake = 0
+    out = simple_run(f"wg show dn42_{asn} transfer")
+    if out:
+        out = out.split()
+        if out[0] == wg_info[5]:
+            wg_transfer = [int(out[1]), int(out[2])]
+        else:
+            return web.Response(body='wg error', status=500)
     else:
-        return web.Response(body='wg error', status=500)
+        wg_transfer = [0, 0]
     bird_status = {}
     for the_session in session_name:
         out = simple_run(f"birdc show protocols {the_session}").split('\n')
