@@ -77,20 +77,37 @@ def pre_region(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    for i in could_peer:
-        markup.add(KeyboardButton(config.SERVER[i]))
-    msg = bot.send_message(
-        message.chat.id,
-        "Which node do you want to choose?\n你想选择哪个节点？",
-        reply_markup=markup,
-    )
-    return 'post_region', peer_info, msg
+    if len(could_peer) == 1:
+        bot.send_message(
+            message.chat.id,
+            (
+                f"Only one available node, automatically select `{config.SERVER[could_peer[0]]}`\n"
+                f"只有一个可选节点，自动选择 `{config.SERVER[could_peer[0]]}`\n"
+                "\n"
+                "If not wanted, use /cancel to interrupt the operation.\n"
+                "如非所需，使用 /cancel 终止操作。"
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return post_region(message, peer_info, config.SERVER[could_peer[0]])
+    else:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row_width = 1
+        for i in could_peer:
+            markup.add(KeyboardButton(config.SERVER[i]))
+        msg = bot.send_message(
+            message.chat.id,
+            "Which node do you want to choose?\n你想选择哪个节点？",
+            reply_markup=markup,
+        )
+        return 'post_region', peer_info, msg
 
 
-def post_region(message, peer_info):
-    if message.text.strip() not in peer_info['Region']:
+def post_region(message, peer_info, chosen=None):
+    if not chosen:
+        chosen = message.text.strip()
+    if chosen not in peer_info['Region']:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         for i in peer_info['Region']:
@@ -101,9 +118,9 @@ def post_region(message, peer_info):
             reply_markup=markup,
         )
         return 'post_region', peer_info, msg
-    peer_info['Request-LinkLocal'] = peer_info['Region'][message.text.strip()][1]
-    peer_info['Net_Support'] = peer_info['Region'][message.text.strip()][2]
-    peer_info['Region'] = peer_info['Region'][message.text.strip()][0]
+    peer_info['Request-LinkLocal'] = peer_info['Region'][chosen][1]
+    peer_info['Net_Support'] = peer_info['Region'][chosen][2]
+    peer_info['Region'] = peer_info['Region'][chosen][0]
     return 'pre_session_type', peer_info, message
 
 

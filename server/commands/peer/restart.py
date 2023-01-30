@@ -28,27 +28,45 @@ def restart_peer(message):
 
     peered = [config.SERVER[i] for i in peer_info.keys()]
 
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    for i in peered:
-        markup.add(KeyboardButton(i))
-    msg = bot.send_message(
-        message.chat.id,
-        "Which node do you want to restart the tunnel and Bird session with?\n你想要重启与哪个节点的隧道及 Bird 会话？",
-        reply_markup=markup,
-    )
-    bot.register_next_step_handler(msg, partial(restart_peer_choose, peered))
+    if len(peered) == 1:
+        could_chosen = peered[0]
+        bot.send_message(
+            message.chat.id,
+            (
+                f"Only one available node, automatically select `{could_chosen}`\n"
+                f"只有一个可选节点，自动选择 `{could_chosen}`\n"
+                "\n"
+                "If not wanted, use /cancel to interrupt the operation.\n"
+                "如非所需，使用 /cancel 终止操作。"
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        restart_peer_choose(peered, could_chosen, message)
+    else:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row_width = 1
+        for i in peered:
+            markup.add(KeyboardButton(i))
+        msg = bot.send_message(
+            message.chat.id,
+            "Which node do you want to restart the tunnel and Bird session with?\n你想要重启与哪个节点的隧道及 Bird 会话？",
+            reply_markup=markup,
+        )
+        bot.register_next_step_handler(msg, partial(restart_peer_choose, peered, None))
 
 
-def restart_peer_choose(peered, message):
-    if message.text.strip() == "/cancel":
+def restart_peer_choose(peered, chosen, message):
+    if not chosen:
+        chosen = message.text.strip()
+    if chosen == "/cancel":
         bot.send_message(
             message.chat.id,
             "Current operation has been cancelled.\n当前操作已被取消。",
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    if message.text.strip() not in peered:
+    if chosen not in peered:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         for i in peered:
@@ -58,10 +76,10 @@ def restart_peer_choose(peered, message):
             ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
             reply_markup=markup,
         )
-        bot.register_next_step_handler(msg, partial(restart_peer_choose, peered))
+        bot.register_next_step_handler(msg, partial(restart_peer_choose, peered, None))
         return
 
-    chosen = next(k for k, v in config.SERVER.items() if v == message.text.strip())
+    chosen = next(k for k, v in config.SERVER.items() if v == chosen)
 
     msg = bot.send_message(
         message.chat.id,
@@ -69,7 +87,7 @@ def restart_peer_choose(peered, message):
             "The tunnel and Bird sessions with the following nodes will be restarted soon.\n"
             "即将重启与以下节点的隧道及 Bird 会话。\n"
             "\n"
-            f"`{message.text.strip()}`\n"
+            f"`{config.SERVER[chosen]}`\n"
             "\n"
             "Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n"
             "确认无误请输入*大写* `yes`，所有其他输入表示取消操作。"

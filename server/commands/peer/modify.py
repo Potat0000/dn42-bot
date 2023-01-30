@@ -73,21 +73,39 @@ def init(message, peer_info):
 
 
 def pre_node_choose(message, peer_info):
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    for i in tools.get_info(db[message.chat.id]):
-        markup.add(KeyboardButton(config.SERVER[i]))
-    msg = bot.send_message(
-        message.chat.id,
-        "Which node's peer information do you want to change?\n你想要修改哪个节点的 Peer 信息？",
-        reply_markup=markup,
-    )
-    return 'post_node_choose', peer_info, msg
+    if len(peer_info) == 1:
+        could_chosen = config.SERVER[list(peer_info.keys())[0]]
+        bot.send_message(
+            message.chat.id,
+            (
+                f"Only one available node, automatically select `{could_chosen}`\n"
+                f"只有一个可选节点，自动选择 `{could_chosen}`\n"
+                "\n"
+                "If not wanted, use /cancel to interrupt the operation.\n"
+                "如非所需，使用 /cancel 终止操作。"
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return post_node_choose(message, peer_info, could_chosen)
+    else:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row_width = 1
+        for i in peer_info:
+            markup.add(KeyboardButton(config.SERVER[i]))
+        msg = bot.send_message(
+            message.chat.id,
+            "Which node's peer information do you want to change?\n你想要修改哪个节点的 Peer 信息？",
+            reply_markup=markup,
+        )
+        return 'post_node_choose', peer_info, msg
 
 
-def post_node_choose(message, peer_info):
+def post_node_choose(message, peer_info, chosen=None):
+    if not chosen:
+        chosen = message.text.strip()
     try:
-        chosen = next(k for k, v in config.SERVER.items() if v == message.text.strip())
+        chosen = next(k for k, v in config.SERVER.items() if v == chosen)
     except StopIteration:
         chooseable = [config.SERVER[i] for i in tools.get_info(db[message.chat.id])]
         markup = ReplyKeyboardMarkup(resize_keyboard=True)

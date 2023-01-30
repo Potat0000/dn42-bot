@@ -28,27 +28,45 @@ def remove_peer(message):
 
     removable = [config.SERVER[i] for i in peer_info.keys()]
 
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row_width = 1
-    for i in removable:
-        markup.add(KeyboardButton(i))
-    msg = bot.send_message(
-        message.chat.id,
-        "Which node do you want to delete the information with?\n你想要删除与哪个节点的信息？",
-        reply_markup=markup,
-    )
-    bot.register_next_step_handler(msg, partial(remove_peer_choose, removable))
+    if len(removable) == 1:
+        could_chosen = removable[0]
+        bot.send_message(
+            message.chat.id,
+            (
+                f"Only one available node, automatically select `{could_chosen}`\n"
+                f"只有一个可选节点，自动选择 `{could_chosen}`\n"
+                "\n"
+                "If not wanted, use /cancel to interrupt the operation.\n"
+                "如非所需，使用 /cancel 终止操作。"
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        remove_peer_choose(removable, could_chosen, message)
+    else:
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row_width = 1
+        for i in removable:
+            markup.add(KeyboardButton(i))
+        msg = bot.send_message(
+            message.chat.id,
+            "Which node do you want to delete the information with?\n你想要删除与哪个节点的信息？",
+            reply_markup=markup,
+        )
+        bot.register_next_step_handler(msg, partial(remove_peer_choose, removable, None))
 
 
-def remove_peer_choose(removable, message):
-    if message.text.strip() == "/cancel":
+def remove_peer_choose(removable, chosen, message):
+    if not chosen:
+        chosen = message.text.strip()
+    if chosen == "/cancel":
         bot.send_message(
             message.chat.id,
             "Current operation has been cancelled.\n当前操作已被取消。",
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    if message.text.strip() not in removable:
+    if chosen not in removable:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         for i in removable:
@@ -58,10 +76,10 @@ def remove_peer_choose(removable, message):
             ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
             reply_markup=markup,
         )
-        bot.register_next_step_handler(msg, partial(remove_peer_choose, removable))
+        bot.register_next_step_handler(msg, partial(remove_peer_choose, removable, None))
         return
 
-    chosen = [k for k, v in config.SERVER.items() if v == message.text.strip()][0]
+    chosen = next(k for k, v in config.SERVER.items() if v == chosen)
     code = tools.gen_random_code(32)
     if db[message.chat.id] // 10000 == 424242:
         bot.send_message(
