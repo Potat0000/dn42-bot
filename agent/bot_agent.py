@@ -140,7 +140,7 @@ async def get_info(request):
         r"(?:Endpoint = (.+:[0-9]{,5})\n)?"
         r"AllowedIPs = "
     )
-    bird_regex_v4 = r"protocol bgp DN42_" + str(asn) + r"_v4 from dnpeers \{\n" r"(?:(?: +.*?\n)*?.*\n)+?" r"\}"
+    bird_regex_v4 = r"protocol bgp DN42_" + str(asn) + r"_v4 from dn42_peers \{\n" r"(?:(?: +.*?\n)*?.*\n)+?" r"\}"
     bird_regex_v4_only = (
         r" {4}ipv6 \{\n"
         r"(?: {4,}.*?\n)*?"
@@ -148,7 +148,7 @@ async def get_info(request):
         r"(?: {4,}.*?\n)*?"
         r" {4}\};"
     )
-    bird_regex_v6 = r"protocol bgp DN42_" + str(asn) + r"_v6 from dnpeers \{\n" r"(?:(?: +.*?\n)*?.*\n)+?" r"\}"
+    bird_regex_v6 = r"protocol bgp DN42_" + str(asn) + r"_v6 from dn42_peers \{\n" r"(?:(?: +.*?\n)*?.*\n)+?" r"\}"
     bird_regex_v6_only = (
         r" {4}ipv4 \{\n"
         r"(?: {4,}.*?\n)*?"
@@ -392,7 +392,7 @@ async def setup_peer(request):
 
     def gen_bird_protocol(version, only):
         text = (
-            f"protocol bgp DN42_{peer_info['ASN']}_v{version} from dnpeers "
+            f"protocol bgp DN42_{peer_info['ASN']}_v{version} from dn42_peers "
             "{\n"
             f"    neighbor {peer_info[f'IPv{version}']} % 'dn42_{peer_info['ASN']}' external;\n"
             f'    description "{peer_info["Contact"]}";\n'
