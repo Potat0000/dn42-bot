@@ -11,13 +11,13 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 cache = ExpiringDict(max_len=500, max_age_seconds=259200)
 
 
-def gen_generaltest_markup(chat, data_id, node):
+def gen_generaltest_markup(chat, data_id, node, available_nodes):
     markup = InlineKeyboardMarkup()
-    for k, v in config.SERVER.items():
-        if k == node:
-            markup.row(InlineKeyboardButton(f'✅ {v}', callback_data=f"generaltest_{data_id}_{k}"))
+    for n in available_nodes:
+        if n == node:
+            markup.row(InlineKeyboardButton(f'✅ {config.SERVER[n]}', callback_data=f"generaltest_{data_id}_{n}"))
         else:
-            markup.row(InlineKeyboardButton(v, callback_data=f"generaltest_{data_id}_{k}"))
+            markup.row(InlineKeyboardButton(config.SERVER[n], callback_data=f"generaltest_{data_id}_{n}"))
     if chat.id in db_privilege:
         return markup
     if chat.type == "private" and chat.id in db:
@@ -40,6 +40,7 @@ def generaltest_callback_query(call):
             reply_markup=tools.gen_peer_me_markup(call.message),
         )
         return
+    available_nodes = list(text.keys())
     text = text[node]
     try:
         bot.edit_message_text(
@@ -47,13 +48,28 @@ def generaltest_callback_query(call):
             parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=gen_generaltest_markup(call.message.chat, data_id, node),
+            reply_markup=gen_generaltest_markup(call.message.chat, data_id, node, available_nodes),
         )
     except BaseException:
         pass
 
 
-@bot.message_handler(commands=['ping', 'ping4', 'ping6', 'trace', 'trace4', 'trace6', 'route', 'route4', 'route6'])
+@bot.message_handler(
+    commands=[
+        'ping',
+        'ping4',
+        'ping6',
+        'trace',
+        'trace4',
+        'trace6',
+        'route',
+        'route4',
+        'route6',
+        'tcping',
+        'tcping4',
+        'tcping6',
+    ]
+)
 def generaltest(message):
     command = message.text.strip().split(" ")
     if len(command) < 2:
@@ -62,9 +78,15 @@ def generaltest(message):
             cmd = command[:-1]
         else:
             cmd = command
+        addon = ""
+        if cmd == 'tcping':
+            addon = " {port}"
         bot.reply_to(
             message,
-            f"Usage: /{cmd}{{4|6}} [ip/domain]\n用法：/{cmd}{{4|6}} [ip/domain] {{node1}} {{node2}} ...",
+            (
+                f"Usage: /{cmd}{{4|6}} [ip/domain]{addon} {{node1}} {{node2}} ...\n"
+                f"用法：/{cmd}{{4|6}} [ip/domain]{addon} {{node1}} {{node2}} ..."
+            ),
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
@@ -109,30 +131,42 @@ def generaltest(message):
             return
     else:
         ip = parsed_info.ipv4 if parsed_info.ipv4 else parsed_info.ipv6
+    server_list = message.text.strip().split(" ")[2:]
+    command_data = ip
+    addon = ""
     if command == 'ping':
         command_text = 'Ping'
+    elif command == 'tcping':
+        command_text = 'TCPing'
+        try:
+            if 0 < int(server_list[0]) < 65535:
+                addon = f" Port {server_list[0]}"
+                command_data = f"{ip} {server_list[0]}"
+                server_list = server_list[1:]
+        except BaseException:
+            pass
     elif command == 'trace':
         command_text = 'Traceroute'
     elif command == 'route':
         command_text = 'Route to'
     msg = bot.reply_to(
         message,
-        "```\n{command_text} {ip}{domain} ...\n```".format(
+        "```\n{command_text} {ip}{domain}{addon}...\n```".format(
             command_text=command_text,
             ip=ip,
             domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+            addon=addon,
         ),
         parse_mode="Markdown",
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    raw = tools.get_from_agent(command, ip)
     try:
-        specific_server = [i.lower() for i in message.text.strip().split(" ")[2:]]
-        raw_new = {k: v for k, v in raw.items() if k in specific_server}
-        if raw_new:
-            raw = raw_new
-    except (IndexError, KeyError):
-        pass
+        specific_server = [i.lower() for i in server_list if i.lower() in config.SERVER]
+        if not specific_server:
+            raise RuntimeError()
+    except BaseException:
+        specific_server = list(config.SERVER.keys())
+    raw = tools.get_from_agent(command, command_data, specific_server)
     data = {}
     for k, v in raw.items():
         if v.status == 200:
@@ -142,6 +176,13 @@ def generaltest(message):
                     domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
                 )
                 text += '\n'.join(v.text.strip().split("\n")[1:])
+            elif command == 'tcping':
+                text = "TCPing {ip}{domain}{addon}\n".format(
+                    ip=ip,
+                    domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+                    addon=addon,
+                )
+                text += v.text.strip()
             elif command == 'trace':
                 text = "Traceroute to {ip}{domain}, 30 hops max, 80 byte packets\n".format(
                     ip=ip,
@@ -157,12 +198,12 @@ def generaltest(message):
             data[k] = 'Something went wrong.\n发生了一些错误。'
     data_id = str(uuid4()).replace('-', '')
     cache[data_id] = data
-    node = list(config.SERVER.keys())[0]
+    node = specific_server[0]
     text = data[node]
     bot.edit_message_text(
         f'```\n{text.strip()}\n```',
         parse_mode="Markdown",
         chat_id=message.chat.id,
         message_id=msg.message_id,
-        reply_markup=gen_generaltest_markup(message.chat, data_id, node),
+        reply_markup=gen_generaltest_markup(message.chat, data_id, node, specific_server),
     )

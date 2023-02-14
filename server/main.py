@@ -16,7 +16,7 @@ from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
 
 import commands
 
-MIN_AGENT_VERSION = 9
+MIN_AGENT_VERSION = 11
 
 
 class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
@@ -148,6 +148,7 @@ bot.setup_middleware(MyMiddleware())
 
 cmd_list = {
     'ping': ('Ping IP / Domain', True),
+    'tcping': ('TCPing IP / Domain', True),
     'trace': ('Traceroute IP / Domain', True),
     'route': ('Route to IP / Domain', True),
     'whois': ('Whois', True),

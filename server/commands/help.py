@@ -30,6 +30,7 @@ def send_welcome(message):
             "```\n"
             "Tools:\n"
             "  - /ping [ip/domain]\n"
+            "  - /tcping [ip/domain]\n"
             "  - /trace [ip/domain]\n"
             "  - /route [ip/domain]\n"
             "  - /whois [something]\n"

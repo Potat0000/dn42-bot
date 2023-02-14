@@ -4,6 +4,7 @@
 
 - Tools
   - [x] Ping
+  - [x] TCPing
   - [x] Traceroute
   - [x] Route
   - [x] Whois

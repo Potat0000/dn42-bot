@@ -239,15 +239,15 @@ def gen_peer_me_markup(message):
     return markup
 
 
-def get_from_agent(type, target):
+def get_from_agent(type, data, server=config.SERVER.keys()):
     api_result = namedtuple('api_result', ['text', 'status'])
 
     session = FuturesSession()
     futures = []
-    for region in config.SERVER:
+    for region in server:
         future = session.post(
             f"http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}",
-            data=target,
+            data=data,
             headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
             timeout=10,
         )

@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 10
+AGENT_VERSION = 11
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -512,6 +512,21 @@ async def trace_test(request):
         if total := len(re.findall(pattern, output)):
             output = re.sub(pattern, "", output).strip()
             output += f"\n\n{total} hops not responding."
+    return web.Response(body=output)
+
+
+@routes.post('/tcping')
+@set_sentry
+async def tcping_test(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret == SECRET:
+        target = await request.text()
+    else:
+        return web.Response(status=403)
+    try:
+        output = simple_run(f"tcping -w 1 -x 5 {target}", timeout=8)
+    except subprocess.TimeoutExpired:
+        return web.Response(status=408)
     return web.Response(body=output)
 
 
