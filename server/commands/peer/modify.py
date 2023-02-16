@@ -242,12 +242,7 @@ def post_action_choose(message, peer_info):
         else:
             return 'pre_ipv6', peer_info, message, 'pre_clearnet'
     elif message.text.strip() == 'Clearnet Endpoint':
-        return (
-            'pre_clearnet',
-            peer_info,
-            message,
-            ('pre_port_myside', 'pre_pubkey'),
-        )
+        return 'pre_clearnet', peer_info, message, 'pre_pubkey'
     elif message.text.strip() == 'WireGuard PublicKey':
         return 'pre_pubkey', peer_info, message, 'pre_contact'
     elif message.text.strip() == 'Contact':
