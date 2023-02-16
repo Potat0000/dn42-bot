@@ -680,11 +680,19 @@ def post_confirm(message, peer_info):
         msg_text = 'Peer has been created. Peer 已建立。\n'
     elif progress_type == 'modify':
         msg_text = 'Peer information has been modified. Peer 信息已修改。\n'
+    markup = InlineKeyboardMarkup()
+    markup.row_width = 1
+    markup.add(
+        InlineKeyboardButton(
+            "Show info | 查看信息",
+            url=f"https://t.me/{config.BOT_USERNAME}?start=info_{peer_info['Region']}",
+        )
+    )
     bot.send_message(
         message.chat.id,
-        (f"{msg_text}" "\n" "Use /info for related information.\n" "使用 /info 查看相关信息。"),
+        msg_text,
         parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=markup,
     )
 
     if progress_type == 'peer':
