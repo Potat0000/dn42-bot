@@ -388,6 +388,8 @@ def pre_clearnet(message, peer_info):
         endpoint = peer_info['Clearnet'].split(':')
         peer_info['ClearnetPort'] = endpoint[-1]
         endpoint = ':'.join(endpoint[:-1])
+        if endpoint[0] == '[' and endpoint[-1] == ']':
+            endpoint = endpoint[1:-1]
         markup.add(KeyboardButton(endpoint))
     else:
         markup = ReplyKeyboardRemove()
@@ -443,6 +445,8 @@ def post_clearnet(message, peer_info):
                 msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
             else:
                 peer_info["Clearnet"] = test_result.raw
+                if all(i in '0123456789ABCDEFabcdef:' for i in message.text.strip()):
+                    peer_info["Clearnet"] = f"[{peer_info['Clearnet']}]"
         else:
             msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
     else:
