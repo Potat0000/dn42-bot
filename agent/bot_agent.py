@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 11
+AGENT_VERSION = 12
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -211,20 +211,26 @@ async def get_info(request):
 
     out = simple_run(f"wg show dn42_{asn} latest-handshakes")
     if out:
-        out = out.split()
-        if out[0] == wg_info[5]:
-            wg_last_handshake = int(out[1])
+        if out == 'Unable to access interface: No such device':
+            wg_last_handshake = 0
         else:
-            return web.Response(body='wg error', status=500)
+            out = out.split()
+            if out[0] == wg_info[5]:
+                wg_last_handshake = int(out[1])
+            else:
+                return web.Response(body='wg error', status=500)
     else:
         wg_last_handshake = 0
     out = simple_run(f"wg show dn42_{asn} transfer")
     if out:
-        out = out.split()
-        if out[0] == wg_info[5]:
-            wg_transfer = [int(out[1]), int(out[2])]
+        if out == 'Unable to access interface: No such device':
+            wg_transfer = [0, 0]
         else:
-            return web.Response(body='wg error', status=500)
+            out = out.split()
+            if out[0] == wg_info[5]:
+                wg_transfer = [int(out[1]), int(out[2])]
+            else:
+                return web.Response(body='wg error', status=500)
     else:
         wg_transfer = [0, 0]
     bird_status = {}
