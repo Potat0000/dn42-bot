@@ -121,9 +121,10 @@ for k, v in tools.get_from_agent('version', None).items():
 if offline_node or old_node:
     if offline_node:
         print("Offline node: " + ', '.join(offline_node))
+        [config.SERVER.pop(i) for i in offline_node]
     if old_node:
         print("Old node: " + ', '.join(old_node))
-    exit(1)
+        [config.SERVER.pop(i) for i in old_node]
 
 if config.SENTRY_DSN:
     sentry_sdk.init(
