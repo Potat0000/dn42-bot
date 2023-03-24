@@ -43,6 +43,7 @@ Config items are located at `server/config.py`.
 | DN42_ASN            | Your DN42 ASN                                                                            |
 | WELCOME_TEXT        | The text shows at the top of /help command                                               |
 | WHOIS_ADDRESS       | The address of whois server                                                              |
+| ROA_PATH            | The path of ROA file. The first element is ROA4 and the second is ROA6.                  |
 | DN42_ONLY           | Whether the tool commands (ping, traceroute, etc.) only allow DN42 networks.             |
 | ENDPOINT            | Server name domain suffixes                                                              |
 | API_PORT            | Agent API Port                                                                           |

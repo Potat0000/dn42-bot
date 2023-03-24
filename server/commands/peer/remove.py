@@ -86,7 +86,9 @@ def remove_peer_choose(removable, chosen, message):
             message.chat.id,
             (
                 f"Peer information with `{config.SERVER[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels), and you can always re-create it using /peer.\n"
-                f"将要删除与 `{config.SERVER[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道），你可以随时使用 /peer 重新建立。"
+                f"将要删除与 `{config.SERVER[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道），你可以随时使用 /peer 重新建立。\n"
+                "If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n"
+                "如何你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。"
             ),
             parse_mode="Markdown",
             reply_markup=ReplyKeyboardRemove(),
@@ -96,7 +98,9 @@ def remove_peer_choose(removable, chosen, message):
             message.chat.id,
             (
                 f"Peer information with <code>{config.SERVER[chosen]}</code> will be deleted (including BGP Sessions and WireGuard tunnels).\n"
-                f"将要删除与 <code>{config.SERVER[chosen]}</code> 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n\n"
+                f"将要删除与 <code>{config.SERVER[chosen]}</code> 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n"
+                "If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n"
+                "如何你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。\n\n"
                 "<b>Attention 注意</b>\n\n"
                 "Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-peered\n"
                 "你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行 AutoPeer\n"

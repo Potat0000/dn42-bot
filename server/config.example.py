@@ -16,6 +16,10 @@ WELCOME_TEXT = (
 )
 
 WHOIS_ADDRESS = "127.0.0.1"
+ROA_PATH = (
+    "/etc/bird/roa_dn42.conf",
+    "/etc/bird/roa_dn42_v6.conf",
+)
 DN42_ONLY = False
 
 # API settings

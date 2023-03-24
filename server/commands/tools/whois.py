@@ -57,6 +57,23 @@ def whois(message):
             whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
         except ValueError:
             whois_command = f"whois -I {message.text.strip().split(' ')[1]}"
+    route_result = ""
+    if whois_str.startswith('AS') and whois_result.startswith('% This is the dn42 whois query service.'):
+        try:
+            asn = int(whois_str[2:])
+            for ipver, roa_path in zip((4, 6), config.ROA_PATH):
+                roa_result = (
+                    subprocess.check_output(f"cat {roa_path} | grep {asn}", shell=True, timeout=3)
+                    .decode("utf-8")
+                    .strip()
+                    .split('\n')
+                )
+                for r in sorted([i.split(' ')[1] for i in roa_result]):
+                    route_result += f"route{ipver}:             {r}\n"
+        except BaseException:
+            pass
+    if route_result:
+        whois_result += "\n\n" f"% Routes for '{whois_str}':\n" f"{route_result.strip()}"
     bot.reply_to(
         message,
         f"```\n{whois_result}```",
