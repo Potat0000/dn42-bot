@@ -2,11 +2,12 @@
 
 from uuid import uuid4
 
+import base
 import config
 import tools
 from base import bot, db, db_privilege
 from expiringdict import ExpiringDict
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 cache = ExpiringDict(max_len=500, max_age_seconds=259200)
 
@@ -15,9 +16,9 @@ def gen_generaltest_markup(chat, data_id, node, available_nodes):
     markup = InlineKeyboardMarkup()
     for n in available_nodes:
         if n == node:
-            markup.row(InlineKeyboardButton(f'✅ {config.SERVER[n]}', callback_data=f"generaltest_{data_id}_{n}"))
+            markup.row(InlineKeyboardButton(f'✅ {base.servers[n]}', callback_data=f"generaltest_{data_id}_{n}"))
         else:
-            markup.row(InlineKeyboardButton(config.SERVER[n], callback_data=f"generaltest_{data_id}_{n}"))
+            markup.row(InlineKeyboardButton(base.servers[n], callback_data=f"generaltest_{data_id}_{n}"))
     if chat.id in db_privilege:
         return markup
     if chat.type == "private" and chat.id in db:
@@ -107,6 +108,14 @@ def generaltest(message):
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
+    if not base.servers:
+        bot.send_message(
+            message.chat.id,
+            f"No available nodes. Please contact {config.CONTACT}\n当前无可用节点，请联系 {config.CONTACT}",
+            parse_mode='HTML',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
     if command.endswith("4"):
         command = command[:-1]
         if parsed_info.ipv4:
@@ -161,11 +170,11 @@ def generaltest(message):
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
     try:
-        specific_server = [i.lower() for i in server_list if i.lower() in config.SERVER]
+        specific_server = [i.lower() for i in server_list if i.lower() in base.servers]
         if not specific_server:
             raise RuntimeError()
     except BaseException:
-        specific_server = list(config.SERVER.keys())
+        specific_server = list(base.servers.keys())
     raw = tools.get_from_agent(command, command_data, specific_server)
     data = {}
     for k, v in raw.items():

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 
+import base
 import commands.peer.info_collect as info_collect
 import config
 import tools
 from base import bot, db, db_privilege
 from IPy import IP
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from telebot.types import ReplyKeyboardRemove
 
 
 @bot.message_handler(commands=['peer'], is_private_chat=True)
@@ -62,7 +63,7 @@ def init(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    could_peer = set(config.SERVER.keys()) - set(tools.get_info(db[message.chat.id]).keys())
+    could_peer = set(base.servers.keys()) - set(tools.get_info(db[message.chat.id]).keys())
     if (db[message.chat.id] // 10000 != 424242) and (message.chat.id not in db_privilege):
         bot.send_message(
             message.chat.id,
@@ -113,7 +114,7 @@ def pre_confirm(message, peer_info):
         peer_info['Request-LinkLocal'] = "Not required due to not use LLA as IPv6"
     all_text = (
         "Region:\n"
-        f"    {config.SERVER[peer_info['Region']]}\n"
+        f"    {base.servers[peer_info['Region']]}\n"
         "Basic:\n"
         f"    ASN:         {peer_info['ASN']}\n"
         f"    Channel:     {peer_info['Channel']}\n"

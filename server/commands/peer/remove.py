@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 
+import base
 import config
 import requests
 import tools
@@ -26,7 +27,7 @@ def remove_peer(message):
         )
         return
 
-    removable = [config.SERVER[i] for i in peer_info.keys()]
+    removable = [base.servers[i] for i in peer_info.keys()]
 
     if len(removable) == 1:
         could_chosen = removable[0]
@@ -79,14 +80,14 @@ def remove_peer_choose(removable, chosen, message):
         bot.register_next_step_handler(msg, partial(remove_peer_choose, removable, None))
         return
 
-    chosen = next(k for k, v in config.SERVER.items() if v == chosen)
+    chosen = next(k for k, v in base.servers.items() if v == chosen)
     code = tools.gen_random_code(32)
     if db[message.chat.id] // 10000 == 424242:
         bot.send_message(
             message.chat.id,
             (
-                f"Peer information with `{config.SERVER[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels), and you can always re-create it using /peer.\n"
-                f"将要删除与 `{config.SERVER[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道），你可以随时使用 /peer 重新建立。\n"
+                f"Peer information with `{base.servers[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels), and you can always re-create it using /peer.\n"
+                f"将要删除与 `{base.servers[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道），你可以随时使用 /peer 重新建立。\n"
                 "If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n"
                 "如何你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。"
             ),
@@ -97,8 +98,8 @@ def remove_peer_choose(removable, chosen, message):
         bot.send_message(
             message.chat.id,
             (
-                f"Peer information with <code>{config.SERVER[chosen]}</code> will be deleted (including BGP Sessions and WireGuard tunnels).\n"
-                f"将要删除与 <code>{config.SERVER[chosen]}</code> 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n"
+                f"Peer information with <code>{base.servers[chosen]}</code> will be deleted (including BGP Sessions and WireGuard tunnels).\n"
+                f"将要删除与 <code>{base.servers[chosen]}</code> 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n"
                 "If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n"
                 "如何你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。\n\n"
                 "<b>Attention 注意</b>\n\n"
@@ -181,7 +182,7 @@ def remove_peer_confirm(code, region, message):
                     "*[Privilege]*\n"
                     "Peer Removed!   有 Peer 被删除！\n"
                     f"`{tools.get_asn_mnt_text(db[message.chat.id])}`\n"
-                    f"`{config.SERVER[region]}`"
+                    f"`{base.servers[region]}`"
                 ),
                 parse_mode="Markdown",
                 reply_markup=ReplyKeyboardRemove(),

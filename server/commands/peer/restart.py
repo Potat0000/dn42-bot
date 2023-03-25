@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 
+import base
 import config
 import requests
 import tools
-from base import bot, db, db_privilege
+from base import bot, db
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
@@ -26,7 +27,7 @@ def restart_peer(message):
         )
         return
 
-    peered = [config.SERVER[i] for i in peer_info.keys()]
+    peered = [base.servers[i] for i in peer_info.keys()]
 
     if len(peered) == 1:
         could_chosen = peered[0]
@@ -79,7 +80,7 @@ def restart_peer_choose(peered, chosen, message):
         bot.register_next_step_handler(msg, partial(restart_peer_choose, peered, None))
         return
 
-    chosen = next(k for k, v in config.SERVER.items() if v == chosen)
+    chosen = next(k for k, v in base.servers.items() if v == chosen)
 
     msg = bot.send_message(
         message.chat.id,
@@ -87,7 +88,7 @@ def restart_peer_choose(peered, chosen, message):
             "The tunnel and Bird sessions with the following nodes will be restarted soon.\n"
             "即将重启与以下节点的隧道及 Bird 会话。\n"
             "\n"
-            f"`{config.SERVER[chosen]}`\n"
+            f"`{base.servers[chosen]}`\n"
             "\n"
             "Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n"
             "确认无误请输入*大写* `yes`，所有其他输入表示取消操作。"

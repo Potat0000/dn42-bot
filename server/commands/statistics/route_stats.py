@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 
+import base
 import config
 import tools
 from base import bot
@@ -29,7 +30,7 @@ def gen_stats_markup(ip_ver, simple, node):
             InlineKeyboardButton("IPv4", callback_data=f"stats_4_{simple_str}_{node}"),
             InlineKeyboardButton("✅ IPv6", callback_data=f"stats_6_{simple_str}_{node}"),
         )
-    for k, v in config.SERVER.items():
+    for k, v in base.servers.items():
         if k == node:
             markup.row(InlineKeyboardButton(f'✅ {v}', callback_data=f"stats_{ip_ver}_{simple_str}_{k}"))
         else:
@@ -47,13 +48,13 @@ def get_route_stats_text(ip_ver, simple, node):
             if simple:
                 mnt_len = min(max(len(i[1]) for i in data), 14)
                 msg = f"IPv{ip_ver} Preferred Route Count".center(22 + mnt_len) + '\n'
-                msg += config.SERVER[node].center(22 + mnt_len) + '\n'
+                msg += base.servers[node].center(22 + mnt_len) + '\n'
                 msg += f'updated {time_delta}s ago'.rjust(22 + mnt_len) + '\n\n'
                 msg += f"Rank {'ASN':10} {'MNT':{mnt_len}} Count"
             else:
                 mnt_len = min(max(len(i[1]) for i in data), 20)
                 msg = f"IPv{ip_ver} Preferred Route Count".center(33 + mnt_len) + '\n'
-                msg += config.SERVER[node].center(33 + mnt_len) + '\n'
+                msg += base.servers[node].center(33 + mnt_len) + '\n'
                 msg += f'updated {time_delta}s ago'.rjust(33 + mnt_len) + '\n\n'
                 msg += f"Rank  {'ASN':10}  {'MNT':{mnt_len}}  Count  Weight"
 
@@ -70,9 +71,9 @@ def get_route_stats_text(ip_ver, simple, node):
                 else:
                     msg += f"\n{rank_now:>4}  {asn:10}  {mnt:{mnt_len}}  {count:5}  {count/total_routes:>6.2%}"
         else:
-            max_len = max(len(config.SERVER[node]), 26)
+            max_len = max(len(base.servers[node]), 26)
             msg = f"IPv{ip_ver} Preferred Route Count".center(max_len) + '\n'
-            msg += config.SERVER[node].center(max_len) + '\n'
+            msg += base.servers[node].center(max_len) + '\n'
             msg += f'updated {time_delta}s ago'.rjust(max_len) + '\n\n'
             msg += "No data available.".center(max_len) + '\n'
             msg += "暂无数据。".center(max_len)
@@ -106,6 +107,6 @@ def stats_callback_query(call):
 
 @bot.message_handler(commands=['route_stats'])
 def get_route_stats(message):
-    init_arg = ('4', False, list(config.SERVER.keys())[0])
+    init_arg = ('4', False, list(base.servers.keys())[0])
     stats_text = get_route_stats_text(*init_arg)
     bot.send_message(message.chat.id, stats_text[0], parse_mode=stats_text[1], reply_markup=gen_stats_markup(*init_arg))

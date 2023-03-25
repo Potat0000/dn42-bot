@@ -6,6 +6,7 @@ import string
 import subprocess
 from collections import namedtuple
 
+import base
 import config
 import dns.resolver
 import dns.reversename
@@ -239,9 +240,10 @@ def gen_peer_me_markup(message):
     return markup
 
 
-def get_from_agent(type, data, server=config.SERVER.keys()):
+def get_from_agent(type, data, server=None):
     api_result = namedtuple('api_result', ['text', 'status'])
-
+    if not server:
+        server = base.servers.keys()
     session = FuturesSession()
     futures = []
     for region in server:

@@ -2,6 +2,7 @@
 from collections.abc import Iterable
 from functools import partial
 
+import base
 import commands.peer.info_collect as info_collect
 import config
 import tools
@@ -74,7 +75,7 @@ def init(message, peer_info):
 
 def pre_node_choose(message, peer_info):
     if len(peer_info) == 1:
-        could_chosen = config.SERVER[list(peer_info.keys())[0]]
+        could_chosen = base.servers[list(peer_info.keys())[0]]
         bot.send_message(
             message.chat.id,
             (
@@ -92,7 +93,7 @@ def pre_node_choose(message, peer_info):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         for i in peer_info:
-            markup.add(KeyboardButton(config.SERVER[i]))
+            markup.add(KeyboardButton(base.servers[i]))
         msg = bot.send_message(
             message.chat.id,
             "Which node's peer information do you want to change?\n你想要修改哪个节点的 Peer 信息？",
@@ -105,9 +106,9 @@ def post_node_choose(message, peer_info, chosen=None):
     if not chosen:
         chosen = message.text.strip()
     try:
-        chosen = next(k for k, v in config.SERVER.items() if v == chosen)
+        chosen = next(k for k, v in base.servers.items() if v == chosen)
     except StopIteration:
-        chooseable = [config.SERVER[i] for i in tools.get_info(db[message.chat.id])]
+        chooseable = [base.servers[i] for i in tools.get_info(db[message.chat.id])]
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         for i in chooseable:
@@ -275,12 +276,12 @@ def pre_confirm(message, peer_info):
 
     all_text += "Region:\n"
     if peer_info['Region'] == old_peer_info['Region']:
-        all_text += f"    {config.SERVER[peer_info['Region']]}\n"
+        all_text += f"    {base.servers[peer_info['Region']]}\n"
     else:
         peer_info['Origin'] = old_peer_info['Region']
-        all_text += f"    {config.SERVER[old_peer_info['Region']]}\n"
+        all_text += f"    {base.servers[old_peer_info['Region']]}\n"
         all_text += "  ->\n"
-        all_text += f"    {config.SERVER[peer_info['Region']]}\n"
+        all_text += f"    {base.servers[peer_info['Region']]}\n"
     all_text += "Basic:\n"
     diff_print('ASN', 'ASN:         ')
     diff_print('Channel', 'Channel:     ')

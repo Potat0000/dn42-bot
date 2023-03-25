@@ -14,6 +14,8 @@ class ExceptionHandler(telebot.ExceptionHandler):
 
 bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True, exception_handler=ExceptionHandler)
 
+servers = {}
+
 try:
     with open("./user_db.pkl", "rb") as f:
         db, db_privilege = pickle.load(f)

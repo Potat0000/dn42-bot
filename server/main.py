@@ -3,6 +3,8 @@
 import pickle
 import time
 
+import base
+import commands
 import config
 import sentry_sdk
 import telebot
@@ -13,10 +15,6 @@ from base import bot, db, db_privilege
 from pytz import utc
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
-
-import commands
-
-MIN_AGENT_VERSION = 11
 
 
 class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
@@ -111,27 +109,13 @@ class MyMiddleware(BaseMiddleware):
             pass
 
 
-offline_node = []
-old_node = []
-for k, v in tools.get_from_agent('version', None).items():
-    if v.status != 200:
-        offline_node.append(k)
-    elif int(v.text) < MIN_AGENT_VERSION:
-        old_node.append(k)
-if offline_node or old_node:
-    if offline_node:
-        print("Offline node: " + ', '.join(offline_node))
-        [config.SERVER.pop(i) for i in offline_node]
-    if old_node:
-        print("Old node: " + ', '.join(old_node))
-        [config.SERVER.pop(i) for i in old_node]
-
 if config.SENTRY_DSN:
     sentry_sdk.init(
         dsn=config.SENTRY_DSN,
         traces_sample_rate=0,
     )
 
+tools.servers_check()
 try:
     with open("./rank.pkl", "rb") as f:
         tools.get_map(update=pickle.load(f))
@@ -140,8 +124,9 @@ except BaseException:
 tools.get_route_stats(update=True)
 
 scheduler = BackgroundScheduler(timezone=utc)
-scheduler.add_job(tools.get_route_stats, 'cron', kwargs={'update': True}, minute='1/10')
-scheduler.add_job(tools.get_map, 'cron', kwargs={'update': True}, minute='1/10')
+scheduler.add_job(tools.servers_check, 'cron', minute='*')
+scheduler.add_job(tools.get_route_stats, 'cron', kwargs={'update': True}, minute='3/10')
+scheduler.add_job(tools.get_map, 'cron', kwargs={'update': True}, minute='3/10')
 scheduler.start()
 
 bot.add_custom_filter(IsPrivateChat())

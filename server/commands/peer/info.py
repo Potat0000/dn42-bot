@@ -2,6 +2,7 @@
 import math
 from datetime import datetime, timezone
 
+import base
 import config
 import tools
 from base import bot, db
@@ -95,14 +96,14 @@ def gen_info_markup(node, available_node, session_name):
             if node_name == node:
                 markup.row(
                     InlineKeyboardButton(
-                        text=f'✅ {config.SERVER[node_name]}',
+                        text=f'✅ {base.servers[node_name]}',
                         callback_data=f"info_{node_name}",
                     )
                 )
             else:
                 markup.row(
                     InlineKeyboardButton(
-                        text=config.SERVER[node_name],
+                        text=base.servers[node_name],
                         callback_data=f"info_{node_name}",
                     )
                 )
@@ -160,7 +161,7 @@ def get_info_text(chatid, node):
     if not isinstance(peer_info, dict):
         return (
             (
-                f"{config.SERVER[node]}:\n"
+                f"{base.servers[node]}:\n"
                 f"Error occurred. Please contact {config.CONTACT} with following message.\n"
                 f"遇到错误。请联系 {config.CONTACT} 并附带下述结果。\n"
                 f"<code>{peer_info}</code>"
@@ -170,7 +171,7 @@ def get_info_text(chatid, node):
         )
 
     detail_text = "Node:\n"
-    detail_text += f"    {config.SERVER[node]}\n"
+    detail_text += f"    {base.servers[node]}\n"
     detail_text += "Information on your side:\n"
     detail_text += basic_info(
         db[chatid],

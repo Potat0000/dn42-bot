@@ -3,6 +3,7 @@ import json
 import socket
 import string
 
+import base
 import config
 import requests
 import tools
@@ -24,7 +25,7 @@ def pre_region(message, peer_info):
     msg = ''
     peer_info['Region'] = {}
     for k, v in pre_peer_info.items():
-        msg += f'- `{config.SERVER[k]}`\n'
+        msg += f'- `{base.servers[k]}`\n'
         try:
             if v.status != 200:
                 raise RuntimeError
@@ -63,7 +64,7 @@ def pre_region(message, peer_info):
         msg += '\n'
         if data['open'] and k not in peered and (data['max'] == 0 or data['existed'] < data['max']):
             could_peer.append(k)
-            peer_info['Region'][config.SERVER[k]] = (k, data['lla'], data['net_support'])
+            peer_info['Region'][base.servers[k]] = (k, data['lla'], data['net_support'])
     msg = bot.send_message(
         message.chat.id,
         f"Node List 节点列表\n{msg.strip()}",
@@ -81,8 +82,8 @@ def pre_region(message, peer_info):
         bot.send_message(
             message.chat.id,
             (
-                f"Only one available node, automatically select `{config.SERVER[could_peer[0]]}`\n"
-                f"只有一个可选节点，自动选择 `{config.SERVER[could_peer[0]]}`\n"
+                f"Only one available node, automatically select `{base.servers[could_peer[0]]}`\n"
+                f"只有一个可选节点，自动选择 `{base.servers[could_peer[0]]}`\n"
                 "\n"
                 "If not wanted, use /cancel to interrupt the operation.\n"
                 "如非所需，使用 /cancel 终止操作。"
@@ -90,12 +91,12 @@ def pre_region(message, peer_info):
             parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
-        return post_region(message, peer_info, config.SERVER[could_peer[0]])
+        return post_region(message, peer_info, base.servers[could_peer[0]])
     else:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
         for i in could_peer:
-            markup.add(KeyboardButton(config.SERVER[i]))
+            markup.add(KeyboardButton(base.servers[i]))
         msg = bot.send_message(
             message.chat.id,
             "Which node do you want to choose?\n你想选择哪个节点？",
