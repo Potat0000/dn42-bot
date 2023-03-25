@@ -74,13 +74,8 @@ def set_sentry(func):
 
 
 @routes.post('/version')
-@set_sentry
 async def version(request):
-    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
-    if secret == SECRET:
-        return web.Response(body=str(AGENT_VERSION))
-    else:
-        return web.Response(status=403)
+    return web.Response(body=str(AGENT_VERSION))
 
 
 @routes.post('/pre_peer')

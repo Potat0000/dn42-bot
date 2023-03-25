@@ -4,7 +4,6 @@ import pickle
 import time
 
 import base
-import commands
 import config
 import sentry_sdk
 import telebot
@@ -15,6 +14,8 @@ from base import bot, db, db_privilege
 from pytz import utc
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
+
+import commands
 
 
 class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
@@ -124,7 +125,7 @@ except BaseException:
 tools.get_route_stats(update=True)
 
 scheduler = BackgroundScheduler(timezone=utc)
-scheduler.add_job(tools.servers_check, 'cron', minute='*')
+scheduler.add_job(tools.servers_check, 'cron', minute='*/3')
 scheduler.add_job(tools.get_route_stats, 'cron', kwargs={'update': True}, minute='3/10')
 scheduler.add_job(tools.get_map, 'cron', kwargs={'update': True}, minute='3/10')
 scheduler.start()
@@ -183,8 +184,12 @@ if config.WEBHOOK_URL:
         else:
             return web.Response(status=403)
 
+    async def health(request):
+        return web.Response(body=','.join(base.servers.keys()))
+
     app = web.Application()
     app.router.add_post('/', handle)
+    app.router.add_post('/health', health)
     web.run_app(app, host=config.WEBHOOK_LISTEN_HOST, port=config.WEBHOOK_LISTEN_PORT)
 
 else:
