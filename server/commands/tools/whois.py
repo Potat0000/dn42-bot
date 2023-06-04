@@ -39,13 +39,20 @@ def whois(message):
     whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
     while True:
         try:
-            whois_result = subprocess.check_output(shlex.split(whois_command), timeout=3).decode("utf-8").strip()
+            whois_result = (
+                subprocess.run(
+                    shlex.split(whois_command),
+                    stdout=subprocess.PIPE,
+                    timeout=3,
+                )
+                .stdout.decode("utf-8")
+                .strip()
+            )
         except BaseException:
             whois_result = 'Something went wrong.\n发生了一些错误。'
             break
         if len(whois_result.split('\n')) > 1 and '% 404' not in whois_result:
             break
-        whois_result = ''
         try:
             asn = int(whois_str)
             if asn < 10000:
@@ -57,6 +64,7 @@ def whois(message):
             whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
         except ValueError:
             whois_command = f"whois -I {message.text.strip().split(' ')[1]}"
+        whois_result = ''
     route_result = ""
     if whois_str.startswith('AS') and whois_result.startswith('% This is the dn42 whois query service.'):
         try:
@@ -74,9 +82,13 @@ def whois(message):
             pass
     if route_result:
         whois_result += "\n\n" f"% Routes for '{whois_str}':\n" f"{route_result.strip()}"
+    if len(whois_result) > 4096:
+        whois_result = f"```{whois_result[:4000]}```\n\n消息过长，已被截断。\nMessage too long, truncated."
+    else:
+        whois_result = f"```{whois_result}```"
     bot.reply_to(
         message,
-        f"```\n{whois_result}```",
+        whois_result,
         parse_mode="Markdown",
         reply_markup=tools.gen_peer_me_markup(message),
     )
