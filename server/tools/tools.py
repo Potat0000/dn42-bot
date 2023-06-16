@@ -14,6 +14,7 @@ import requests
 from base import db, db_privilege
 from dns.exception import DNSException
 from IPy import IP
+from requests.adapters import HTTPAdapter, Retry
 from requests_futures.sessions import FuturesSession
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -240,11 +241,21 @@ def gen_peer_me_markup(message):
     return markup
 
 
-def get_from_agent(type, data, server=None):
+def get_from_agent(type, data, server=None, *, backoff_factor=0.1):
     api_result = namedtuple('api_result', ['text', 'status'])
     if not server:
         server = base.servers.keys()
     session = FuturesSession()
+    session.mount(
+        'http://',
+        HTTPAdapter(
+            max_retries=Retry(
+                total=5,
+                backoff_factor=backoff_factor,
+                allowed_methods=('GET', 'POST'),
+            )
+        ),
+    )
     futures = []
     for region in server:
         future = session.post(

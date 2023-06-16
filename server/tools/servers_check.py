@@ -9,7 +9,7 @@ MIN_AGENT_VERSION = 11
 def servers_check():
     offline_node = []
     old_node = []
-    for k, v in get_from_agent('version', None, config.SERVER.keys()).items():
+    for k, v in get_from_agent('version', None, config.SERVER.keys(), backoff_factor=1).items():
         if v.status != 200:
             offline_node.append(k)
         elif int(v.text) < MIN_AGENT_VERSION:
