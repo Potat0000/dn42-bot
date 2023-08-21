@@ -409,11 +409,18 @@ def pre_clearnet(message, peer_info):
     if peer_info['Net_Support']['ipv6'] or (
         peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat']
     ):
-        msg += (
-            '\n\n'
-            "If you don't have a static clearnet address or is behind NAT, please enter `none`\n"
-            "如果你没有静态公网地址，或你的服务器在 NAT 网络中，请输入 `none`"
-        )
+        if config.ALLOW_NO_CLEARNET:
+            msg += (
+                '\n\n'
+                "If you don't have a static clearnet address or is behind NAT, please enter `none`\n"
+                "如果你没有静态公网地址，或你的服务器在 NAT 网络中，请输入 `none`"
+            )
+        else:
+            msg += (
+                '\n\n'
+                f"If you don't have a static clearnet address or is behind NAT, please contact {config.CONTACT}\n"
+                f"如果你没有静态公网地址，或你的服务器在 NAT 网络中，请联系 {config.CONTACT}"
+            )
     msg = bot.send_message(
         message.chat.id,
         (
@@ -421,16 +428,20 @@ def pre_clearnet(message, peer_info):
             "请输入你用于 WireGurad 隧道的公网地址，不包含端口。\n\n"
             f"{msg}"
         ),
-        parse_mode="Markdown",
+        parse_mode="HTML",
         reply_markup=markup,
     )
     return 'post_clearnet', peer_info, msg
 
 
 def post_clearnet(message, peer_info):
-    if message.text.strip().lower() == "none" and (
-        peer_info['Net_Support']['ipv6']
-        or (peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat'])
+    if (
+        config.ALLOW_NO_CLEARNET
+        and message.text.strip().lower() == "none"
+        and (
+            peer_info['Net_Support']['ipv6']
+            or (peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat'])
+        )
     ):
         if message.chat.id in db_privilege:
             return 'pre_port_myside', peer_info, message
@@ -445,9 +456,21 @@ def post_clearnet(message, peer_info):
             elif (test_result.ipv6 and not test_result.ipv4) and not peer_info['Net_Support']['ipv6']:
                 msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
             else:
-                peer_info["Clearnet"] = test_result.raw
-                if all(i in '0123456789ABCDEFabcdef:' for i in message.text.strip()):
-                    peer_info["Clearnet"] = f"[{peer_info['Clearnet']}]"
+                msg = None
+                if config.AIWEN_API_KEY and test_result.ipv4:
+                    try:
+                        api = "https://api.ipplus360.com/ip/geo/v1/district/?key={key}&ip={ip}"
+                        raw = requests.get(api.format(key=config.AIWEN_API_KEY, ip=test_result.ipv4), timeout=5)
+                        if raw.json()['data']['areacode'] == 'CN' and not any(
+                            i in raw.json()['data']['prov'] for i in ['香港', '澳门', '台湾']
+                        ):
+                            msg = "Peering with Chinese Mainland is not allowed", "不允许与中国大陆 Peer"
+                    except BaseException:
+                        pass
+                if not msg:
+                    peer_info["Clearnet"] = test_result.raw
+                    if all(i in '0123456789ABCDEFabcdef:' for i in message.text.strip()):
+                        peer_info["Clearnet"] = f"[{peer_info['Clearnet']}]"
         else:
             msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
     else:
@@ -458,7 +481,7 @@ def post_clearnet(message, peer_info):
                 message.chat.id,
                 (
                     f"{msg[0]}, please try again.\n"
-                    f"{msg[1]}，请重试。\n"
+                    f"{msg[1]}，请重试。\n\n"
                     f"The check procedure may sometimes be wrong, if it is confirmed to be valid, just resubmit. If the error keeps occurring please contact {config.CONTACT}\n"
                     f"判定程序可能出错。如果确认有效，重新提交即可。重复出错请联系 {config.CONTACT}\n"
                     "Use /cancel to interrupt the operation.\n"
@@ -474,7 +497,7 @@ def post_clearnet(message, peer_info):
                 (
                     "*[Privilege]*\n"
                     f"{msg[0]}.\n"
-                    f"{msg[1]}。\n"
+                    f"{msg[1]}。\n\n"
                     "Use the privilege to continue the process. Use /cancel to exit if there is a mistake.\n"
                     "使用特权，流程继续。如确认有误使用 /cancel 退出。"
                 ),

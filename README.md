@@ -35,27 +35,29 @@ The server directory contains the code for the tg-bot server.
 
 Config items are located at `server/config.py`.
 
-| Config Key          | Description                                                                              |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| BOT_TOKEN           | Token of Telegram Bot                                                                    |
-| BOT_USERNAME        | The Telegram username of this bot                                                        |
-| CONTACT             | Contact information for yourself                                                         |
-| DN42_ASN            | Your DN42 ASN                                                                            |
-| WELCOME_TEXT        | The text shows at the top of /help command                                               |
-| WHOIS_ADDRESS       | The address of whois server                                                              |
-| ROA_PATH            | The path of ROA file. The first element is ROA4 and the second is ROA6.                  |
-| DN42_ONLY           | Whether the tool commands (ping, traceroute, etc.) only allow DN42 networks.             |
-| ENDPOINT            | Server name domain suffixes                                                              |
-| API_PORT            | Agent API Port                                                                           |
-| API_TOKEN           | Agent API Token                                                                          |
-| SERVER              | A dict. The keys are the actual server names while the values are the display names.     |
-| WEBHOOK_URL         | (Optional) Webhook URL to regist to Telegram. Disable webhook by set it to empty string. |
-| WEBHOOK_LISTEN_HOST | (Required if webhook enabled) The listen host for webhook                                |
-| WEBHOOK_LISTEN_PORT | (Required if webhook enabled) The listen port for webhook                                |
-| LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                           |
-| PRIVILEGE_CODE      | (Optional) Privilege code                                                                |
-| SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in. |
-| SENTRY_DSN          | (Optional) Sentry DSN. Leave empty to disable Sentry exception tracking.                 |
+| Config Key          | Description                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| BOT_TOKEN           | Token of Telegram Bot                                                                         |
+| BOT_USERNAME        | The Telegram username of this bot                                                             |
+| CONTACT             | Contact information for yourself                                                              |
+| DN42_ASN            | Your DN42 ASN                                                                                 |
+| WELCOME_TEXT        | The text shows at the top of /help command                                                    |
+| WHOIS_ADDRESS       | The address of whois server                                                                   |
+| ROA_PATH            | The path of ROA file. The first element is ROA4 and the second is ROA6.                       |
+| DN42_ONLY           | Whether the tool commands (ping, traceroute, etc.) only allow DN42 networks.                  |
+| ALLOW_NO_CLEARNET   | Whether allowed to peer with someone who has no clearnet.                                     |
+| ENDPOINT            | Server name domain suffixes                                                                   |
+| API_PORT            | Agent API Port                                                                                |
+| API_TOKEN           | Agent API Token                                                                               |
+| SERVER              | A dict. The keys are the actual server names while the values are the display names.          |
+| WEBHOOK_URL         | (Optional) Webhook URL to regist to Telegram. Disable webhook by set it to empty string.      |
+| WEBHOOK_LISTEN_HOST | (Required if webhook enabled) The listen host for webhook                                     |
+| WEBHOOK_LISTEN_PORT | (Required if webhook enabled) The listen port for webhook                                     |
+| LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format.                                |
+| PRIVILEGE_CODE      | (Optional) Privilege code                                                                     |
+| SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in.      |
+| AIWEN_API_KEY       | (Optional) API key of Aiwen. If it's not empty, it will refuse to peer with Chinese Mainland. |
+| SENTRY_DSN          | (Optional) Sentry DSN. Leave empty to disable Sentry exception tracking.                      |
 
 #### Email-sending function
 

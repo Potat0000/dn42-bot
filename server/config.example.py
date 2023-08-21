@@ -21,6 +21,7 @@ ROA_PATH = (
     "/etc/bird/roa_dn42_v6.conf",
 )
 DN42_ONLY = False
+ALLOW_NO_CLEARNET = True
 
 # API settings
 ENDPOINT = "dn42.domain.tld"  # Also used for tunnel
@@ -37,7 +38,8 @@ WEBHOOK_LISTEN_PORT = 3443
 LG_DOMAIN = 'https://lg.dn42.domain.tld'
 PRIVILEGE_CODE = "123456"
 SINGLE_PRIVILEGE = False
-SENTRY_DSN = ''
+AIWEN_API_KEY = None
+SENTRY_DSN = None
 
 
 # Email-sending function
