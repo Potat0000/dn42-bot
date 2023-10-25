@@ -4,6 +4,7 @@ import tools.get_map as get_map
 import tools.get_route_stats as get_route_stats
 import tools.servers_check as servers_check
 import tools.tools as tools
+import tools.update_china_ip as update_china_ip
 
 gen_peer_me_markup = tools.gen_peer_me_markup
 gen_random_code = tools.gen_random_code
@@ -15,3 +16,4 @@ get_route_stats = get_route_stats.get_route_stats
 get_whoisinfo_by_asn = tools.get_whoisinfo_by_asn
 servers_check = servers_check.servers_check
 test_ip_domain = tools.test_ip_domain
+update_china_ip = update_china_ip.update_china_ip

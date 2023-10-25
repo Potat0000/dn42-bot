@@ -16,6 +16,9 @@ bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True, exception_ha
 
 servers = {}
 
+ChinaIPv4 = []
+ChinaIPv6 = []
+
 try:
     with open("./user_db.pkl", "rb") as f:
         db, db_privilege = pickle.load(f)

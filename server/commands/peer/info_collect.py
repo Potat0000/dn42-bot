@@ -457,16 +457,11 @@ def post_clearnet(message, peer_info):
                 msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
             else:
                 msg = None
-                if config.AIWEN_API_KEY and test_result.ipv4:
-                    try:
-                        api = "https://api.ipplus360.com/ip/geo/v1/district/?key={key}&ip={ip}"
-                        raw = requests.get(api.format(key=config.AIWEN_API_KEY, ip=test_result.ipv4), timeout=5)
-                        if raw.json()['data']['areacode'] == 'CN' and not any(
-                            i in raw.json()['data']['prov'] for i in ['香港', '澳门', '台湾']
-                        ):
-                            msg = "Peering with Chinese Mainland is not allowed", "不允许与中国大陆 Peer"
-                    except BaseException:
-                        pass
+                if config.BAN_CHINA and (
+                    (test_result.ipv4 and any(test_result.ipv4 in i for i in base.ChinaIPv4))
+                    or (test_result.ipv6 and any(test_result.ipv6 in i for i in base.ChinaIPv6))
+                ):
+                    msg = "Peering with Chinese Mainland is not allowed", "不允许与中国大陆 Peer"
                 if not msg:
                     peer_info["Clearnet"] = test_result.raw
                     if all(i in '0123456789ABCDEFabcdef:' for i in message.text.strip()):
