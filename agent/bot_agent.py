@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 12
+AGENT_VERSION = 13
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -49,7 +49,7 @@ def simple_run(command, timeout=3):
 
 
 def get_current_peer_num():
-    wg_conf = [i[5:-5] for i in os.listdir('/etc/wireguard') if i.startswith('dn42_') and i.endswith('.conf')]
+    wg_conf = [i[5:-5] for i in os.listdir('/etc/wireguard') if i.startswith('dn42-') and i.endswith('.conf')]
     bird_conf = [i[:-5] for i in os.listdir('/etc/bird/dn42_peers') if i.endswith('.conf')]
     wg_conf_len = len([i for i in wg_conf if i.isdigit()])
     bird_conf_len = len([i for i in bird_conf if i.isdigit()])
@@ -111,7 +111,7 @@ async def get_info(request):
     else:
         return web.Response(status=403)
 
-    wg_exist = os.path.isfile(f'/etc/wireguard/dn42_{asn}.conf')
+    wg_exist = os.path.isfile(f'/etc/wireguard/dn42-{asn}.conf')
     bird_exist = os.path.isfile(f'/etc/bird/dn42_peers/{asn}.conf')
     if not wg_exist and not bird_exist:
         return web.Response(status=404)
@@ -125,7 +125,7 @@ async def get_info(request):
         r"ListenPort = ([0-9]+)\n"
         r"Table = off\n"
         r"(?:MTU = [0-9]+\n)?"
-        r"PostUp = wg set %i private-key /etc/wireguard/private\.key\n"
+        r"PostUp = wg set %i private-key /etc/wireguard/dn42-privatekey\n"
         r"PostUp = ip addr add (fe80::[0-9a-f:]+)/64(?: peer (fe80::[0-9a-f:]+)/64)? dev %i\n"
         r"PostUp = ip addr add " + str(MY_DN42_ULA_ADDRESS) + r"/128(?: peer (f[cd][0-9a-f:]+)/128)? dev %i\n"
         r"PostUp = ip addr add " + str(MY_DN42_IPv4_ADDRESS) + r"/32(?: peer (172.[0-9.]+)/32)? dev %i\n"
@@ -153,7 +153,7 @@ async def get_info(request):
     )
     bird_regex_decs = r'^ {4}description "(.*)";$'
 
-    with open(f'/etc/wireguard/dn42_{asn}.conf', 'r') as f:
+    with open(f'/etc/wireguard/dn42-{asn}.conf', 'r') as f:
         wg_raw = f.read()
     with open(f'/etc/bird/dn42_peers/{asn}.conf', 'r') as f:
         bird_raw = f.read()
@@ -204,7 +204,7 @@ async def get_info(request):
     if not session_name:
         return web.Response(body='no session', status=500)
 
-    out = simple_run(f"wg show dn42_{asn} latest-handshakes")
+    out = simple_run(f"wg show dn42-{asn} latest-handshakes")
     if out:
         if out == 'Unable to access interface: No such device':
             wg_last_handshake = 0
@@ -216,7 +216,7 @@ async def get_info(request):
                 return web.Response(body='wg error', status=500)
     else:
         wg_last_handshake = 0
-    out = simple_run(f"wg show dn42_{asn} transfer")
+    out = simple_run(f"wg show dn42-{asn} transfer")
     if out:
         if out == 'Unable to access interface: No such device':
             wg_transfer = [0, 0]
@@ -330,7 +330,7 @@ async def setup_peer(request):
     if current_peer_num is None:
         return web.Response(body='wireguard and bird config not match', status=500)
     if not (
-        os.path.exists(f"/etc/wireguard/dn42_{peer_info['ASN']}.conf")
+        os.path.exists(f"/etc/wireguard/dn42-{peer_info['ASN']}.conf")
         and os.path.exists(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf")
     ) and ((MAX_PEERS != 0 and current_peer_num >= MAX_PEERS) or not OPEN):
         return web.Response(status=503)
@@ -363,7 +363,7 @@ async def setup_peer(request):
         "ListenPort = {port}\n"
         "Table = off\n"
         "MTU = 1420\n"
-        "PostUp = wg set %i private-key /etc/wireguard/private.key\n"
+        "PostUp = wg set %i private-key /etc/wireguard/dn42-privatekey\n"
         "PostUp = ip addr add {my_lla}/64{ll} dev %i\n"
         "PostUp = ip addr add {my_ula}/128{ula} dev %i\n"
         "PostUp = ip addr add {my_ipv4}/32{ipv4} dev %i\n"
@@ -388,14 +388,14 @@ async def setup_peer(request):
     )
     if peer_info['Clearnet'] is None:
         final_wg_text = final_wg_text.replace('Endpoint = None\n', '')
-    with open(f"/etc/wireguard/dn42_{peer_info['ASN']}.conf", "w") as f:
+    with open(f"/etc/wireguard/dn42-{peer_info['ASN']}.conf", "w") as f:
         f.write(final_wg_text)
 
     def gen_bird_protocol(version, only):
         text = (
             f"protocol bgp DN42_{peer_info['ASN']}_v{version} from dn42_peers "
             "{\n"
-            f"    neighbor {peer_info[f'IPv{version}']} % 'dn42_{peer_info['ASN']}' external;\n"
+            f"    neighbor {peer_info[f'IPv{version}']} % 'dn42-{peer_info['ASN']}' external;\n"
             f'    description "{peer_info["Contact"]}";\n'
         )
         if only is True:
@@ -422,8 +422,8 @@ async def setup_peer(request):
         f.write(bird)
 
     simple_run("systemctl daemon-reload")
-    simple_run(f"systemctl enable wg-quick@dn42_{peer_info['ASN']}")
-    simple_run(f"systemctl restart wg-quick@dn42_{peer_info['ASN']}")
+    simple_run(f"systemctl enable wg-quick@dn42-{peer_info['ASN']}")
+    simple_run(f"systemctl restart wg-quick@dn42-{peer_info['ASN']}")
     simple_run("birdc c")
     return web.Response(status=200)
 
@@ -440,10 +440,10 @@ async def remove_peer(request):
     else:
         return web.Response(status=403)
 
-    simple_run(f"systemctl stop wg-quick@dn42_{asn}")
-    simple_run(f"systemctl disable wg-quick@dn42_{asn}")
+    simple_run(f"systemctl stop wg-quick@dn42-{asn}")
+    simple_run(f"systemctl disable wg-quick@dn42-{asn}")
     try:
-        os.remove(f"/etc/wireguard/dn42_{asn}.conf")
+        os.remove(f"/etc/wireguard/dn42-{asn}.conf")
     except BaseException:
         pass
     try:
@@ -466,7 +466,7 @@ async def restart_peer(request):
     else:
         return web.Response(status=403)
 
-    out_wg = simple_run(f"systemctl restart wg-quick@dn42_{asn}")
+    out_wg = simple_run(f"systemctl restart wg-quick@dn42-{asn}")
     out_v4 = simple_run(f"birdc restart DN42_{asn}_v4")
     out_v6 = simple_run(f"birdc restart DN42_{asn}_v6")
     if 'syntax error' in out_v4 and 'syntax error' in out_v6:
