@@ -46,12 +46,48 @@ def step_manage(next_step, peer_info, stop_sign, message):
         if (not isinstance(stop_sign, Iterable) and next_step == stop_sign) or (
             isinstance(stop_sign, Iterable) and next_step in stop_sign
         ):
-            step_manage('pre_confirm', peer_info, None, message)
+            step_manage('pre_action_choose', peer_info, None, message)
             return
     if next_step in globals() and callable(globals()[next_step]):
         _call(globals()[next_step])
     else:
         _call(getattr(info_collect, next_step))
+
+
+def get_diff_text(old_peer_info, peer_info, asn):
+    diff_text = ""
+
+    def diff_print(item, prefix=''):
+        nonlocal diff_text
+        if peer_info[item] == old_peer_info[item]:
+            diff_text += f"    {prefix}{peer_info[item]}\n"
+        else:
+            diff_text += f"    {prefix}{old_peer_info[item]}\n"
+            diff_text += ' ' * (len(prefix) + 2) + "->\n"
+            diff_text += ' ' * (len(prefix) + 4) + f"{peer_info[item]}\n"
+
+    diff_text += "Region:\n"
+    if peer_info['Region'] == old_peer_info['Region']:
+        diff_text += f"    {base.servers[peer_info['Region']]}\n"
+    else:
+        peer_info['Origin'] = old_peer_info['Region']
+        diff_text += f"    {base.servers[old_peer_info['Region']]}\n"
+        diff_text += "  ->\n"
+        diff_text += f"    {base.servers[peer_info['Region']]}\n"
+    diff_text += "Basic:\n"
+    diff_print('ASN', 'ASN:         ')
+    diff_print('Channel', 'Channel:     ')
+    diff_print('MP-BGP', 'MP-BGP:      ')
+    diff_print('IPv6', 'IPv6:        ')
+    diff_print('IPv4', 'IPv4:        ')
+    diff_print('Request-LinkLocal', 'Request-LLA: ')
+    diff_text += "Tunnel:\n"
+    diff_print('Clearnet', 'Endpoint:    ')
+    diff_print('PublicKey', 'PublicKey:   ')
+    diff_text += "Contact:\n"
+    diff_text += f"    {tools.get_whoisinfo_by_asn(asn)}\n"
+    diff_print('Contact')
+    return diff_text
 
 
 def init(message, peer_info):
@@ -162,14 +198,15 @@ def post_node_choose(message, peer_info, chosen=None):
         elif raw_info['session'] == 'IPv4 Session with IPv6 & IPv4 Channels':
             peer_info["MP-BGP"] = "IPv4"
     peer_info['backup'] = peer_info.copy()
-    return 'pre_action_choose', peer_info, message
+    return 'pre_first_action_choose', peer_info, message
 
 
-def pre_action_choose(message, peer_info):
+def pre_first_action_choose(message, peer_info):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row(KeyboardButton('Region'), KeyboardButton('Clearnet Endpoint'))
     markup.row(KeyboardButton('Session Type'), KeyboardButton('WireGuard PublicKey'))
     markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
+    markup.row(KeyboardButton('Finish modification'), KeyboardButton('Abort modification'))
     msg = bot.send_message(
         message.chat.id,
         (
@@ -194,6 +231,37 @@ def pre_action_choose(message, peer_info):
             '- `Contact`\n'
             '  Change contact\n'
             '  修改联系方式\n'
+            '\n'
+            '- `Finish modification`\n'
+            '  Finish modification and submit\n'
+            '  完成修改并提交\n'
+            '- `Abort modification`\n'
+            '  Abort modification (equivalent to /cancel)\n'
+            '  放弃修改 (相当于 /cancel)\n'
+        ),
+        parse_mode='Markdown',
+        reply_markup=markup,
+    )
+    return 'post_action_choose', peer_info, msg
+
+
+def pre_action_choose(message, peer_info):
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row(KeyboardButton('Region'), KeyboardButton('Clearnet Endpoint'))
+    markup.row(KeyboardButton('Session Type'), KeyboardButton('WireGuard PublicKey'))
+    markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
+    markup.row(KeyboardButton('Finish modification'), KeyboardButton('Abort modification'))
+
+    diff_text = get_diff_text(peer_info['backup'], peer_info, db[message.chat.id])
+    msg = bot.send_message(
+        message.chat.id,
+        (
+            'You have modified the following information\n'
+            '已修改以下信息\n'
+            "\n"
+            f"```\n{diff_text}```\n"
+            'You can continue to modify, or choose to `Finish modification` or `Abort modification`.\n'
+            '你可以继续修改，或者选择 `Finish modification` 以提交，或者选择 `Abort modification` 放弃修改。\n'
         ),
         parse_mode='Markdown',
         reply_markup=markup,
@@ -209,6 +277,8 @@ def post_action_choose(message, peer_info):
         'Clearnet Endpoint',
         'WireGuard PublicKey',
         'Contact',
+        'Finish modification',
+        'Abort modification',
     ]:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row(KeyboardButton('Region'), KeyboardButton('Clearnet Endpoint'))
@@ -247,7 +317,16 @@ def post_action_choose(message, peer_info):
     elif message.text.strip() == 'WireGuard PublicKey':
         return 'pre_pubkey', peer_info, message, 'pre_contact'
     elif message.text.strip() == 'Contact':
-        return 'pre_contact', peer_info, message
+        return 'pre_contact', peer_info, message, 'pre_confirm'
+    elif message.text.strip() == 'Finish modification':
+        return 'pre_confirm', peer_info, message
+    elif message.text.strip() == 'Abort modification':
+        bot.send_message(
+            message.chat.id,
+            "Abort modification, operation has been canceled.\n放弃修改，操作已取消。",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
 
 
 def pre_confirm(message, peer_info):
@@ -263,53 +342,20 @@ def pre_confirm(message, peer_info):
         )
         return
 
-    all_text = ""
-
-    def diff_print(item, prefix=''):
-        nonlocal all_text
-        if peer_info[item] == old_peer_info[item]:
-            all_text += f"    {prefix}{peer_info[item]}\n"
-        else:
-            all_text += f"    {prefix}{old_peer_info[item]}\n"
-            all_text += ' ' * (len(prefix) + 2) + "->\n"
-            all_text += ' ' * (len(prefix) + 4) + f"{peer_info[item]}\n"
-
-    all_text += "Region:\n"
-    if peer_info['Region'] == old_peer_info['Region']:
-        all_text += f"    {base.servers[peer_info['Region']]}\n"
-    else:
-        peer_info['Origin'] = old_peer_info['Region']
-        all_text += f"    {base.servers[old_peer_info['Region']]}\n"
-        all_text += "  ->\n"
-        all_text += f"    {base.servers[peer_info['Region']]}\n"
-    all_text += "Basic:\n"
-    diff_print('ASN', 'ASN:         ')
-    diff_print('Channel', 'Channel:     ')
-    diff_print('MP-BGP', 'MP-BGP:      ')
-    diff_print('IPv6', 'IPv6:        ')
-    diff_print('IPv4', 'IPv4:        ')
-    diff_print('Request-LinkLocal', 'Request-LLA: ')
-    all_text += "Tunnel:\n"
-    diff_print('Clearnet', 'Endpoint:    ')
-    diff_print('PublicKey', 'PublicKey:   ')
-    all_text += "Contact:\n"
-    all_text += f"    {tools.get_whoisinfo_by_asn(db[message.chat.id])}\n"
-    if not tools.get_whoisinfo_by_asn(db[message.chat.id]) == peer_info['Contact'] == old_peer_info['Contact']:
-        diff_print('Contact')
-
+    diff_text = get_diff_text(old_peer_info, peer_info, db[message.chat.id])
     msg = bot.send_message(
         message.chat.id,
         (
             "Please check all your information\n"
             "请确认你的信息\n"
             "\n"
-            f"```\n{all_text}```\n"
+            f"```\n{diff_text}```\n"
             "Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n"
             "确认无误请输入*大写* `yes`，所有其他输入表示取消操作。"
         ),
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
-    peer_info['InfoText'] = all_text
+    peer_info['InfoText'] = diff_text
     peer_info['ProgressType'] = 'modify'
     return 'post_confirm', peer_info, msg
