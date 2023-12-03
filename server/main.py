@@ -140,6 +140,7 @@ cmd_list = {
     'tcping': ('TCPing IP / Domain', True),
     'trace': ('Traceroute IP / Domain', True),
     'route': ('Route to IP / Domain', True),
+    'path': ('AS-Path of IP / Domain', True),
     'whois': ('Whois', True),
     'login': ('Login to verify your ASN 登录以验证你的 ASN', False),
     'logout': ('Logout current logged ASN 退出当前登录的 ASN', False),

@@ -69,6 +69,7 @@ def generaltest_callback_query(call):
         'tcping',
         'tcping4',
         'tcping6',
+        'path',
     ]
 )
 def generaltest(message):
@@ -79,14 +80,16 @@ def generaltest(message):
             cmd = command[:-1]
         else:
             cmd = command
+        if command != 'path':
+            cmd = command + '{4|6}'
         addon = ""
         if cmd == 'tcping':
             addon = " {port}"
         bot.reply_to(
             message,
             (
-                f"Usage: /{cmd}{{4|6}} [ip/domain]{addon} {{node1}} {{node2}} ...\n"
-                f"用法：/{cmd}{{4|6}} [ip/domain]{addon} {{node1}} {{node2}} ..."
+                f"Usage: /{cmd} [ip/domain]{addon} {{node1}} {{node2}} ...\n"
+                f"用法：/{cmd} [ip/domain]{addon} {{node1}} {{node2}} ..."
             ),
             reply_markup=tools.gen_peer_me_markup(message),
         )
@@ -158,6 +161,8 @@ def generaltest(message):
         command_text = 'Traceroute'
     elif command == 'route':
         command_text = 'Route to'
+    elif command == 'path':
+        command_text = 'AS-Path of'
     msg = bot.reply_to(
         message,
         "```\n{command_text} {ip}{domain}{addon}...\n```".format(
@@ -198,11 +203,13 @@ def generaltest(message):
                     domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
                 )
                 text += '\n'.join(v.text.strip().split("\n")[1:])
-            elif command == 'route':
+            elif command == 'route' or command == 'path':
                 text = v.text.strip()
             data[k] = text
         elif v.status == 408:
             data[k] = 'Request Timeout 请求超时'
+        elif command == 'path' and v.status == 404:
+            data[k] = 'Not found 未找到'
         else:
             data[k] = 'Something went wrong.\n发生了一些错误。'
     data_id = str(uuid4()).replace('-', '')

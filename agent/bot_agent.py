@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 13
+AGENT_VERSION = 14
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -540,10 +540,28 @@ async def get_route(request):
     else:
         return web.Response(status=403)
     try:
-        output = simple_run(f"birdc show route for {target} primary all")
+        output = simple_run(f"birdc show route for {target} primary")
     except subprocess.TimeoutExpired:
         return web.Response(status=408)
     return web.Response(body=output)
+
+
+@routes.post('/path')
+@set_sentry
+async def get_path(request):
+    secret = request.headers.get("X-DN42-Bot-Api-Secret-Token")
+    if secret == SECRET:
+        target = await request.text()
+    else:
+        return web.Response(status=403)
+    try:
+        output = simple_run(f"birdc show route for {target} all primary")
+    except subprocess.TimeoutExpired:
+        return web.Response(status=408)
+    for line in output.split('\n'):
+        if 'BGP.as_path' in line:
+            return web.Response(body=line.split(':')[1].strip())
+    return web.Response(status=404)
 
 
 app = web.Application()

@@ -271,14 +271,11 @@ def get_from_agent(type, data, server=None, *, backoff_factor=0.1):
     for future in futures:
         try:
             resp = future.result()
+            result[future.region] = api_result(resp.text, resp.status_code)
         except requests.exceptions.Timeout:
             result[future.region] = api_result('', 408)
-            continue
         except BaseException:
             result[future.region] = api_result('', 500)
-            continue
-        result[future.region] = api_result(resp.text, resp.status_code)
-
     return result
 
 

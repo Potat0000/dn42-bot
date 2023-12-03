@@ -7,6 +7,7 @@
   - [x] TCPing
   - [x] Traceroute
   - [x] Route
+  - [x] Path
   - [x] Whois
 - User Manage
   - [x] Login
