@@ -126,10 +126,8 @@ def pre_confirm(message, peer_info):
         f"    Endpoint:    {peer_info['Clearnet']}\n"
         f"    PublicKey:   {peer_info['PublicKey']}\n"
         "Contact:\n"
-        f"    {tools.get_whoisinfo_by_asn(db[message.chat.id])}\n"
+        f"    {peer_info['Contact']}\n"
     )
-    if tools.get_whoisinfo_by_asn(db[message.chat.id]) != peer_info['Contact']:
-        all_text += f"    {peer_info['Contact']}\n"
     msg = bot.send_message(
         message.chat.id,
         (

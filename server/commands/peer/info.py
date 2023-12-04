@@ -226,8 +226,10 @@ def get_info_text(chatid, node):
             if session in bird_status[2]:
                 detail_text += f"        {bird_status[2][session]}\n"
 
-    detail_text += "Contact:\n" f"    {tools.get_whoisinfo_by_asn(db[chatid])}\n"
-    if tools.get_whoisinfo_by_asn(db[chatid]) != peer_info['desc']:
+    if tools.get_whoisinfo_by_asn(db[chatid]).lower() == peer_info['desc'].lower():
+        detail_text += "Contact:\n" f"    {peer_info['desc']}\n"
+    else:
+        detail_text += "Contact:\n" f"    {tools.get_whoisinfo_by_asn(db[chatid])}\n"
         detail_text += f"    {peer_info['desc']}\n"
 
     return (

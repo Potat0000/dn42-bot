@@ -85,7 +85,6 @@ def get_diff_text(old_peer_info, peer_info, asn):
     diff_print('Clearnet', 'Endpoint:    ')
     diff_print('PublicKey', 'PublicKey:   ')
     diff_text += "Contact:\n"
-    diff_text += f"    {tools.get_whoisinfo_by_asn(asn)}\n"
     diff_print('Contact')
     return diff_text
 

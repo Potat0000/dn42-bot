@@ -166,8 +166,11 @@ def login_choose_email(asn, emails, last_msg_id, message):
             message.chat.id,
             (
                 "Sorry, we are unable to send the verification code to your email address at this time. Please try again later.\n"
-                "抱歉，暂时无法发送验证码至您的邮箱。请稍后再试。"
+                "抱歉，暂时无法发送验证码至您的邮箱。请稍后再试。\n"
+                f"Please contact {config.CONTACT} if it keeps failing.\n"
+                f"如果一直发送失败请联系 {config.CONTACT} 处理。"
             ),
+            parse_mode="HTML",
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
@@ -177,10 +180,13 @@ def login_choose_email(asn, emails, last_msg_id, message):
             (
                 "Verification code has been sent to your email.\n"
                 "验证码已发送至您的邮箱。\n"
+                f"Please contact {config.CONTACT} if you can not receive it.\n"
+                f"如果无法收到请联系 {config.CONTACT}\n"
                 "\n"
                 "Enter your verification code:\n"
                 "请输入验证码："
             ),
+            parse_mode="HTML",
             reply_markup=ReplyKeyboardRemove(),
         )
         bot.register_next_step_handler(msg, partial(login_verify_code, asn, code))
