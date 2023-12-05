@@ -138,7 +138,6 @@ def pre_session_type(message, peer_info):
 
 
 def post_session_type(message, peer_info):
-
     if (
         message.text.strip().lower() == "ipv6 & ipv4"
         or message.text.strip().lower() == "ipv6 and ipv4"
@@ -296,6 +295,7 @@ def post_ipv6(message, peer_info):
     if IP(message.text.strip()) in IP("fe80::/64"):
         return 'pre_request_linklocal', peer_info, message
     else:
+        peer_info["Request-LinkLocal"] = "Not required due to not use LLA as IPv6"
         if peer_info["Channel"] == "IPv6 & IPv4" and peer_info["ENH"] is not True:
             return 'pre_ipv4', peer_info, message
         else:

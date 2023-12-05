@@ -6,7 +6,6 @@ import commands.peer.info_collect as info_collect
 import config
 import tools
 from base import bot, db, db_privilege
-from IPy import IP
 from telebot.types import ReplyKeyboardRemove
 
 
@@ -110,8 +109,6 @@ def init(message, peer_info):
 
 
 def pre_confirm(message, peer_info):
-    if peer_info['IPv6'] != "Not enabled" and IP(peer_info['IPv6']) in IP("fe80::/64"):
-        peer_info['Request-LinkLocal'] = "Not required due to not use LLA as IPv6"
     all_text = (
         "Region:\n"
         f"    {base.servers[peer_info['Region']]}\n"

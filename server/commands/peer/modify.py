@@ -329,9 +329,6 @@ def post_action_choose(message, peer_info):
 
 
 def pre_confirm(message, peer_info):
-    if not (peer_info['IPv6'] and peer_info['IPv6'] != 'Not enabled' and IP(peer_info['IPv6']) in IP("fe80::/64")):
-        peer_info['Request-LinkLocal'] = "Not required due to not use LLA as IPv6"
-
     old_peer_info = peer_info.pop('backup')
     if old_peer_info == peer_info:
         msg = bot.send_message(
