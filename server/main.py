@@ -15,7 +15,7 @@ from pytz import utc
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
 
-import commands
+import commands  # noqa: F401
 
 
 class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):

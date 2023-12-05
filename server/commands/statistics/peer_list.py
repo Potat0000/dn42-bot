@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import tools
 from base import bot, db
-from telebot.types import ReplyKeyboardRemove
 
 
 @bot.message_handler(commands=['peer_list', 'peerlist'])

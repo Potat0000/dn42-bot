@@ -4,7 +4,7 @@ import time
 import tools
 from base import bot
 from commands.statistics.stats import stats
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 PAGE_SIZE = 30
 
