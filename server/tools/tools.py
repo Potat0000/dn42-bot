@@ -241,7 +241,7 @@ def gen_peer_me_markup(message):
     return markup
 
 
-def get_from_agent(type, data, server=None, *, backoff_factor=0.1):
+def get_from_agent(type, data, server=None, *, timeout=10, backoff_factor=0.1):
     api_result = namedtuple('api_result', ['text', 'status'])
     if not server:
         server = base.servers.keys()
@@ -262,7 +262,7 @@ def get_from_agent(type, data, server=None, *, backoff_factor=0.1):
             f"http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}",
             data=data,
             headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
-            timeout=10,
+            timeout=timeout,
         )
         future.region = region
         futures.append(future)

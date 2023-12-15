@@ -173,7 +173,7 @@ def generaltest(message):
         ),
         parse_mode="Markdown",
     )
-    bot.send_chat_action(chat_id=message.chat.id, action='typing')
+    bot.send_chat_action(chat_id=message.chat.id, action='typing', timeout=20 if command == 'trace' else 10)
     try:
         specific_server = [i.lower() for i in server_list if i.lower() in base.servers]
         if not specific_server:

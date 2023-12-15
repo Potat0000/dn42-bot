@@ -8,7 +8,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 14
+AGENT_VERSION = 15
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -507,12 +507,14 @@ async def trace_test(request):
     try:
         output = simple_run(f"traceroute -q1 -N32 -w1 {target}", timeout=8)
     except subprocess.TimeoutExpired:
-        return web.Response(status=408)
-    else:
-        pattern = r"(?m)^\s*\d*\s*\*$"
-        if total := len(re.findall(pattern, output)):
-            output = re.sub(pattern, "", output).strip()
-            output += f"\n\n{total} hops not responding."
+        try:
+            output = simple_run(f"traceroute -q1 -N32 -w1 -n {target}", timeout=8)
+        except subprocess.TimeoutExpired:
+            return web.Response(status=408)
+    pattern = r"(?m)^\s*\d*\s*\*$"
+    if total := len(re.findall(pattern, output)):
+        output = re.sub(pattern, "", output).strip()
+        output += f"\n\n{total} hops not responding."
     return web.Response(body=output)
 
 
