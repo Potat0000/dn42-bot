@@ -19,8 +19,8 @@ def whoami(message, new_asn=None, info_node=None):
     markup = ReplyKeyboardRemove()
     if message.chat.id in db_privilege:
         text = "*[Privilege]*\n"
-        if not new_asn and len(message.text.strip().split(" ")) == 2:
-            new_asn = message.text.strip().split(" ")[1]
+        if not new_asn and len(message.text.split()) == 2:
+            new_asn = message.text.split()[1]
         if new_asn:
             try:
                 db[message.chat.id] = int(new_asn)

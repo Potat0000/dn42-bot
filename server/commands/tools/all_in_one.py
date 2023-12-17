@@ -73,7 +73,7 @@ def generaltest_callback_query(call):
     ]
 )
 def generaltest(message):
-    command = message.text.strip().split(" ")
+    command = message.text.split()
     if len(command) < 2:
         command = command[0].split('@')[0][1:]
         if command.endswith("4") or command.endswith("6"):
@@ -143,7 +143,7 @@ def generaltest(message):
             return
     else:
         ip = parsed_info.ipv4 if parsed_info.ipv4 else parsed_info.ipv6
-    server_list = message.text.strip().split(" ")[2:]
+    server_list = message.text.split()[2:]
     command_data = ip
     addon = ""
     if command == 'ping':

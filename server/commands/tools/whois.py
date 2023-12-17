@@ -11,14 +11,14 @@ from base import bot
 
 @bot.message_handler(commands=['whois'])
 def whois(message):
-    if len(message.text.strip().split(" ")) < 2:
+    if len(message.text.split()) < 2:
         bot.reply_to(
             message,
             "Usage: /whois [something]\n用法：/whois [something]",
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    whois_str = message.text.strip().split(" ")[1]
+    whois_str = message.text.split()[1]
     allowed_punctuation = "_-./:"
     if any(c not in (string.ascii_letters + string.digits + allowed_punctuation) for c in whois_str):
         bot.reply_to(
@@ -63,7 +63,7 @@ def whois(message):
                 whois_str = f"AS{asn}"
             whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
         except ValueError:
-            whois_command = f"whois -I {message.text.strip().split(' ')[1]}"
+            whois_command = f"whois -I {message.text.split()[1]}"
         whois_result = ''
     route_result = ""
     if whois_str.startswith('AS') and whois_result.startswith('% This is the dn42 whois query service.'):
@@ -76,7 +76,7 @@ def whois(message):
                     .strip()
                     .split('\n')
                 )
-                for r in sorted([i.split(' ')[1] for i in roa_result]):
+                for r in sorted([i.split()[1] for i in roa_result]):
                     route_result += f"route{ipver}:             {r}\n"
         except BaseException:
             pass

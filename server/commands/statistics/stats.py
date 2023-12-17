@@ -6,7 +6,7 @@ from base import bot, db
 @bot.message_handler(commands=['stats'])
 def stats(message):
     try:
-        asn = int(message.text.strip().split(" ")[1])
+        asn = int(message.text.split()[1])
     except (ValueError, IndexError):
         if message.chat.type == 'private' and message.chat.id in db:
             asn = db[message.chat.id]

@@ -62,7 +62,7 @@ def start_login(message):
         )
         return
     try:
-        asn = int(message.text.strip().split()[1])
+        asn = int(message.text.split()[1])
         login_input_asn(asn, message)
     except (IndexError, ValueError):
         msg = bot.send_message(

@@ -38,7 +38,7 @@ class IsForMe(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(message):
-        command = message.text.strip().split(" ")[0].split("@")
+        command = message.text.split()[0].split("@")
         if len(command) > 1:
             return command[-1].lower() == config.BOT_USERNAME.lower()
         else:
@@ -52,7 +52,7 @@ class MyMiddleware(BaseMiddleware):
     def pre_process(self, message, data):
         if not message.text:
             return CancelUpdate()
-        command = message.text.strip().split(" ")[0].split("@")
+        command = message.text.split()[0].split("@")
         if len(command) > 1:
             if command[-1].lower() != config.BOT_USERNAME.lower():
                 return CancelUpdate()

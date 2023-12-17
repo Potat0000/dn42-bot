@@ -52,7 +52,7 @@ def gen_get_map():
                 except BaseException:
                     continue
                 for elem in parser:
-                    as_path = [int(i) for i in elem['as_path'].split(' ')]
+                    as_path = [int(i) for i in elem['as_path'].split()]
                     for i in range(len(as_path) - 1):
                         G.add_edge(as_path[i], as_path[i + 1])
             if not G.nodes:

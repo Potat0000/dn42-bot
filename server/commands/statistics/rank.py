@@ -88,7 +88,7 @@ def get_rank(message):
         bot.send_message(message.chat.id, "No data available.\n暂无数据。", reply_markup=tools.gen_peer_me_markup(message))
         return
     try:
-        int(message.text.strip().split(" ")[1])
+        int(message.text.split()[1])
         stats(message)
     except (ValueError, IndexError):
         init_arg = (0, 'jerry')

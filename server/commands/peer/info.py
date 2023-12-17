@@ -229,8 +229,8 @@ def get_info_text(chatid, node):
     if tools.get_whoisinfo_by_asn(db[chatid]).lower() == peer_info['desc'].lower():
         detail_text += "Contact:\n" f"    {peer_info['desc']}\n"
     else:
-        detail_text += "Contact:\n" f"    {tools.get_whoisinfo_by_asn(db[chatid])}\n"
-        detail_text += f"    {peer_info['desc']}\n"
+        detail_text += "Contact:\n" f"    {peer_info['desc']}\n"
+        detail_text += f"    ({tools.get_whoisinfo_by_asn(db[chatid])})\n"
 
     return (
         f"```\n{detail_text.strip()}```",

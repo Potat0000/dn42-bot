@@ -10,7 +10,7 @@ from commands.user_manage.whoami import whoami
 @bot.message_handler(commands=['start'], is_private_chat=True)
 def startup(message):
     try:
-        command = message.text.strip().split(" ")[1]
+        command = message.text.split()[1]
         if command.startswith("whoami_"):
             whoami(message, *command[7:].split('_'))
         elif command == 'info':
