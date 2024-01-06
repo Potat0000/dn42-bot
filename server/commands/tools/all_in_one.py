@@ -185,11 +185,14 @@ def generaltest(message):
     for k, v in raw.items():
         if v.status == 200:
             if command == 'ping':
-                text = "Ping {ip}{domain} 56 data bytes\n".format(
-                    ip=ip,
-                    domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
-                )
-                text += '\n'.join(v.text.strip().split("\n")[1:])
+                if v.text.strip().startswith("PING "):
+                    text = "Ping {ip}{domain} 56 data bytes\n".format(
+                        ip=ip,
+                        domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+                    )
+                    text += '\n'.join(v.text.strip().split("\n")[1:])
+                else:
+                    text = v.text.strip()
             elif command == 'tcping':
                 text = "TCPing {ip}{domain}{addon}\n".format(
                     ip=ip,
@@ -198,11 +201,14 @@ def generaltest(message):
                 )
                 text += v.text.strip()
             elif command == 'trace':
-                text = "Traceroute to {ip}{domain}, 30 hops max, 80 byte packets\n".format(
-                    ip=ip,
-                    domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
-                )
-                text += '\n'.join(v.text.strip().split("\n")[1:])
+                if v.text.strip().startswith("traceroute to "):
+                    text = "Traceroute to {ip}{domain}, 30 hops max, 80 byte packets\n".format(
+                        ip=ip,
+                        domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+                    )
+                    text += '\n'.join(v.text.strip().split("\n")[1:])
+                else:
+                    text = v.text.strip()
             elif command == 'route' or command == 'path':
                 text = v.text.strip()
             data[k] = text
