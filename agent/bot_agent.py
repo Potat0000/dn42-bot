@@ -546,7 +546,7 @@ async def get_route(request):
     else:
         return web.Response(status=403)
     try:
-        output = simple_run(f"birdc show route for {target} primary")
+        output = simple_run(f"birdc show route for {target} all primary")
     except subprocess.TimeoutExpired:
         return web.Response(status=408)
     return web.Response(body=output)

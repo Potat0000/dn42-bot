@@ -190,7 +190,7 @@ def generaltest(message):
                         ip=ip,
                         domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
                     )
-                    text += '\n'.join(v.text.strip().split("\n")[1:])
+                    text += v.text.strip().split("\n", 1)[1]
                 else:
                     text = v.text.strip()
             elif command == 'tcping':
@@ -206,11 +206,13 @@ def generaltest(message):
                         ip=ip,
                         domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
                     )
-                    text += '\n'.join(v.text.strip().split("\n")[1:])
+                    text += v.text.strip().split("\n", 1)[1]
                 else:
                     text = v.text.strip()
             elif command == 'route' or command == 'path':
                 text = v.text.strip()
+                if text.startswith("BIRD "):
+                    text = v.text.strip().split("\n", 1)[1]
             data[k] = text
         elif v.status == 408:
             data[k] = 'Request Timeout 请求超时'
