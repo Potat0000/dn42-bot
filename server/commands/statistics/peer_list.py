@@ -31,7 +31,7 @@ def route(message):
         msg += f"{peer_asn:<10}  {tools.get_whoisinfo_by_asn(peer_asn, 'as-name')}\n"
     bot.reply_to(
         message,
-        f'```\n{msg}```',
+        f'```PeerList\n{msg}```',
         parse_mode='Markdown',
         reply_markup=tools.gen_peer_me_markup(message),
     )

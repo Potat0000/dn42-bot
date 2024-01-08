@@ -258,7 +258,7 @@ def pre_action_choose(message, peer_info):
             'You have modified the following information\n'
             '已修改以下信息\n'
             "\n"
-            f"```\n{diff_text}```\n"
+            f"```ModifiedInfo\n{diff_text}```\n"
             'You can continue to modify, or choose to `Finish modification` or `Abort modification`.\n'
             '你可以继续修改，或者选择 `Finish modification` 以提交，或者选择 `Abort modification` 放弃修改。\n'
         ),
@@ -345,7 +345,7 @@ def pre_confirm(message, peer_info):
             "Please check all your information\n"
             "请确认你的信息\n"
             "\n"
-            f"```\n{diff_text}```\n"
+            f"```ComfirmInfo\n{diff_text}```\n"
             "Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n"
             "确认无误请输入*大写* `yes`，所有其他输入表示取消操作。"
         ),

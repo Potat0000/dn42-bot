@@ -83,9 +83,9 @@ def whois(message):
     if route_result:
         whois_result += "\n\n" f"% Routes for '{whois_str}':\n" f"{route_result.strip()}"
     if len(whois_result) > 4096:
-        whois_result = f"```{whois_result[:4000]}```\n\n消息过长，已被截断。\nMessage too long, truncated."
+        whois_result = f"```WhoisResult\n{whois_result[:4000]}```\n\n消息过长，已被截断。\nMessage too long, truncated."
     else:
-        whois_result = f"```{whois_result}```"
+        whois_result = f"```WhoisResult\n{whois_result}```"
     bot.reply_to(
         message,
         whois_result,

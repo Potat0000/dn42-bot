@@ -45,7 +45,7 @@ def generaltest_callback_query(call):
     text = text[node]
     try:
         bot.edit_message_text(
-            f'```\n{text.strip()}\n```',
+            f'```Result\n{text.strip()}\n```',
             parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -165,7 +165,7 @@ def generaltest(message):
         command_text = 'AS-Path of'
     msg = bot.reply_to(
         message,
-        "```\n{command_text} {ip}{domain}{addon}...\n```".format(
+        "```Querying\n{command_text} {ip}{domain}{addon}...\n```".format(
             command_text=command_text,
             ip=ip,
             domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
@@ -225,7 +225,7 @@ def generaltest(message):
     node = specific_server[0]
     text = data[node]
     bot.edit_message_text(
-        f'```\n{text.strip()}\n```',
+        f'```Result\n{text.strip()}\n```',
         parse_mode="Markdown",
         chat_id=message.chat.id,
         message_id=msg.message_id,

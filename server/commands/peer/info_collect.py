@@ -723,7 +723,7 @@ def post_confirm(message, peer_info):
     elif progress_type == 'modify':
         msg_text = 'Peer Modified!   Peer 信息修改！\n'
     for i in db_privilege - {message.chat.id}:
-        text = "*[Privilege]*\n" f"{msg_text}" f"```\n{info_text.strip()}```"
+        text = "*[Privilege]*\n" f"{msg_text}" f"```PrivilegeNote\n{info_text.strip()}```"
         markup = InlineKeyboardMarkup()
         markup.row_width = 1
         if peer_info['ASN'] == db[i]:

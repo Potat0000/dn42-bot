@@ -69,7 +69,7 @@ def get_route_stats_text(ip_ver, simple, node):
                 if simple:
                     msg += f"\n{rank_now:>4} {asn:10} {mnt:{mnt_len}} {count:5}"
                 else:
-                    msg += f"\n{rank_now:>4}  {asn:10}  {mnt:{mnt_len}}  {count:5}  {count/total_routes:>6.2%}"
+                    msg += f"\n{rank_now:>4}  {asn:10}  {mnt:{mnt_len}}  {count:5}  {count / total_routes:>6.2%}"
         else:
             max_len = max(len(base.servers[node]), 26)
             msg = f"IPv{ip_ver} Preferred Route Count".center(max_len) + '\n'
@@ -77,12 +77,12 @@ def get_route_stats_text(ip_ver, simple, node):
             msg += f'updated {time_delta}s ago'.rjust(max_len) + '\n\n'
             msg += "No data available.".center(max_len) + '\n'
             msg += "暂无数据。".center(max_len)
-        return f"```\n{msg}\n```", 'Markdown'
+        return f"```RouteStats\n{msg}\n```", 'Markdown'
     else:
         return (
             f"Error encountered! Please contact {config.CONTACT} with the following information:\n"
             f"遇到错误！请携带下列信息联系 {config.CONTACT}\n\n"
-            "```\n"
+            "```ErrorMsg\n"
             f"{data[node]}\n"
             "```"
         ), 'HTML'

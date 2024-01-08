@@ -66,7 +66,7 @@ def stats(message):
     )
     bot.reply_to(
         message,
-        f'```\n{msg}```',
+        f'```Stats\n{msg}```',
         parse_mode='Markdown',
         reply_markup=tools.gen_peer_me_markup(message),
     )

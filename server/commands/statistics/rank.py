@@ -28,15 +28,15 @@ def gen_rank_markup(page, rank_type):
         )
     elif page == last_page:
         markup.row(
-            InlineKeyboardButton("⬅️", callback_data=f"rank_{page-1}_{rank_type}"),
+            InlineKeyboardButton("⬅️", callback_data=f"rank_{page - 1}_{rank_type}"),
             InlineKeyboardButton(str(page + 1), callback_data=' '),
             InlineKeyboardButton(" ", callback_data=' '),
         )
     else:
         markup.row(
-            InlineKeyboardButton("⬅️", callback_data=f"rank_{page-1}_{rank_type}"),
+            InlineKeyboardButton("⬅️", callback_data=f"rank_{page - 1}_{rank_type}"),
             InlineKeyboardButton(str(page + 1), callback_data=' '),
-            InlineKeyboardButton("➡️", callback_data=f"rank_{page+1}_{rank_type}"),
+            InlineKeyboardButton("➡️", callback_data=f"rank_{page + 1}_{rank_type}"),
         )
     for k, v in rank_type_dict.items():
         if k == rank_type:
@@ -59,10 +59,10 @@ def get_rank_text(page, rank_type):
         if len(mnt) > mnt_len:
             mnt = mnt[: mnt_len - 3] + '...'
         if isinstance(value, float):
-            msg += f"\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:.{5-len(str(int(value)))}f}"
+            msg += f"\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:.{5 - len(str(int(value)))}f}"
         else:
             msg += f"\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:>6}"
-    return f"```\n{msg}\n```", 'Markdown'
+    return f"```Rank\n{msg}\n```", 'Markdown'
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("rank_"))

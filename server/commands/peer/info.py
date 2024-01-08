@@ -233,7 +233,7 @@ def get_info_text(chatid, node):
         detail_text += f"    ({tools.get_whoisinfo_by_asn(db[chatid])})\n"
 
     return (
-        f"```\n{detail_text.strip()}```",
+        f"```Info\n{detail_text.strip()}```",
         "Markdown",
         gen_info_markup(node, available_node, peer_info['session_name']),
     )

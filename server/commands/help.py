@@ -27,7 +27,7 @@ def send_welcome(message):
         message.chat.id,
         (
             "Command List 指令列表\n"
-            "```\n"
+            "```Commands\n"
             "Tools:\n"
             "  - /ping [ip/domain]\n"
             "  - /tcping [ip/domain] {port}\n"
