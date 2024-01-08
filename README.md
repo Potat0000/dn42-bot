@@ -9,6 +9,7 @@
   - [x] Route
   - [x] Path
   - [x] Whois
+  - [x] Dig / NSLookup
 - User Manage
   - [x] Login
   - [x] Logout
