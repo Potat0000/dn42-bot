@@ -5,6 +5,7 @@ import subprocess
 import config
 import tools
 from base import bot
+import json
 
 
 @bot.message_handler(commands=['whois'])
@@ -66,16 +67,13 @@ def whois(message):
     route_result = ""
     if whois_str.startswith('AS') and whois_result.startswith('% This is the dn42 whois query service.'):
         try:
-            asn = int(whois_str[2:])
-            for ipver, roa_path in zip((4, 6), config.ROA_PATH):
-                roa_result = (
-                    subprocess.check_output(f"cat {roa_path} | grep {asn}", shell=True, timeout=3)
-                    .decode("utf-8")
-                    .strip()
-                    .split('\n')
-                )
-                for r in sorted([i.split()[1] for i in roa_result]):
-                    route_result += f"route{ipver}:             {r}\n"
+            int(whois_str[2:])
+            with open(config.ROA_PATH, 'r') as f:
+                roas = json.loads(f.read())
+            roas = roas['roas']
+            for r in sorted([roa['prefix'] for roa in roas if roa['asn'] == whois_str]):
+                ipver = '6' if ':' in r else '4'
+                route_result += f"route{ipver}:             {r}\n"
         except BaseException:
             pass
     if route_result:

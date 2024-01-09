@@ -16,10 +16,7 @@ WELCOME_TEXT = (
 )
 
 WHOIS_ADDRESS = "127.0.0.1"
-ROA_PATH = (
-    "/etc/bird/roa_dn42.conf",
-    "/etc/bird/roa_dn42_v6.conf",
-)
+ROA_PATH = "./dn42_roa_46.json"
 DN42_ONLY = False
 ALLOW_NO_CLEARNET = True
 
