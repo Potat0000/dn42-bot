@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import tools.get_map as get_map
 import tools.get_route_stats as get_route_stats
 import tools.servers_check as servers_check

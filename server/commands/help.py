@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import config
 from base import bot
 from telebot.types import ReplyKeyboardRemove

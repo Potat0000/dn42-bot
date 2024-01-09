@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pickle
 import re
 import shlex

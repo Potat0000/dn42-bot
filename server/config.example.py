@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 
 BOT_TOKEN = "XXXXX:XXXXXXXXXXXXXXXXXXX"
 BOT_USERNAME = "Potat0_DN42_Bot"
-CONTACT = "@Potat0_PM_Bot"
+CONTACT = "@Potat00000"
 DN42_ASN = 4242421816
 
 WELCOME_TEXT = (

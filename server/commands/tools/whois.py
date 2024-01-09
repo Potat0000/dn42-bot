@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import shlex
 import string
 import subprocess

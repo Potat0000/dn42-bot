@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from base import bot
 from commands.help import send_welcome
 from commands.peer.info import get_info
