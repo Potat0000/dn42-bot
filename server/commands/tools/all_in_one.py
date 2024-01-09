@@ -165,10 +165,9 @@ def generaltest(message):
         command_text = 'AS-Path of'
     msg = bot.reply_to(
         message,
-        "```Querying\n{command_text} {ip}{domain}{addon}...\n```".format(
+        "```Querying\n{command_text} {address}{addon}...\n```".format(
             command_text=command_text,
-            ip=ip,
-            domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+            address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip),
             addon=addon,
         ),
         parse_mode="Markdown",
@@ -186,25 +185,22 @@ def generaltest(message):
         if v.status == 200:
             if command == 'ping':
                 if v.text.strip().startswith("PING "):
-                    text = "Ping {ip}{domain} 56 data bytes\n".format(
-                        ip=ip,
-                        domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+                    text = "Ping {address} 56(84) bytes of data\n".format(
+                        address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip)
                     )
                     text += v.text.strip().split("\n", 1)[1]
                 else:
                     text = v.text.strip()
             elif command == 'tcping':
-                text = "TCPing {ip}{domain}{addon}\n".format(
-                    ip=ip,
-                    domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+                text = "TCPing {address}{addon}\n".format(
+                    address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip),
                     addon=addon,
                 )
                 text += v.text.strip()
             elif command == 'trace':
                 if v.text.strip().startswith("traceroute to "):
-                    text = "Traceroute to {ip}{domain}, 30 hops max, 80 byte packets\n".format(
-                        ip=ip,
-                        domain=f" ({parsed_info.domain})" if parsed_info.domain else "",
+                    text = "Traceroute to {address}, 30 hops max, 80 byte packets\n".format(
+                        address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip)
                     )
                     text += v.text.strip().split("\n", 1)[1]
                 else:
