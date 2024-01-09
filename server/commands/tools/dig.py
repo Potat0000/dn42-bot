@@ -30,7 +30,7 @@ def dig(message):
     except BaseException:
         dig_result = 'Something went wrong.\n发生了一些错误。'
     if len(dig_result) > 4096:
-        dig_result = f"```DigResult\n{dig_result[:4000]}```\n\n消息过长，已被截断。\nMessage too long, truncated."
+        dig_result = f"```DigResult\n{dig_result[:4000]}```\n\nMessage too long, truncated.\n消息过长，已被截断。"
     elif not dig_result:
         dig_result = 'No result.\n没有结果。'
     else:

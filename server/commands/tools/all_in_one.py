@@ -30,8 +30,9 @@ def gen_generaltest_markup(chat, data_id, node, available_nodes):
 def generaltest_callback_query(call):
     data_id = call.data.split("_", 2)[1]
     node = call.data.split("_", 2)[2]
-    text = cache.get(data_id)
-    if text is None:
+    try:
+        data_type, data = cache.get(data_id)
+    except BaseException:
         bot.edit_message_text(
             'The result is expired, please run it again.\n结果已失效，请重新运行。',
             chat_id=call.message.chat.id,
@@ -39,11 +40,11 @@ def generaltest_callback_query(call):
             reply_markup=tools.gen_peer_me_markup(call.message),
         )
         return
-    available_nodes = list(text.keys())
-    text = text[node]
+    available_nodes = list(data.keys())
+    data = data[node]
     try:
         bot.edit_message_text(
-            f'```Result\n{text.strip()}\n```',
+            f'```{data_type}Result\n{data.strip()}\n```',
             parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -215,11 +216,12 @@ def generaltest(message):
         else:
             data[k] = 'Something went wrong.\n发生了一些错误。'
     data_id = str(uuid4()).replace('-', '')
-    cache[data_id] = data
+    command_text = command_text.split()[0].replace('-', '')
+    cache[data_id] = (command_text, data)
     node = specific_server[0]
     text = data[node]
     bot.edit_message_text(
-        f'```Result\n{text.strip()}\n```',
+        f'```{command_text}Result\n{text.strip()}\n```',
         parse_mode="Markdown",
         chat_id=message.chat.id,
         message_id=msg.message_id,
