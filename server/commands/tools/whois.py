@@ -2,10 +2,10 @@ import shlex
 import string
 import subprocess
 
+import base
 import config
 import tools
 from base import bot
-import json
 
 
 @bot.message_handler(commands=['whois'])
@@ -68,10 +68,7 @@ def whois(message):
     if whois_str.startswith('AS') and whois_result.startswith('% This is the dn42 whois query service.'):
         try:
             int(whois_str[2:])
-            with open(config.ROA_PATH, 'r') as f:
-                roas = json.loads(f.read())
-            roas = roas['roas']
-            for r in sorted([roa['prefix'] for roa in roas if roa['asn'] == whois_str]):
+            for r in sorted(base.AS_ROUTE[whois_str]):
                 ipver = '6' if ':' in r else '4'
                 route_result += f"route{ipver}:             {r}\n"
         except BaseException:

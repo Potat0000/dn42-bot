@@ -16,7 +16,6 @@ WELCOME_TEXT = (
 )
 
 WHOIS_ADDRESS = "127.0.0.1"
-ROA_PATH = "./dn42_roa_46.json"
 DN42_ONLY = False
 ALLOW_NO_CLEARNET = True
 

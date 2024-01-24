@@ -17,6 +17,7 @@ servers = {}
 
 ChinaIPv4 = []
 ChinaIPv6 = []
+AS_ROUTE = {}
 
 try:
     with open("./user_db.pkl", "rb") as f:

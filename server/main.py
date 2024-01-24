@@ -117,6 +117,7 @@ if config.SENTRY_DSN:
     )
 
 tools.update_china_ip()
+tools.update_as_route_table()
 tools.servers_check()
 try:
     with open("./rank.pkl", "rb") as f:
@@ -127,6 +128,7 @@ tools.get_route_stats(update=True)
 
 scheduler = BackgroundScheduler(timezone=utc)
 scheduler.add_job(tools.servers_check, 'cron', minute='*/3')
+scheduler.add_job(tools.update_as_route_table, 'cron', minute='2/10')
 scheduler.add_job(tools.update_china_ip, 'cron', hour='1', minute='30')
 scheduler.add_job(tools.get_route_stats, 'cron', kwargs={'update': True}, minute='3/10')
 scheduler.add_job(tools.get_map, 'cron', kwargs={'update': True}, minute='3/10')

@@ -45,7 +45,6 @@ Config items are located at `server/config.py`.
 | DN42_ASN            | Your DN42 ASN                                                                            |
 | WELCOME_TEXT        | The text shows at the top of /help command                                               |
 | WHOIS_ADDRESS       | The address of whois server                                                              |
-| ROA_PATH            | The path of ROA file. Only support ROA file in JSON format as most RPKI server does.     |
 | DN42_ONLY           | Whether the tool commands (ping, traceroute, etc.) only allow DN42 networks.             |
 | ALLOW_NO_CLEARNET   | Whether allowed to peer with someone who has no clearnet.                                |
 | ENDPOINT            | Server name domain suffixes                                                              |
