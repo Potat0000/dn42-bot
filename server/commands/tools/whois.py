@@ -4,8 +4,10 @@ import subprocess
 
 import base
 import config
-import tools
 from base import bot
+from IPy import IP
+
+import tools
 
 
 @bot.message_handler(commands=['whois'])
@@ -64,17 +66,23 @@ def whois(message):
         except ValueError:
             whois_command = f"whois -I {message.text.split()[1]}"
         whois_result = ''
-    route_result = ""
-    if whois_str.startswith('AS') and whois_result.startswith('% This is the dn42 whois query service.'):
-        try:
-            int(whois_str[2:])
-            for r in sorted(base.AS_ROUTE[whois_str]):
-                ipver = '6' if ':' in r else '4'
-                route_result += f"route{ipver}:             {r}\n"
-        except BaseException:
-            pass
-    if route_result:
-        whois_result += "\n\n" f"% Routes for '{whois_str}':\n" f"{route_result.strip()}"
+    try:
+        route_result = ""
+        asn = int(whois_str[2:])
+        route4, route6 = [], []
+        for route in base.AS_ROUTE[asn]:
+            if (ip := IP(route)).version() == 4:
+                route4.append((ip.int(), route))
+            else:
+                route6.append((ip.int(), route))
+        for _, route in sorted(route4, key=lambda x: x[0]):
+            route_result += f"route4:             {route}\n"
+        for _, route in sorted(route6, key=lambda x: x[0]):
+            route_result += f"route6:             {route}\n"
+        if route_result:
+            whois_result += "\n\n" f"% Routes for 'AS{asn}':\n" f"{route_result.strip()}"
+    except BaseException:
+        pass
     if len(whois_result) > 4096:
         whois_result = f"```WhoisResult\n{whois_result[:4000]}```\n\nMessage too long, truncated.\n消息过长，已被截断。"
     else:
