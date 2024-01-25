@@ -22,7 +22,7 @@ def gen_generaltest_markup(chat, data_id, node, available_nodes):
     if chat.type == "private" and chat.id in db:
         if tools.get_info(db[chat.id]):
             return markup
-    markup.row(InlineKeyboardButton("Peer with me | 与我 Peer", url=f"https://t.me/{config.BOT_USERNAME}"))
+    markup.row(InlineKeyboardButton("Peer with me | 与我 Peer", url=f"https://t.me/{bot.get_me().username}"))
     return markup
 
 

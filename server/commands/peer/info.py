@@ -115,7 +115,7 @@ def get_info_text(chatid, node):
         markup.row(
             InlineKeyboardButton(
                 text='Login now | 立即登录',
-                url=f"https://t.me/{config.BOT_USERNAME}?start=login",
+                url=f"https://t.me/{bot.get_me().username}?start=login",
             )
         )
         return (
@@ -131,7 +131,7 @@ def get_info_text(chatid, node):
         markup.row(
             InlineKeyboardButton(
                 text='Peer now | 立即 Peer',
-                url=f"https://t.me/{config.BOT_USERNAME}?start=peer",
+                url=f"https://t.me/{bot.get_me().username}?start=peer",
             )
         )
         return (

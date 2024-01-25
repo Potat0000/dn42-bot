@@ -1,6 +1,5 @@
 import pickle
 
-import config
 import tools
 from base import bot, db, db_privilege
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
@@ -39,7 +38,7 @@ def whoami(message, new_asn=None, info_node=None):
                     markup.add(
                         InlineKeyboardButton(
                             "Show info | 查看信息",
-                            url=f"https://t.me/{config.BOT_USERNAME}?start=info{info_node_text}",
+                            url=f"https://t.me/{bot.get_me().username}?start=info{info_node_text}",
                         )
                     )
                     return markup

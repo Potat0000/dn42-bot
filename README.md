@@ -40,7 +40,6 @@ Config items are located at `server/config.py`.
 | Config Key          | Description                                                                              |
 | ------------------- | ---------------------------------------------------------------------------------------- |
 | BOT_TOKEN           | Token of Telegram Bot                                                                    |
-| BOT_USERNAME        | The Telegram username of this bot                                                        |
 | CONTACT             | Contact information for yourself                                                         |
 | DN42_ASN            | Your DN42 ASN                                                                            |
 | WELCOME_TEXT        | The text shows at the top of /help command                                               |

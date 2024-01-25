@@ -40,7 +40,7 @@ class IsForMe(telebot.custom_filters.SimpleCustomFilter):
     def check(message):
         command = message.text.split()[0].split("@")
         if len(command) > 1:
-            return command[-1].lower() == config.BOT_USERNAME.lower()
+            return command[-1].lower() == bot.get_me().username.lower()
         else:
             return True
 
@@ -54,7 +54,7 @@ class MyMiddleware(BaseMiddleware):
             return CancelUpdate()
         command = message.text.split()[0].split("@")
         if len(command) > 1:
-            if command[-1].lower() != config.BOT_USERNAME.lower():
+            if command[-1].lower() != bot.get_me().username.lower():
                 return CancelUpdate()
         if config.SENTRY_DSN and command[0].startswith("/"):
             self.transaction = sentry_sdk.start_transaction(
