@@ -4,10 +4,9 @@ import subprocess
 
 import base
 import config
+import tools
 from base import bot
 from IPy import IP
-
-import tools
 
 
 @bot.message_handler(commands=['whois'])
@@ -49,6 +48,9 @@ def whois(message):
                 .stdout.decode("utf-8")
                 .strip()
             )
+        except subprocess.TimeoutExpired:
+            whois_result = 'Request timeout.\n请求超时。'
+            break
         except BaseException:
             whois_result = 'Something went wrong.\n发生了一些错误。'
             break
