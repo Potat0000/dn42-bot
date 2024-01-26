@@ -31,7 +31,7 @@ def get_whoisinfo_by_asn(asn, item='mnt-by'):
         whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(
             "utf-8"
         )
-        for i in whois.split('\n'):
+        for i in whois.splitlines():
             if i.startswith(f'{item}:'):
                 raw_name = i.split(':')[1].strip()
                 for w in ['AS', 'DN42', 'MNT']:
@@ -199,7 +199,7 @@ def test_ip_domain(testcase):
                 shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route6 {ipv6}'), timeout=3
             ).decode("utf-8")
             asn = set()
-            for i in whois4.split('\n') + whois6.split('\n'):
+            for i in whois4.splitlines() + whois6.splitlines():
                 if i.startswith('origin:'):
                     asn.add(i.split(':')[1].strip())
                 elif i.startswith('mnt-by:'):

@@ -232,7 +232,7 @@ async def get_info(request):
         wg_transfer = [0, 0]
     bird_status = {}
     for the_session in session_name:
-        out = simple_run(f"birdc show protocols {the_session}").split('\n')
+        out = simple_run(f"birdc show protocols {the_session}").splitlines()
         if len(out) != 3:
             return web.Response(body='bird error', status=500)
         out = out[2].strip().split(maxsplit=6)
@@ -245,7 +245,7 @@ async def get_info(request):
             pass
         if out[5] == 'Established':
             out = simple_run(f"birdc show protocols all {the_session}")
-            out = [i.strip().split('\n') for i in out.split('Channel ')]
+            out = [i.strip().splitlines() for i in out.split('Channel ')]
             out = {
                 i[0].strip(): {j.split(':', 1)[0].strip(): j.split(':', 1)[1].strip() for j in i[1:]}
                 for i in out
@@ -284,7 +284,7 @@ async def get_route_stats(request):
 
     stats = {'4': {}, '6': {}}
 
-    out = simple_run("birdc show protocols").split('\n')
+    out = simple_run("birdc show protocols").splitlines()
     if len(out) < 3:
         return web.Response(body='bird error', status=500)
     sessions = []
@@ -299,7 +299,7 @@ async def get_route_stats(request):
                     sessions.append(s[0])
     for the_session in sessions:
         out = simple_run(f"birdc show protocols all {the_session}")
-        out = [i.strip().split('\n') for i in out.split('Channel ')]
+        out = [i.strip().splitlines() for i in out.split('Channel ')]
         out = {
             i[0].strip(): {j.split(':', 1)[0].strip(): j.split(':', 1)[1].strip() for j in i[1:]}
             for i in out
@@ -513,7 +513,7 @@ async def trace_test(request):
             output = simple_run(f"traceroute -q1 -N32 -w1 -n {target}", timeout=8)
         except subprocess.TimeoutExpired:
             return web.Response(status=408)
-    output = [i for i in output.split('\n')[::-1] if not re.match(r'^\s*$', i)]
+    output = [i for i in output.splitlines()[::-1] if not re.match(r'^\s*$', i)]
     total = 0
     while re.match(r"^\s*\d+(?:\s+\*)+$", output[0]):
         output.pop(0)
@@ -566,7 +566,7 @@ async def get_path(request):
         output = simple_run(f"birdc show route for {target} all primary")
     except subprocess.TimeoutExpired:
         return web.Response(status=408)
-    for line in output.split('\n'):
+    for line in output.splitlines():
         if 'BGP.as_path' in line:
             return web.Response(body=line.split(':')[1].strip())
     return web.Response(status=404)

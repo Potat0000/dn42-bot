@@ -15,7 +15,7 @@ def get_email(asn):
         whois1 = (
             subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} AS{asn}"), timeout=3)
             .decode("utf-8")
-            .split("\n")[3:]
+            .splitlines()[3:]
         )
         for line in whois1:
             if line.startswith("admin-c:"):
@@ -26,7 +26,7 @@ def get_email(asn):
         whois2 = (
             subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} {admin_c}"), timeout=3)
             .decode("utf-8")
-            .split("\n")[3:]
+            .splitlines()[3:]
         )
         emails = set()
         for line in whois2:
