@@ -11,7 +11,7 @@ import config
 import dns.resolver
 import dns.reversename
 import requests
-from base import db, db_privilege
+from base import bot, db, db_privilege
 from dns.exception import DNSException
 from IPy import IP
 from requests.adapters import HTTPAdapter, Retry
