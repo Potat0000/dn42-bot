@@ -114,15 +114,26 @@ def get_info_text(chatid, asn, node):
     all_peers = tools.get_info(asn)
     available_node = all_peers.keys()
     if not all_peers:
-        markup = InlineKeyboardMarkup()
-        markup.row(
-            InlineKeyboardButton(text='Peer now | 立即 Peer', url=f"https://t.me/{bot.get_me().username}?start=peer")
-        )
-        return (
-            "You are not peer with me yet, you can use /peer to start.\n你还没有与我 Peer，可以使用 /peer 开始。",
-            None,
-            markup,
-        )
+        if asn == db[chatid] or chatid not in db_privilege:
+            markup = InlineKeyboardMarkup()
+            markup.row(
+                InlineKeyboardButton(
+                    text='Peer now | 立即 Peer', url=f"https://t.me/{bot.get_me().username}?start=peer"
+                )
+            )
+            return (
+                "You are not peer with me yet, you can use /peer to start.\n你还没有与我 Peer，可以使用 /peer 开始。",
+                None,
+                markup,
+            )
+        else:
+            return (
+                "*[Privilege]*\n"
+                "This user has no peer at the moment, may have been deleted already.\n"
+                "该用户目前无 Peer，可能已经被对方删除",
+                "Markdown",
+                None,
+            )
     if not node:
         if len(available_node) == 1:
             node = list(available_node)[0]

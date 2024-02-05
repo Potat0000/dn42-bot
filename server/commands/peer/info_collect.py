@@ -734,12 +734,7 @@ def post_confirm(message, peer_info):
             url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['ASN']}_{peer_info['Region']}",
         )
     )
-    bot.send_message(
-        message.chat.id,
-        msg_text,
-        parse_mode="Markdown",
-        reply_markup=markup,
-    )
+    bot.send_message(message.chat.id, msg_text, parse_mode="Markdown", reply_markup=markup)
 
     if progress_type == 'peer':
         msg_text = 'New Peer!   新 Peer！\n'
@@ -747,12 +742,4 @@ def post_confirm(message, peer_info):
         msg_text = 'Peer Modified!   Peer 信息修改！\n'
     for i in db_privilege - {message.chat.id}:
         text = "*[Privilege]*\n" f"{msg_text}" f"```PrivilegeNote\n{info_text.strip()}```"
-        markup = InlineKeyboardMarkup()
-        markup.row_width = 1
-        markup.add(
-            InlineKeyboardButton(
-                "Show info | 查看信息",
-                url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['ASN']}_{peer_info['Region']}",
-            )
-        )
         bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)
