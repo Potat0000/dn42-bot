@@ -55,7 +55,8 @@ def gen_get_map():
                 for elem in parser:
                     as_path = [int(i) for i in re_sub(r'\{.*?\}', '', elem['as_path']).split()]
                     for i in range(len(as_path) - 1):
-                        G.add_edge(as_path[i], as_path[i + 1])
+                        if as_path[i] != as_path[i + 1]:
+                            G.add_edge(as_path[i], as_path[i + 1])
             if not G.nodes:
                 return
             temp_data = {

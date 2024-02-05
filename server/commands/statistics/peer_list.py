@@ -3,7 +3,7 @@ from base import bot, db
 
 
 @bot.message_handler(commands=['peer_list', 'peerlist'])
-def route(message):
+def peer_list(message):
     try:
         asn = int(message.text.split()[1])
     except (ValueError, IndexError):
