@@ -26,19 +26,14 @@ def whoami(message):
             except BaseException:
                 pass
             else:
-
-                def gen_privilege_markup():
-                    markup = InlineKeyboardMarkup()
-                    markup.row_width = 1
-                    markup.add(
-                        InlineKeyboardButton(
-                            "Show info | 查看信息",
-                            url=f"https://t.me/{bot.get_me().username}?start=info_{new_asn}_",
-                        )
+                markup = InlineKeyboardMarkup()
+                markup.row_width = 1
+                markup.add(
+                    InlineKeyboardButton(
+                        "Show info | 查看信息",
+                        url=f"https://t.me/{bot.get_me().username}?start=info_{new_asn}_",
                     )
-                    return markup
-
-                markup = gen_privilege_markup()
+                )
     else:
         text = ""
     text += "Current login user:\n当前登录用户：\n" f"`{tools.get_asn_mnt_text(db[message.chat.id])}`"
