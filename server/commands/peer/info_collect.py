@@ -731,7 +731,7 @@ def post_confirm(message, peer_info):
     markup.add(
         InlineKeyboardButton(
             "Show info | 查看信息",
-            url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['Region']}",
+            url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['ASN']}_{peer_info['Region']}",
         )
     )
     bot.send_message(
@@ -749,19 +749,10 @@ def post_confirm(message, peer_info):
         text = "*[Privilege]*\n" f"{msg_text}" f"```PrivilegeNote\n{info_text.strip()}```"
         markup = InlineKeyboardMarkup()
         markup.row_width = 1
-        if peer_info['ASN'] == db[i]:
-            text += "\n\nAlready as this user 已在该身份"
-            markup.add(
-                InlineKeyboardButton(
-                    "Show info | 查看信息",
-                    url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['Region']}",
-                )
+        markup.add(
+            InlineKeyboardButton(
+                "Show info | 查看信息",
+                url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['ASN']}_{peer_info['Region']}",
             )
-        else:
-            markup.add(
-                InlineKeyboardButton(
-                    "Switch to it | 切换至该身份",
-                    url=f"https://t.me/{bot.get_me().username}?start=whoami_{peer_info['ASN']}_{peer_info['Region']}",
-                )
-            )
+        )
         bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)

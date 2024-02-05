@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import base
 import config
 import tools
-from base import bot, db
+from base import bot, db, db_privilege
 from IPy import IP
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -73,7 +73,7 @@ def basic_info(asn, endpoint, pubkey, v6, v4):
     return text
 
 
-def gen_info_markup(node, available_node, session_name):
+def gen_info_markup(asn, node, available_node, session_name):
     markup = InlineKeyboardMarkup()
     if config.LG_DOMAIN:
         if len(session_name) == 2:
@@ -85,75 +85,59 @@ def gen_info_markup(node, available_node, session_name):
             )
         elif len(session_name) == 1:
             markup.row(
-                InlineKeyboardButton(
-                    text='Looking Glass',
-                    url=f'{config.LG_DOMAIN}/detail/{node}/{session_name[0]}',
-                )
+                InlineKeyboardButton(text='Looking Glass', url=f'{config.LG_DOMAIN}/detail/{node}/{session_name[0]}')
             )
     if len(available_node) >= 2:
         for node_name in available_node:
             if node_name == node:
                 markup.row(
-                    InlineKeyboardButton(
-                        text=f'✅ {base.servers[node_name]}',
-                        callback_data=f"info_{node_name}",
-                    )
+                    InlineKeyboardButton(text=f'✅ {base.servers[node_name]}', callback_data=f"info_{asn}_{node_name}")
                 )
             else:
-                markup.row(
-                    InlineKeyboardButton(
-                        text=base.servers[node_name],
-                        callback_data=f"info_{node_name}",
-                    )
-                )
+                markup.row(InlineKeyboardButton(text=base.servers[node_name], callback_data=f"info_{asn}_{node_name}"))
     return markup
 
 
-def get_info_text(chatid, node):
+def get_info_text(chatid, asn, node):
     if chatid not in db:
         markup = InlineKeyboardMarkup()
         markup.row(
-            InlineKeyboardButton(
-                text='Login now | 立即登录',
-                url=f"https://t.me/{bot.get_me().username}?start=login",
-            )
+            InlineKeyboardButton(text='Login now | 立即登录', url=f"https://t.me/{bot.get_me().username}?start=login")
         )
-        return (
-            "You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login",
-            None,
-            markup,
-        )
-    asn = db[chatid]
+        return "You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login", None, markup
+    elif asn and asn != db[chatid] and chatid not in db_privilege:
+        markup = InlineKeyboardMarkup()
+        markup.row(InlineKeyboardButton(text='Show my info | 显示我的信息', callback_data=f"info_{db[chatid]}_"))
+        return "You are not allowed to view information of other ASN.\n你无权查看其他 ASN 的信息。", None, markup
+    elif not asn:
+        asn = db[chatid]
     all_peers = tools.get_info(asn)
     available_node = all_peers.keys()
     if not all_peers:
         markup = InlineKeyboardMarkup()
         markup.row(
-            InlineKeyboardButton(
-                text='Peer now | 立即 Peer',
-                url=f"https://t.me/{bot.get_me().username}?start=peer",
-            )
+            InlineKeyboardButton(text='Peer now | 立即 Peer', url=f"https://t.me/{bot.get_me().username}?start=peer")
         )
         return (
             "You are not peer with me yet, you can use /peer to start.\n你还没有与我 Peer，可以使用 /peer 开始。",
             None,
             markup,
         )
-    if node is None:
+    if not node:
         if len(available_node) == 1:
             node = list(available_node)[0]
         else:
             return (
                 "Select an available node from the list below to get information\n从下方列表中选择一个可用节点以获取信息",
                 None,
-                gen_info_markup('', available_node, []),
+                gen_info_markup(asn, '', available_node, []),
             )
 
     if node not in all_peers:
         return (
             "Node does not exist, please select another available node\n节点不存在，请选择其他可用节点",
             None,
-            gen_info_markup('', available_node, []),
+            gen_info_markup(asn, '', available_node, []),
         )
 
     peer_info = all_peers[node]
@@ -166,14 +150,14 @@ def get_info_text(chatid, node):
                 f"<code>{peer_info}</code>"
             ),
             "HTML",
-            gen_info_markup('', available_node, []),
+            gen_info_markup(asn, '', available_node, []),
         )
 
     detail_text = "Node:\n"
     detail_text += f"    {base.servers[node]}\n"
     detail_text += "Information on your side:\n"
     detail_text += basic_info(
-        db[chatid],
+        asn,
         peer_info['clearnet'],
         peer_info['pubkey'],
         peer_info['v6'],
@@ -225,23 +209,23 @@ def get_info_text(chatid, node):
             if session in bird_status[2]:
                 detail_text += f"        {bird_status[2][session]}\n"
 
-    if tools.get_whoisinfo_by_asn(db[chatid]).lower() == peer_info['desc'].lower():
+    if tools.get_whoisinfo_by_asn(asn).lower() == peer_info['desc'].lower():
         detail_text += "Contact:\n" f"    {peer_info['desc']}\n"
     else:
         detail_text += "Contact:\n" f"    {peer_info['desc']}\n"
-        detail_text += f"    ({tools.get_whoisinfo_by_asn(db[chatid])})\n"
+        detail_text += f"    ({tools.get_whoisinfo_by_asn(asn)})\n"
 
     return (
         f"```Info\n{detail_text.strip()}```",
         "Markdown",
-        gen_info_markup(node, available_node, peer_info['session_name']),
+        gen_info_markup(asn, node, available_node, peer_info['session_name']),
     )
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("info_"))
 def info_callback_query(call):
-    node = call.data.split("_", 2)[1]
-    info_text = get_info_text(call.message.chat.id, node)
+    _, asn, node = call.data.split("_", 3)
+    info_text = get_info_text(call.message.chat.id, int(asn), node)
     try:
         bot.edit_message_text(
             info_text[0],
@@ -255,6 +239,6 @@ def info_callback_query(call):
 
 
 @bot.message_handler(commands=['info'], is_private_chat=True)
-def get_info(message, node=None):
-    info_text = get_info_text(message.chat.id, node)
+def get_info(message, asn=None, node=None):
+    info_text = get_info_text(message.chat.id, asn, node)
     bot.send_message(message.chat.id, info_text[0], parse_mode=info_text[1], reply_markup=info_text[2])
