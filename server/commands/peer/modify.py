@@ -149,7 +149,10 @@ def post_node_choose(message, peer_info, chosen=None):
             markup.add(KeyboardButton(i))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_node_choose', peer_info, msg
@@ -178,6 +181,7 @@ def post_node_choose(message, peer_info, chosen=None):
         "Port": raw_info['port'],
         "Contact": raw_info['desc'],
         "Net_Support": raw_info['net_support'],
+        "Provide-LinkLocal": raw_info['lla'],
     }
     if raw_info['v6'] and IP(raw_info['v6']) in IP("fe80::/64"):
         peer_info["Request-LinkLocal"] = raw_info['my_v6']
@@ -284,7 +288,10 @@ def post_action_choose(message, peer_info):
         markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_action_choose', peer_info, msg
@@ -305,8 +312,6 @@ def post_action_choose(message, peer_info):
         return 'pre_session_type', peer_info, message, 'pre_clearnet'
     elif message.text.strip() == 'DN42 IP':
         if peer_info["Channel"] == "IPv4 only":
-            return 'pre_ipv4', peer_info, message, 'pre_clearnet'
-        elif peer_info["Channel"] == "IPv6 & IPv4" and peer_info["ENH"] is not True:
             return 'pre_ipv4', peer_info, message, 'pre_clearnet'
         else:
             return 'pre_ipv6', peer_info, message, 'pre_clearnet'

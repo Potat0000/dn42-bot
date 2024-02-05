@@ -10,7 +10,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 16
+AGENT_VERSION = 17
 
 try:
     with open("agent_config.json", 'r') as f:
@@ -272,6 +272,7 @@ async def get_info(request):
             'wg_transfer': wg_transfer,
             'bird_status': bird_status,
             'net_support': NET_SUPPORT,
+            'lla': str(MY_DN42_LINK_LOCAL_ADDRESS),
         }
     )
 

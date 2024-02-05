@@ -114,11 +114,14 @@ def post_region(message, peer_info, chosen=None):
             markup.add(KeyboardButton(i))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_region', peer_info, msg
-    peer_info['Request-LinkLocal'] = peer_info['Region'][chosen][1]
+    peer_info['Provide-LinkLocal'] = peer_info['Region'][chosen][1]
     peer_info['Net_Support'] = peer_info['Region'][chosen][2]
     peer_info['Region'] = peer_info['Region'][chosen][0]
     return 'pre_session_type', peer_info, message
@@ -156,7 +159,10 @@ def post_session_type(message, peer_info):
         markup.add(KeyboardButton("IPv6 & IPv4"), KeyboardButton("IPv6 only"), KeyboardButton("IPv4 only"))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_session_type', peer_info, msg
@@ -185,7 +191,10 @@ def post_mpbgp_support(message, peer_info):
         markup.add(KeyboardButton("Yes"), KeyboardButton("No"))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_mpbgp_support', peer_info, msg
@@ -197,7 +206,10 @@ def pre_mpbgp_type(message, peer_info):
     markup.add(KeyboardButton("IPv6"), KeyboardButton("IPv4"))
     msg = bot.send_message(
         message.chat.id,
-        ("What address do you want to use to establish an MP-BGP session with me?\n" "你想使用什么地址与我建立多协议 BGP 会话？"),
+        (
+            "What address do you want to use to establish an MP-BGP session with me?\n"
+            "你想使用什么地址与我建立多协议 BGP 会话？"
+        ),
         reply_markup=markup,
     )
     return 'post_mpbgp_type', peer_info, msg
@@ -216,7 +228,10 @@ def post_mpbgp_type(message, peer_info):
         markup.add(KeyboardButton("IPv6"), KeyboardButton("IPv4"))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_mpbgp_type', peer_info, msg
@@ -246,7 +261,10 @@ def post_enh(message, peer_info):
         markup.add(KeyboardButton("Yes"), KeyboardButton("No"))
         msg = bot.send_message(
             message.chat.id,
-            ("Invalid input, please try again. Use /cancel to interrupt the operation.\n" "输入不正确，请重试。使用 /cancel 终止操作。"),
+            (
+                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
+                "输入不正确，请重试。使用 /cancel 终止操作。"
+            ),
             reply_markup=markup,
         )
         return 'post_enh', peer_info, msg
@@ -304,7 +322,10 @@ def post_ipv6(message, peer_info):
 def pre_request_linklocal(message, peer_info):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row_width = 1
-    markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
+    if peer_info['Request-LinkLocal'] != 'Not required due to not use LLA as IPv6':
+        markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
+    else:
+        markup.add(KeyboardButton(peer_info['Provide-LinkLocal']))
     msg = bot.send_message(
         message.chat.id,
         (
@@ -327,7 +348,10 @@ def post_request_linklocal(message, peer_info):
     except (socket.error, OSError, ValueError):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
-        markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
+        if peer_info['Request-LinkLocal'] != 'Not required due to not use LLA as IPv6':
+            markup.add(KeyboardButton(peer_info['Request-LinkLocal']))
+        else:
+            markup.add(KeyboardButton(peer_info['Provide-LinkLocal']))
         msg = bot.send_message(
             message.chat.id,
             (

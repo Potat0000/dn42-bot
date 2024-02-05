@@ -3,7 +3,7 @@ import config
 from telebot.types import ReplyKeyboardRemove
 from tools.tools import get_from_agent
 
-MIN_AGENT_VERSION = 15
+MIN_AGENT_VERSION = 17
 
 
 def servers_check():
