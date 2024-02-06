@@ -1,3 +1,5 @@
+import time
+
 import tools
 from base import bot, db
 
@@ -17,20 +19,17 @@ def peer_list(message):
                 reply_markup=tools.gen_peer_me_markup(message),
             )
             return
-    peer_map = tools.get_map()[2]
+    update_time, _, peer_map = tools.get_map()
+    time_delta = int(time.time()) - update_time
     if asn not in peer_map:
-        bot.reply_to(
-            message,
-            'No data available.\n暂无数据。',
-            reply_markup=tools.gen_peer_me_markup(message),
-        )
-        return
-    msg = ''
-    for peer_asn in sorted(peer_map[asn]):
-        msg += f"{peer_asn:<10}  {tools.get_whoisinfo_by_asn(peer_asn, 'as-name')}\n"
+        msg = 'No data available.\n暂无数据。'
+    else:
+        msg = ''
+        for peer_asn in sorted(peer_map[asn]):
+            msg += f"{peer_asn:<10}  {tools.get_whoisinfo_by_asn(peer_asn, 'as-name')}\n"
     bot.reply_to(
         message,
-        f'```PeerList\n{msg}```',
+        f'```PeerList\n{msg}```Updated {time_delta}s ago',
         parse_mode='Markdown',
         reply_markup=tools.gen_peer_me_markup(message),
     )
