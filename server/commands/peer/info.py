@@ -251,5 +251,7 @@ def info_callback_query(call):
 
 @bot.message_handler(commands=['info'], is_private_chat=True)
 def get_info(message, asn=None, node=None):
+    if not asn and message.text.split(maxsplit=1)[-1].isdigit() and message.chat.id in db_privilege:
+        asn = int(message.text.split(maxsplit=1)[-1])
     info_text = get_info_text(message.chat.id, asn, node)
     bot.send_message(message.chat.id, info_text[0], parse_mode=info_text[1], reply_markup=info_text[2])
