@@ -22,7 +22,13 @@ def peer_list(message):
     update_time, _, peer_map = tools.get_map()
     time_delta = int(time.time()) - update_time
     if asn not in peer_map:
-        msg = 'PeerList\nNo data available.\n暂无数据。'
+        bot.reply_to(
+            message,
+            f'```PeerList\nNo data available.\n暂无数据。```Updated {time_delta}s ago',
+            parse_mode='Markdown',
+            reply_markup=tools.gen_peer_me_markup(message),
+        )
+        return
     else:
         msg = ''
         for peer_asn in sorted(peer_map[asn]):
