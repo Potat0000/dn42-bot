@@ -149,9 +149,12 @@ def post_session_type(message, peer_info):
         return 'pre_mpbgp_support', peer_info, message
     elif message.text.strip().lower() == "ipv6 only" or message.text.strip().lower() == "ipv6":
         peer_info["Channel"] = "IPv6 only"
+        peer_info["MP-BGP"] = "Not supported"
         return 'pre_ipv6', peer_info, message
     elif message.text.strip().lower() == "ipv4 only" or message.text.strip().lower() == "ipv4":
         peer_info["Channel"] = "IPv4 only"
+        peer_info["MP-BGP"] = "Not supported"
+        peer_info["IPv6"] = "Not enabled"
         return 'pre_ipv4', peer_info, message
     else:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -184,6 +187,7 @@ def post_mpbgp_support(message, peer_info):
     if message.text.strip().lower() == "yes":
         return 'pre_mpbgp_type', peer_info, message
     elif message.text.strip().lower() == "no":
+        peer_info["MP-BGP"] = "Not supported"
         return 'pre_ipv6', peer_info, message
     else:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -316,6 +320,7 @@ def post_ipv6(message, peer_info):
         if peer_info["Channel"] == "IPv6 & IPv4" and peer_info["ENH"] is not True:
             return 'pre_ipv4', peer_info, message
         else:
+            peer_info["IPv4"] = "Not enabled"
             return 'pre_clearnet', peer_info, message
 
 
@@ -367,6 +372,7 @@ def post_request_linklocal(message, peer_info):
     if peer_info["Channel"] == "IPv6 & IPv4" and peer_info["ENH"] is not True:
         return 'pre_ipv4', peer_info, message
     else:
+        peer_info["IPv4"] = "Not enabled"
         return 'pre_clearnet', peer_info, message
 
 
@@ -723,9 +729,9 @@ def post_confirm(message, peer_info):
         )
         return
     if progress_type == 'peer':
-        msg_text = 'Peer has been created. Peer 已建立。\n'
+        msg_text = 'Peer has been created\nPeer 已建立'
     elif progress_type == 'modify':
-        msg_text = 'Peer information has been modified. Peer 信息已修改。\n'
+        msg_text = 'Peer information has been modified\nPeer 信息已修改'
     markup = InlineKeyboardMarkup()
     markup.row_width = 1
     markup.add(
@@ -734,7 +740,7 @@ def post_confirm(message, peer_info):
             url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['ASN']}_{peer_info['Region']}",
         )
     )
-    bot.send_message(message.chat.id, msg_text, parse_mode="Markdown", reply_markup=markup)
+    bot.send_message(message.chat.id, msg_text, reply_markup=markup)
 
     if progress_type == 'peer':
         msg_text = 'New Peer!   新 Peer！\n'
