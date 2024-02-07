@@ -14,6 +14,7 @@ get_map = get_map.get_map
 get_route_stats = get_route_stats.get_route_stats
 get_whoisinfo_by_asn = tools.get_whoisinfo_by_asn
 servers_check = servers_check.servers_check
+split_long_msg = tools.split_long_msg
 test_ip_domain = tools.test_ip_domain
 update_as_route_table = update_as_route_table.update_as_route_table
 update_china_ip = update_china_ip.update_china_ip

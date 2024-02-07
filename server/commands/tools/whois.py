@@ -85,13 +85,28 @@ def whois(message):
             whois_result += "\n\n" f"% Routes for 'AS{asn}':\n" f"{route_result.strip()}"
     except BaseException:
         pass
-    if len(whois_result) > 4096:
-        whois_result = f"```WhoisResult\n{whois_result[:4000]}```\n\nMessage too long, truncated.\n消息过长，已被截断。"
+    if len(whois_result) > 4000:
+        whois_result = tools.split_long_msg(whois_result)
+        last_msg = message
+        for index, m in enumerate(whois_result):
+            if index < len(whois_result) - 1:
+                last_msg = bot.reply_to(
+                    last_msg,
+                    f'```WhoisResult\n{m}```To be continued...',
+                    parse_mode='Markdown',
+                    reply_markup=tools.gen_peer_me_markup(message),
+                )
+            else:
+                bot.reply_to(
+                    last_msg,
+                    f'```WhoisResult\n{m}```',
+                    parse_mode='Markdown',
+                    reply_markup=tools.gen_peer_me_markup(message),
+                )
     else:
-        whois_result = f"```WhoisResult\n{whois_result}```"
-    bot.reply_to(
-        message,
-        whois_result,
-        parse_mode="Markdown",
-        reply_markup=tools.gen_peer_me_markup(message),
-    )
+        bot.reply_to(
+            message,
+            f"```WhoisResult\n{whois_result}```",
+            parse_mode="Markdown",
+            reply_markup=tools.gen_peer_me_markup(message),
+        )

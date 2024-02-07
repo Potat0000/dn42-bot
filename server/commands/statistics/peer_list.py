@@ -22,14 +22,33 @@ def peer_list(message):
     update_time, _, peer_map = tools.get_map()
     time_delta = int(time.time()) - update_time
     if asn not in peer_map:
-        msg = 'No data available.\n暂无数据。'
+        msg = 'PeerList\nNo data available.\n暂无数据。'
     else:
         msg = ''
         for peer_asn in sorted(peer_map[asn]):
             msg += f"{peer_asn:<10}  {tools.get_whoisinfo_by_asn(peer_asn, 'as-name')}\n"
-    bot.reply_to(
-        message,
-        f'```PeerList\n{msg}```Updated {time_delta}s ago',
-        parse_mode='Markdown',
-        reply_markup=tools.gen_peer_me_markup(message),
-    )
+    if len(msg) > 4000:
+        msg = tools.split_long_msg(msg)
+        last_msg = message
+        for index, m in enumerate(msg):
+            if index < len(msg) - 1:
+                last_msg = bot.reply_to(
+                    last_msg,
+                    f'```PeerList\n{m}```To be continued...',
+                    parse_mode='Markdown',
+                    reply_markup=tools.gen_peer_me_markup(message),
+                )
+            else:
+                bot.reply_to(
+                    last_msg,
+                    f'```PeerList\n{m}````{len(peer_map[asn])}` peers in total\nUpdated {time_delta}s ago',
+                    parse_mode='Markdown',
+                    reply_markup=tools.gen_peer_me_markup(message),
+                )
+    else:
+        bot.reply_to(
+            message,
+            f'```PeerList\n{msg}````{len(peer_map[asn])}` peers in total\nUpdated {time_delta}s ago',
+            parse_mode='Markdown',
+            reply_markup=tools.gen_peer_me_markup(message),
+        )

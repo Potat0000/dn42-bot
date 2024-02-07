@@ -26,6 +26,22 @@ def gen_random_code(length):
     )
 
 
+def split_long_msg(msg, limit=4000):
+    chunks = []
+    not_chunked_text = msg
+    while not_chunked_text:
+        if len(not_chunked_text) <= limit:
+            chunks.append(not_chunked_text)
+            break
+        split_index = not_chunked_text.rfind("\n", 0, limit)
+        if split_index == -1:  # The chunk is too big
+            return None
+        else:
+            chunks.append(not_chunked_text[: split_index + 1])
+            not_chunked_text = not_chunked_text[split_index + 1 :]
+    return chunks
+
+
 def get_whoisinfo_by_asn(asn, item='mnt-by'):
     try:
         whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(

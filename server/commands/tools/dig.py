@@ -41,15 +41,30 @@ def dig(message):
         dig_result = 'Request timeout.\n请求超时。'
     except BaseException:
         dig_result = 'Something went wrong.\n发生了一些错误。'
-    if len(dig_result) > 4096:
-        dig_result = f"```DigResult\n{dig_result[:4000]}```\n\nMessage too long, truncated.\n消息过长，已被截断。"
-    elif not dig_result:
+    if not dig_result:
         dig_result = 'No result.\n没有结果。'
+    if len(dig_result) > 4000:
+        dig_result = tools.split_long_msg(dig_result)
+        last_msg = message
+        for index, m in enumerate(dig_result):
+            if index < len(dig_result) - 1:
+                last_msg = bot.reply_to(
+                    last_msg,
+                    f'```DigResult\n{m}```To be continued...',
+                    parse_mode='Markdown',
+                    reply_markup=tools.gen_peer_me_markup(message),
+                )
+            else:
+                bot.reply_to(
+                    last_msg,
+                    f'```DigResult\n{m}```',
+                    parse_mode='Markdown',
+                    reply_markup=tools.gen_peer_me_markup(message),
+                )
     else:
-        dig_result = f"```DigResult\n{dig_result}```"
-    bot.reply_to(
-        message,
-        dig_result,
-        parse_mode="Markdown",
-        reply_markup=tools.gen_peer_me_markup(message),
-    )
+        bot.reply_to(
+            message,
+            f"```DigResult\n{dig_result}```",
+            parse_mode="Markdown",
+            reply_markup=tools.gen_peer_me_markup(message),
+        )
