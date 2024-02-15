@@ -15,6 +15,7 @@ AGENT_VERSION = 17
 try:
     with open("agent_config.json", 'r') as f:
         raw_config = json.load(f)
+    HOST = raw_config['HOST']
     PORT = raw_config['PORT']
     SECRET = raw_config['SECRET']
     OPEN = raw_config['OPEN']
@@ -575,4 +576,4 @@ async def get_path(request):
 
 app = web.Application()
 app.add_routes(routes)
-web.run_app(app, port=PORT)
+web.run_app(app, host=HOST, port=PORT)

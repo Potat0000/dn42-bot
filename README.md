@@ -81,6 +81,7 @@ Config items are located at `agent/agent_config.json`.
 
 | Config Key                 | Description                                                   |
 | -------------------------- | ------------------------------------------------------------- |
+| HOST                       | API listen host                                               |
 | PORT                       | API Port                                                      |
 | SECRET                     | API Token                                                     |
 | OPEN                       | Whether open peer                                             |
