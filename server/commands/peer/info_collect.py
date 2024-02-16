@@ -641,8 +641,13 @@ def post_pubkey(message, peer_info):
 
 def pre_contact(message, peer_info):
     button = []
-    if peer_info['Contact']:
-        button.append(peer_info['Contact'])
+    contact = peer_info['Contact']
+    if contact:
+        button.append(contact)
+        if contact.startswith('@'):
+            contact = contact[1:]
+    if message.from_user.username and message.from_user.username != contact:
+        button.append('@' + message.from_user.username)
     if message.chat.id in db_privilege and tools.get_whoisinfo_by_asn(db[message.chat.id]) not in button:
         button.append(tools.get_whoisinfo_by_asn(db[message.chat.id]))
     if button:
