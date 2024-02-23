@@ -14,5 +14,7 @@
     "MY_DN42_ULA_ADDRESS": "fd2c:1323:4042::1",
     "MY_DN42_IPv4_ADDRESS": "172.23.246.1",
     "MY_WG_PUBLIC_KEY": "LUwqKS6QrCPv510Pwt1eAIiHACYDsbMjrkrbGTJfviU=",
-    "SENTRY_DSN": ""
+    "SENTRY_DSN": "",
+    "BIRD_TABLE_4": "master4",
+    "BIRD_TABLE_6": "master6"
 }

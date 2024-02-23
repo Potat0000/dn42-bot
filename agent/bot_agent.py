@@ -26,6 +26,8 @@ try:
     MY_DN42_ULA_ADDRESS = IP(raw_config['MY_DN42_ULA_ADDRESS'])
     MY_DN42_IPv4_ADDRESS = IP(raw_config['MY_DN42_IPv4_ADDRESS'])
     MY_WG_PUBLIC_KEY = raw_config['MY_WG_PUBLIC_KEY']
+    BIRD_TABLE_4 = raw_config['BIRD_TABLE_4']
+    BIRD_TABLE_6 = raw_config['BIRD_TABLE_6']
 except BaseException:
     print("Failed to load config file. Exiting.")
     exit(1)
@@ -550,7 +552,10 @@ async def get_route(request):
     else:
         return web.Response(status=403)
     try:
-        output = simple_run(f"birdc show route for {target} all primary")
+        if ':' in target:
+            output = simple_run(f"birdc show route table {BIRD_TABLE_6} for {target} all primary")
+        else:
+            output = simple_run(f"birdc show route table {BIRD_TABLE_4} for {target} all primary")
     except subprocess.TimeoutExpired:
         return web.Response(status=408)
     return web.Response(body=output)
@@ -565,7 +570,10 @@ async def get_path(request):
     else:
         return web.Response(status=403)
     try:
-        output = simple_run(f"birdc show route for {target} all primary")
+        if ':' in target:
+            output = simple_run(f"birdc show route table {BIRD_TABLE_6} for {target} all primary")
+        else:
+            output = simple_run(f"birdc show route table {BIRD_TABLE_4} for {target} all primary")
     except subprocess.TimeoutExpired:
         return web.Response(status=408)
     for line in output.splitlines():
