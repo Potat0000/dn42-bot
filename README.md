@@ -96,6 +96,10 @@ Config items are located at `agent/agent_config.json`.
 | BIRD_TABLE_4               | The name of the BIRD table for IPv4                          |
 | BIRD_TABLE_6               | The name of the BIRD table for IPv6                          |
 
+#### TCPing
+
+You should install a `tcping` command in the system. Currently, the agent only supports [nodeseeker/tcping](https://github.com/nodeseeker/tcping). You can modify the `tcping_test()` function to use other TCPing tools.
+
 ## Have a try
 
 My bot is deployed at [@Potat0_DN42_Bot](https://t.me/Potat0_DN42_Bot). Welcome to peer with me!

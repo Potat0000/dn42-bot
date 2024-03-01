@@ -151,11 +151,12 @@ def generaltest(message):
         command_text = 'TCPing'
         try:
             if 0 < int(server_list[0]) < 65535:
-                addon = f" Port {server_list[0]}"
-                command_data = f"{ip} {server_list[0]}"
+                port = server_list[0]
                 server_list = server_list[1:]
         except BaseException:
-            pass
+            port = 80
+        addon = f" Port {port}"
+        command_data = f"{ip} {server_list[0]}"
     elif command == 'trace':
         command_text = 'Traceroute'
     elif command == 'route':

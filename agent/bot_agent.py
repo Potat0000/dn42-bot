@@ -537,9 +537,10 @@ async def tcping_test(request):
     else:
         return web.Response(status=403)
     try:
-        output = simple_run(f"tcping -w 1 -x 5 {target}", timeout=8)
+        output = simple_run(f"tcping -n 5 {target}", timeout=8)
     except subprocess.TimeoutExpired:
         return web.Response(status=408)
+    output = re.sub(r'\n\nPing (?:stopped|interrupted).\n\n', '\n', output)
     return web.Response(body=output)
 
 
