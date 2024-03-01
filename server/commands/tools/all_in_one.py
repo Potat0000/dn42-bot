@@ -44,7 +44,7 @@ def generaltest_callback_query(call):
     data = data[node]
     try:
         bot.edit_message_text(
-            f'```{data_type}Result\n{data.strip()}\n```',
+            f'```{data_type}Result-{node.upper()}\n{data.strip()}\n```',
             parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -222,7 +222,7 @@ def generaltest(message):
     node = specific_server[0]
     text = data[node]
     bot.edit_message_text(
-        f'```{command_text}Result\n{text.strip()}\n```',
+        f'```{command_text}Result-{node.upper()}\n{text.strip()}\n```',
         parse_mode="Markdown",
         chat_id=message.chat.id,
         message_id=msg.message_id,
