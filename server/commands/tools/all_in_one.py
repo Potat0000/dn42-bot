@@ -73,7 +73,7 @@ def generaltest_callback_query(call):
 )
 def generaltest(message):
     command = message.text.split()
-    if len(command) < 2:
+    if len(command) == 1:
         command = command[0].split('@')[0][1:]
         if command.endswith("4") or command.endswith("6"):
             cmd = command[:-1]
@@ -94,8 +94,16 @@ def generaltest(message):
         )
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    parsed_info = tools.test_ip_domain(command[1])
+    target = command[1]
     command = command[0].split('@')[0][1:]
+    netlen = None
+    if (command.startswith("route") or command.startswith("path")) and '/' in target:
+        target, netlen = target.rsplit('/', 1)
+        try:
+            netlen = int(netlen)
+        except BaseException:
+            netlen = None
+    parsed_info = tools.test_ip_domain(target)
     if not parsed_info:
         bot.reply_to(
             message,
@@ -161,8 +169,12 @@ def generaltest(message):
         command_text = 'Traceroute'
     elif command == 'route':
         command_text = 'Route to'
+        if netlen:
+            command_data = f"{ip}/{netlen}"
     elif command == 'path':
         command_text = 'AS-Path of'
+        if netlen:
+            command_data = f"{ip}/{netlen}"
     msg = bot.reply_to(
         message,
         "```Querying\n{command_text} {address}{addon}...\n```".format(
