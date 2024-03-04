@@ -751,6 +751,25 @@ def post_confirm(message, peer_info):
         msg_text = 'New Peer!   新 Peer！\n'
     elif progress_type == 'modify':
         msg_text = 'Peer Modified!   Peer 信息修改！\n'
+    text = f"*[Privilege]*\n{msg_text}```PrivilegeNote\n{info_text.strip()}```"
+    markup2 = InlineKeyboardMarkup()
+    markup2.row_width = 1
+    markup2.add(
+        InlineKeyboardButton(
+            "Switch to it | 切换至该身份",
+            url=f"https://t.me/{bot.get_me().username}?start=whoami_{peer_info['ASN']}_{peer_info['Region']}",
+        )
+    )
+    markup2.add(
+        InlineKeyboardButton(
+            "Show info | 查看信息",
+            url=f"https://t.me/{bot.get_me().username}?start=info_{peer_info['ASN']}_{peer_info['Region']}",
+        )
+    )
     for i in db_privilege - {message.chat.id}:
-        text = "*[Privilege]*\n" f"{msg_text}" f"```PrivilegeNote\n{info_text.strip()}```"
-        bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup)
+        if peer_info['ASN'] == db[i]:
+            bot.send_message(
+                i, text + '\n\nAlready as this user 已在该身份', parse_mode="Markdown", reply_markup=markup
+            )
+        else:
+            bot.send_message(i, text, parse_mode="Markdown", reply_markup=markup2)

@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 
 
 @bot.message_handler(commands=['whoami'], is_private_chat=True)
-def whoami(message):
+def whoami(message, new_asn=None, info_node=None):
     if message.chat.id not in db:
         bot.send_message(
             message.chat.id,
@@ -17,8 +17,9 @@ def whoami(message):
     markup = ReplyKeyboardRemove()
     if message.chat.id in db_privilege:
         text = "*[Privilege]*\n"
-        if len(message.text.split()) == 2:
+        if not new_asn and len(message.text.split()) == 2:
             new_asn = message.text.split()[1]
+        if new_asn:
             try:
                 db[message.chat.id] = int(new_asn)
                 with open('./user_db.pkl', 'wb') as f:
@@ -26,12 +27,14 @@ def whoami(message):
             except BaseException:
                 pass
             else:
+                if not info_node:
+                    info_node = ''
                 markup = InlineKeyboardMarkup()
                 markup.row_width = 1
                 markup.add(
                     InlineKeyboardButton(
                         "Show info | 查看信息",
-                        url=f"https://t.me/{bot.get_me().username}?start=info_{new_asn}_",
+                        url=f"https://t.me/{bot.get_me().username}?start=info_{new_asn}_{info_node}",
                     )
                 )
     else:

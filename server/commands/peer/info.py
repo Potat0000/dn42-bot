@@ -73,7 +73,7 @@ def basic_info(asn, endpoint, pubkey, v6, v4):
     return text
 
 
-def gen_info_markup(asn, node, available_node, session_name):
+def gen_info_markup(chatid, asn, node, available_node, session_name):
     markup = InlineKeyboardMarkup()
     if config.LG_DOMAIN:
         if len(session_name) == 2:
@@ -95,6 +95,15 @@ def gen_info_markup(asn, node, available_node, session_name):
                 )
             else:
                 markup.row(InlineKeyboardButton(text=base.servers[node_name], callback_data=f"info_{asn}_{node_name}"))
+    if chatid in db_privilege and db[chatid] != asn:
+        if not node:
+            node = ''
+        markup.row(
+            InlineKeyboardButton(
+                "Switch to it | 切换至该身份",
+                url=f"https://t.me/{bot.get_me().username}?start=whoami_{asn}_{node}",
+            )
+        )
     return markup
 
 
@@ -141,14 +150,14 @@ def get_info_text(chatid, asn, node):
             return (
                 "Select an available node from the list below to get information\n从下方列表中选择一个可用节点以获取信息",
                 None,
-                gen_info_markup(asn, '', available_node, []),
+                gen_info_markup(chatid, asn, '', available_node, []),
             )
 
     if node not in all_peers:
         return (
             "Node does not exist, please select another available node\n节点不存在，请选择其他可用节点",
             None,
-            gen_info_markup(asn, '', available_node, []),
+            gen_info_markup(chatid, asn, '', available_node, []),
         )
 
     peer_info = all_peers[node]
@@ -161,7 +170,7 @@ def get_info_text(chatid, asn, node):
                 f"<code>{peer_info}</code>"
             ),
             "HTML",
-            gen_info_markup(asn, '', available_node, []),
+            gen_info_markup(chatid, asn, '', available_node, []),
         )
 
     detail_text = "Node:\n"
@@ -229,7 +238,7 @@ def get_info_text(chatid, asn, node):
     return (
         f"```Info\n{detail_text.strip()}```",
         "Markdown",
-        gen_info_markup(asn, node, available_node, peer_info['session_name']),
+        gen_info_markup(chatid, asn, node, available_node, peer_info['session_name']),
     )
 
 
