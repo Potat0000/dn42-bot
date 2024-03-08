@@ -42,47 +42,46 @@ def gen_get_map():
 
     def inner(*, update=None):
         nonlocal data, peer_map, update_time
-        if update:
-            if isinstance(update, tuple):
-                data, update_time, peer_map = update
-                return
-            G = nx.Graph()
-            for ipver in ['4', '6']:
-                try:
-                    parser = bgpkit.Parser(url=f"https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2")
-                except BaseException:
-                    continue
-                for elem in parser:
-                    as_path = [int(i) for i in re_sub(r'\{.*?\}', '', elem['as_path']).split()]
-                    for i in range(len(as_path) - 1):
-                        if as_path[i] != as_path[i + 1]:
-                            G.add_edge(as_path[i], as_path[i + 1])
-            if not G.nodes:
-                return
-            temp_data = {
-                'closeness': nx.closeness_centrality(G),
-                'betweenness': nx.betweenness_centrality(G),
-                'peer': {p: len(G[p]) for p in G.nodes},
-            }
-            temp_data['jerry'] = jerry_centrality(G.nodes, temp_data['closeness'], temp_data['betweenness'])
-            for rank_type, rank_data in temp_data.items():
-                s = [(k, v) for k, v in rank_data.items()]
-                s.sort(key=lambda x: (-x[1], x[0]))
-                rank_now = 0
-                last_value = 0
-                out = []
-                for index, (asn, value) in enumerate(s, 1):
-                    if value != last_value:
-                        rank_now = index
-                    last_value = value
-                    out.append((rank_now, asn, get_whoisinfo_by_asn(asn, 'as-name'), value))
-                temp_data[rank_type] = out
-            temp_map = {asn: set(G[asn]) for asn in G.nodes}
-            data, update_time, peer_map = temp_data, int(time()), temp_map
-            with open('./rank.pkl', 'wb') as f:
-                pickle.dump((data, update_time, peer_map), f)
-        else:
+        if not update:
             return update_time, data, peer_map
+        if isinstance(update, tuple):
+            data, update_time, peer_map = update
+            return
+        G = nx.Graph()
+        for ipver in ['4', '6']:
+            try:
+                parser = bgpkit.Parser(url=f"https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2")
+            except BaseException:
+                continue
+            for elem in parser:
+                as_path = [int(i) for i in re_sub(r'\{.*?\}', '', elem['as_path']).split()]
+                for i in range(len(as_path) - 1):
+                    if as_path[i] != as_path[i + 1]:
+                        G.add_edge(as_path[i], as_path[i + 1])
+        if not G.nodes:
+            return
+        temp_data = {
+            'closeness': nx.closeness_centrality(G),
+            'betweenness': nx.betweenness_centrality(G),
+            'peer': {p: len(G[p]) for p in G.nodes},
+        }
+        temp_data['jerry'] = jerry_centrality(G.nodes, temp_data['closeness'], temp_data['betweenness'])
+        for rank_type, rank_data in temp_data.items():
+            s = [(k, v) for k, v in rank_data.items()]
+            s.sort(key=lambda x: (-x[1], x[0]))
+            rank_now = 0
+            last_value = 0
+            out = []
+            for index, (asn, value) in enumerate(s, 1):
+                if value != last_value:
+                    rank_now = index
+                last_value = value
+                out.append((rank_now, asn, get_whoisinfo_by_asn(asn, 'as-name'), value))
+            temp_data[rank_type] = out
+        temp_map = {asn: set(G[asn]) for asn in G.nodes}
+        data, update_time, peer_map = temp_data, int(time()), temp_map
+        with open('./rank.pkl', 'wb') as f:
+            pickle.dump((data, update_time, peer_map), f)
 
     return inner
 

@@ -76,7 +76,7 @@ def get_route_stats_text(ip_ver, simple, node):
             msg += f'updated {time_delta}s ago'.rjust(max_len) + '\n\n'
             msg += "No data available.".center(max_len) + '\n'
             msg += "暂无数据。".center(max_len)
-        return f"```RouteStats\n{msg}\n```", 'Markdown'
+        return f"```RouteStatistics\n{msg}\n```", 'Markdown'
     else:
         return (
             f"Error encountered! Please contact {config.CONTACT} with the following information:\n"

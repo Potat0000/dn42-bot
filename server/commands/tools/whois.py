@@ -6,7 +6,24 @@ import base
 import config
 import tools
 from base import bot
+from commands.statistics.stats import get_stats
 from IPy import IP
+
+
+def get_extra_route(asn):
+    route_result = ""
+    route4, route6 = [], []
+    for route in base.AS_ROUTE[asn]:
+        if (ip := IP(route)).version() == 4:
+            route4.append((ip.int(), route))
+        else:
+            route6.append((ip.int(), route))
+    for _, route in sorted(route4, key=lambda x: x[0]):
+        route_result += f"route4:             {route}\n"
+    for _, route in sorted(route6, key=lambda x: x[0]):
+        route_result += f"route6:             {route}\n"
+    if route_result:
+        return f"% Routes for 'AS{asn}':\n{route_result.strip()}"
 
 
 @bot.message_handler(commands=['whois'])
@@ -69,20 +86,18 @@ def whois(message):
             whois_command = f"whois -I {message.text.split()[1]}"
         whois_result = ''
     try:
-        route_result = ""
         asn = int(whois_str[2:])
-        route4, route6 = [], []
-        for route in base.AS_ROUTE[asn]:
-            if (ip := IP(route)).version() == 4:
-                route4.append((ip.int(), route))
-            else:
-                route6.append((ip.int(), route))
-        for _, route in sorted(route4, key=lambda x: x[0]):
-            route_result += f"route4:             {route}\n"
-        for _, route in sorted(route6, key=lambda x: x[0]):
-            route_result += f"route6:             {route}\n"
-        if route_result:
-            whois_result += "\n\n" f"% Routes for 'AS{asn}':\n" f"{route_result.strip()}"
+        if route_result := get_extra_route(asn):
+            whois_result += f'\n\n{route_result}'
+        if stats_result := get_stats(asn)[1]:
+            whois_result += (
+                '\n\n'
+                f"% Statistics for 'AS{asn}':\n"
+                f'centrality:         {stats_result["centrality"]}\n'
+                f'closeness:          {stats_result["closeness"]}\n'
+                f'betweenness:        {stats_result["betweenness"]}\n'
+                f'peer count:         {stats_result["peer"]}'
+            )
     except BaseException:
         pass
     if len(whois_result) > 4000:
