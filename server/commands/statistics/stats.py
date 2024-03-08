@@ -19,7 +19,7 @@ def get_stats(asn):
     for asn in asn_list:
         mnt = tools.get_whoisinfo_by_asn(asn)
         try:
-            centrality = next(i for i in data['jerry'] if i[1] == asn)
+            centrality = next(i for i in data['centrality'] if i[1] == asn)
             centrality = f'{centrality[3]:.4f}  #{centrality[0]}'
         except StopIteration:
             centrality = "N/A"

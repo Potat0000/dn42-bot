@@ -8,7 +8,7 @@ from tools.tools import get_whoisinfo_by_asn
 
 
 # https://github.com/isjerryxiao/rushed_dn42_map/blob/c7bc49eb8c59ba9309e2e7eed425105154802a0a/map.py#L92-L111
-def jerry_centrality(fullasmap, closeness_centrality, betweenness_centrality):
+def calculate_centrality(fullasmap, closeness_centrality, betweenness_centrality):
     node_centrality = list()
     """ should be within 10 - 30 """
     mmin = 10.0
@@ -65,7 +65,7 @@ def gen_get_map():
             'betweenness': nx.betweenness_centrality(G),
             'peer': {p: len(G[p]) for p in G.nodes},
         }
-        temp_data['jerry'] = jerry_centrality(G.nodes, temp_data['closeness'], temp_data['betweenness'])
+        temp_data['centrality'] = calculate_centrality(G.nodes, temp_data['closeness'], temp_data['betweenness'])
         for rank_type, rank_data in temp_data.items():
             s = [(k, v) for k, v in rank_data.items()]
             s.sort(key=lambda x: (-x[1], x[0]))
