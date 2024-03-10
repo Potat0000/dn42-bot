@@ -150,7 +150,7 @@ def generaltest(message):
             return
     else:
         ip = parsed_info.ipv4 if parsed_info.ipv4 else parsed_info.ipv6
-    server_list = message.text.split()[2:]
+    server_list = [i.lower() for i in message.text.split()[2:]]
     command_data = ip
     addon = ""
     if command == 'ping':
@@ -186,7 +186,10 @@ def generaltest(message):
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing', timeout=20 if command == 'trace' else 10)
     try:
-        specific_server = [i.lower() for i in server_list if i.lower() in base.servers]
+        available_server = [j.lower() for j in base.servers.keys()]
+        specific_server = [i for i in available_server if i in server_list]
+        if not specific_server:
+            specific_server = [i for i in available_server if any(i.startswith(k) for k in server_list)]
         if not specific_server:
             raise RuntimeError()
     except BaseException:
