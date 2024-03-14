@@ -153,10 +153,12 @@ def generaltest(message):
     server_list = [i.lower() for i in message.text.split()[2:]]
     command_data = ip
     addon = ""
+    timeout = 10
     if command == 'ping':
         command_text = 'Ping'
     elif command == 'tcping':
         command_text = 'TCPing'
+        timeout = 12
         try:
             if 0 < int(server_list[0]) < 65535:
                 port = server_list[0]
@@ -194,7 +196,7 @@ def generaltest(message):
             raise RuntimeError()
     except BaseException:
         specific_server = list(base.servers.keys())
-    raw = tools.get_from_agent(command, command_data, specific_server)
+    raw = tools.get_from_agent(command, command_data, specific_server, timeout=timeout)
     data = {}
     for k, v in raw.items():
         if v.status == 200:

@@ -79,6 +79,8 @@ def basic_ip_domain_test(address):
         domain = None
         try:
             domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), "PTR")[0])
+            if domain.endswith('.'):
+                domain = domain[:-1]
         except BaseException:
             pass
         if str(IP(address)) == domain:
@@ -90,6 +92,8 @@ def basic_ip_domain_test(address):
             domain = None
             try:
                 domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), "PTR")[0])
+                if domain.endswith('.'):
+                    domain = domain[:-1]
             except BaseException:
                 pass
             if str(IP(address)) == domain:
