@@ -164,7 +164,7 @@ def generaltest(message):
         except BaseException:
             port = 80
         addon = f" Port {port}"
-        command_data = f"{ip} {server_list[0]}"
+        command_data = f"{ip} {port}"
     elif command == 'trace':
         command_text = 'Traceroute'
     elif command == 'route':
