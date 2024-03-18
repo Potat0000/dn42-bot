@@ -441,14 +441,14 @@ def pre_clearnet(message, peer_info):
         if config.ALLOW_NO_CLEARNET:
             msg += (
                 '\n\n'
-                "If you don't have a static clearnet address or is behind NAT, please enter `none`\n"
-                "如果你没有静态公网地址，或你的服务器在 NAT 网络中，请输入 `none`"
+                "If you don't have a clearnet address or is behind NAT, please enter `none`\n"
+                "如果你没有公网地址，或你的服务器在 NAT 网络中，请输入 `none`"
             )
         else:
             msg += (
                 '\n\n'
-                f"If you don't have a static clearnet address or is behind NAT, please contact {config.CONTACT}\n"
-                f"如果你没有静态公网地址，或你的服务器在 NAT 网络中，请联系 {config.CONTACT}"
+                f"If you don't have a clearnet address or is behind NAT, please contact {config.CONTACT}\n"
+                f"如果你没有公网地址，或你的服务器在 NAT 网络中，请联系 {config.CONTACT}"
             )
     msg = bot.send_message(
         message.chat.id,
