@@ -3,8 +3,6 @@ import config
 from telebot.types import ReplyKeyboardRemove
 from tools.tools import get_from_agent
 
-MIN_AGENT_VERSION = 17
-
 
 def servers_check():
     offline_node = []
@@ -12,7 +10,7 @@ def servers_check():
     for k, v in get_from_agent('version', None, config.SERVER.keys(), backoff_factor=1).items():
         if v.status != 200:
             offline_node.append(k)
-        elif int(v.text) < MIN_AGENT_VERSION:
+        elif int(v.text) < base.MIN_AGENT_VERSION:
             old_node.append(k)
     old_servers = base.servers.copy()
     base.servers = {k: v for k, v in config.SERVER.items() if k not in offline_node and k not in old_node}

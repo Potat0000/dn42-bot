@@ -56,7 +56,6 @@ Config items are located at `server/config.py`.
 | LG_DOMAIN           | (Optional) URL of looking glass. Support bird-lg's URL format                           |
 | PRIVILEGE_CODE      | (Optional) Privilege code                                                               |
 | SINGLE_PRIVILEGE    | (Optional) Whether to disable the privilege code when a privileged user already logs in |
-| BAN_CHINA           | (Optional) Whether refuse to peer with Chinese Mainland                                 |
 | SENTRY_DSN          | (Optional) Sentry DSN. Leave empty to disable Sentry exception tracking                 |
 
 #### Email-sending function
@@ -86,7 +85,7 @@ Config items are located at `agent/agent_config.json`.
 | SECRET                     | API Token                                                    |
 | OPEN                       | Whether open peer                                            |
 | MAX_PEERS                  | Maximum number of Peer (0 for no limit)                      |
-| NET_SUPPORT                | IP protocol stack supported by this agent                    |
+| NET_SUPPORT                | Net supported by this agent                                  |
 | EXTRA_MSG                  | Extra message of this agent                                  |
 | MY_DN42_LINK_LOCAL_ADDRESS | The DN42 IPv6 Link-Local Address of this agent               |
 | MY_DN42_ULA_ADDRESS        | The DN42 IPv6 ULA Address of this agent                      |
@@ -95,6 +94,13 @@ Config items are located at `agent/agent_config.json`.
 | SENTRY_DSN                 | Sentry DSN. Leave empty to disable Sentry exception tracking |
 | BIRD_TABLE_4               | The name of the BIRD table for IPv4                          |
 | BIRD_TABLE_6               | The name of the BIRD table for IPv6                          |
+
+`NET_SUPPORT` item has following subconfig items:
+
+- `ipv4`: Whether support IPv4
+- `ipv6`: Whether support IPv6
+- `ipv4_nat`: Whether the IPv4 is behind NAT
+- `cn`: Whether allowed to peer with Chinese Mainland
 
 #### TCPing
 

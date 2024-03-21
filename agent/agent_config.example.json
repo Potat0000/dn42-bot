@@ -7,7 +7,8 @@
     "NET_SUPPORT": {
         "ipv4": true,
         "ipv6": true,
-        "ipv4_nat": false
+        "ipv4_nat": false,
+        "cn": false
     },
     "EXTRA_MSG": "",
     "MY_DN42_LINK_LOCAL_ADDRESS": "fe80::1816",

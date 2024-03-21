@@ -58,6 +58,8 @@ def pre_region(message, peer_info):
             msg += '  ✔️ IPv6: Yes\n'
         else:
             msg += '  ⚠️ IPv6: No\n'
+        if not data['net_support']['cn']:
+            msg += '  ⚠️ Not allowed to peer with Chinese Mainland\n'
         if data['msg']:
             msg += f'  {data["msg"]}\n'
         msg += '\n'
@@ -486,11 +488,18 @@ def post_clearnet(message, peer_info):
                 msg = "IPv6 is not supported on this node", "该节点不支持IPv6"
             else:
                 msg = None
-                if config.BAN_CHINA and (
+                if not peer_info['Net_Support']['cn'] and (
                     (test_result.ipv4 and any(test_result.ipv4 in i for i in base.ChinaIPv4))
                     or (test_result.ipv6 and any(test_result.ipv6 in i for i in base.ChinaIPv6))
                 ):
-                    msg = "Peering with Chinese Mainland is not allowed", "不允许与中国大陆 Peer"
+                    msg = (
+                        "Peering with Chinese Mainland is not allowed on this node",
+                        "该节点不允许与中国大陆 Peer",
+                        (
+                            "Please note that do NOT try to bypass this restriction. Even if you successfully make the bot record your address for now, your data will be dropped by the firewall.\n"
+                            "请注意，不要尝试绕过该限制。即使你现在成功让 Bot 记录了你的地址，与你的数据也会被防火墙丢弃。\n\n"
+                        ),
+                    )
                 if not msg:
                     peer_info["Clearnet"] = test_result.raw
                     if all(i in '0123456789ABCDEFabcdef:' for i in message.text.strip()):
@@ -501,13 +510,16 @@ def post_clearnet(message, peer_info):
         msg = "Invalid or unreachable clearnet address", "输入不是有效的公网地址或该地址不可达"
     if msg:
         if message.chat.id not in db_privilege:
+            if len(msg) == 2:
+                msg = f"{msg[0]}, please try again.\n{msg[1]}，请重试。\n\n"
+            elif len(msg) == 3:
+                msg = f"{msg[0]}, please try again.\n{msg[1]}，请重试。\n\n{msg[2]}"
             msg = bot.send_message(
                 message.chat.id,
                 (
-                    f"{msg[0]}, please try again.\n"
-                    f"{msg[1]}，请重试。\n\n"
+                    f"{msg}"
                     f"The check procedure may sometimes be wrong, if it is confirmed to be valid, just resubmit. If the error keeps occurring please contact {config.CONTACT}\n"
-                    f"判定程序可能出错。如果确认有效，重新提交即可。重复出错请联系 {config.CONTACT}\n"
+                    f"判定程序可能出错。如果确认有效，重新提交即可。重复出错请联系 {config.CONTACT}\n\n"
                     "Use /cancel to interrupt the operation.\n"
                     "使用 /cancel 终止操作。"
                 ),

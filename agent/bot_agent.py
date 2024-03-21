@@ -10,7 +10,7 @@ import sentry_sdk
 from aiohttp import web
 from IPy import IP
 
-AGENT_VERSION = 17
+AGENT_VERSION = 18
 
 try:
     with open("agent_config.json", 'r') as f:
