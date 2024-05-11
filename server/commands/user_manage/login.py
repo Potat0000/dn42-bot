@@ -13,30 +13,30 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemo
 def get_email(asn):
     try:
         whois1 = (
-            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} AS{asn}"), timeout=3)
-            .decode("utf-8")
+            subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3)
+            .decode('utf-8')
             .splitlines()[3:]
         )
         for line in whois1:
-            if line.startswith("admin-c:"):
-                admin_c = line.split(":")[1].strip()
+            if line.startswith('admin-c:'):
+                admin_c = line.split(':')[1].strip()
                 break
         else:
             return set()
         whois2 = (
-            subprocess.check_output(shlex.split(f"whois -h {config.WHOIS_ADDRESS} {admin_c}"), timeout=3)
-            .decode("utf-8")
+            subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} {admin_c}'), timeout=3)
+            .decode('utf-8')
             .splitlines()[3:]
         )
         emails = set()
         for line in whois2:
-            if line.startswith("e-mail:"):
-                email = line.split(":")[1].strip()
+            if line.startswith('e-mail:'):
+                email = line.split(':')[1].strip()
                 if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', email):
                     emails.add(email)
         for line in whois2:
-            if line.startswith("contact:"):
-                email = line.split(":")[1].strip()
+            if line.startswith('contact:'):
+                email = line.split(':')[1].strip()
                 if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', email):
                     emails.add(email)
         if emails:
@@ -53,10 +53,10 @@ def start_login(message):
         bot.send_message(
             message.chat.id,
             (
-                f"You are already logged in as `{tools.get_asn_mnt_text(db[message.chat.id])}`, please use /logout to log out.\n"
-                f"你已经以 `{tools.get_asn_mnt_text(db[message.chat.id])}` 的身份登录了，请使用 /logout 退出。"
+                f'You are already logged in as `{tools.get_asn_mnt_text(db[message.chat.id])}`, please use /logout to log out.\n'
+                f'你已经以 `{tools.get_asn_mnt_text(db[message.chat.id])}` 的身份登录了，请使用 /logout 退出。'
             ),
-            parse_mode="Markdown",
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -66,7 +66,7 @@ def start_login(message):
     except (IndexError, ValueError):
         msg = bot.send_message(
             message.chat.id,
-            "Enter your ASN, without prefix AS\n请输入你的 ASN，不要加 AS 前缀",
+            'Enter your ASN, without prefix AS\n请输入你的 ASN，不要加 AS 前缀',
             reply_markup=ReplyKeyboardRemove(),
         )
         bot.register_next_step_handler(msg, partial(login_input_asn, None))
@@ -74,10 +74,10 @@ def start_login(message):
 
 def login_input_asn(exist_asn, message):
     raw = exist_asn if exist_asn else message.text.strip()
-    if raw == "/cancel":
+    if raw == '/cancel':
         bot.send_message(
             message.chat.id,
-            "Current operation has been cancelled.\n当前操作已被取消。",
+            'Current operation has been cancelled.\n当前操作已被取消。',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -86,7 +86,7 @@ def login_input_asn(exist_asn, message):
     except ValueError:
         bot.send_message(
             message.chat.id,
-            ("ASN error!\n" "ASN 错误！\n" "You can use /login to retry.\n" "你可以使用 /login 重试。"),
+            ('ASN error!\n' 'ASN 错误！\n' 'You can use /login to retry.\n' '你可以使用 /login 重试。'),
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
@@ -96,20 +96,20 @@ def login_input_asn(exist_asn, message):
         markup.row_width = 1
         if emails:
             markup.add(*(KeyboardButton(email) for email in emails))
-        markup.add(KeyboardButton("None of the above 以上都不是"))
+        markup.add(KeyboardButton('None of the above 以上都不是'))
         msg = bot.send_message(
             message.chat.id,
-            ("Select the email address to receive the verification code.\n" "选择接收验证码的邮箱。"),
+            ('Select the email address to receive the verification code.\n' '选择接收验证码的邮箱。'),
             reply_markup=markup,
         )
         bot.register_next_step_handler(msg, partial(login_choose_email, asn, emails, msg.message_id))
 
 
 def login_choose_email(asn, emails, last_msg_id, message):
-    if message.text.strip() == "/cancel":
+    if message.text.strip() == '/cancel':
         bot.send_message(
             message.chat.id,
-            "Current operation has been cancelled.\n当前操作已被取消。",
+            'Current operation has been cancelled.\n当前操作已被取消。',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -126,8 +126,8 @@ def login_choose_email(asn, emails, last_msg_id, message):
         bot.delete_message(message.chat.id, last_msg_id)
         bot.send_message(
             message.chat.id,
-            ("*[Privilege]*\n" f"Welcome! `{tools.get_asn_mnt_text(asn)}`\n" f"欢迎你！`{tools.get_asn_mnt_text(asn)}`"),
-            parse_mode="Markdown",
+            ('*[Privilege]*\n' f'Welcome! `{tools.get_asn_mnt_text(asn)}`\n' f'欢迎你！`{tools.get_asn_mnt_text(asn)}`'),
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -135,23 +135,23 @@ def login_choose_email(asn, emails, last_msg_id, message):
         bot.send_message(
             message.chat.id,
             (
-                "Sorry. For now, you can only use the email address you registered in the DN42 Registry to authenticate.\n"
-                "抱歉。暂时只能使用您在 DN42 Registry 中登记的邮箱完成验证。\n"
-                f"Please contact {config.CONTACT} for manual handling.\n"
-                f"请联系 {config.CONTACT} 人工处理。"
+                'Sorry. For now, you can only use the email address you registered in the DN42 Registry to authenticate.\n'
+                '抱歉。暂时只能使用您在 DN42 Registry 中登记的邮箱完成验证。\n'
+                f'Please contact {config.CONTACT} for manual handling.\n'
+                f'请联系 {config.CONTACT} 人工处理。'
             ),
-            parse_mode="HTML",
+            parse_mode='HTML',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
     msg = bot.send_message(
         message.chat.id,
         (
-            "Sending verification code...\n"
-            "正在发送验证码...\n"
-            "\n"
-            "Hold on, this may take up to 2 minutes to send successfully.\n"
-            "稍安勿躁，最多可能需要 2 分钟才能成功发送。"
+            'Sending verification code...\n'
+            '正在发送验证码...\n'
+            '\n'
+            'Hold on, this may take up to 2 minutes to send successfully.\n'
+            '稍安勿躁，最多可能需要 2 分钟才能成功发送。'
         ),
         reply_markup=ReplyKeyboardRemove(),
     )
@@ -164,12 +164,12 @@ def login_choose_email(asn, emails, last_msg_id, message):
         bot.send_message(
             message.chat.id,
             (
-                "Sorry, we are unable to send the verification code to your email address at this time. Please try again later.\n"
-                "抱歉，暂时无法发送验证码至您的邮箱。请稍后再试。\n"
-                f"Please contact {config.CONTACT} if it keeps failing.\n"
-                f"如果一直发送失败请联系 {config.CONTACT} 处理。"
+                'Sorry, we are unable to send the verification code to your email address at this time. Please try again later.\n'
+                '抱歉，暂时无法发送验证码至您的邮箱。请稍后再试。\n'
+                f'Please contact {config.CONTACT} if it keeps failing.\n'
+                f'如果一直发送失败请联系 {config.CONTACT} 处理。'
             ),
-            parse_mode="HTML",
+            parse_mode='HTML',
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
@@ -177,25 +177,25 @@ def login_choose_email(asn, emails, last_msg_id, message):
         msg = bot.send_message(
             message.chat.id,
             (
-                "Verification code has been sent to your email.\n"
-                "验证码已发送至您的邮箱。\n"
-                f"Please contact {config.CONTACT} if you can not receive it.\n"
-                f"如果无法收到请联系 {config.CONTACT}\n"
-                "\n"
-                "Enter your verification code:\n"
-                "请输入验证码："
+                'Verification code has been sent to your email.\n'
+                '验证码已发送至您的邮箱。\n'
+                f'Please contact {config.CONTACT} if you can not receive it.\n'
+                f'如果无法收到请联系 {config.CONTACT}\n'
+                '\n'
+                'Enter your verification code:\n'
+                '请输入验证码：'
             ),
-            parse_mode="HTML",
+            parse_mode='HTML',
             reply_markup=ReplyKeyboardRemove(),
         )
         bot.register_next_step_handler(msg, partial(login_verify_code, asn, code))
 
 
 def login_verify_code(asn, code, message):
-    if message.text.strip() == "/cancel":
+    if message.text.strip() == '/cancel':
         bot.send_message(
             message.chat.id,
-            "Current operation has been cancelled.\n当前操作已被取消。",
+            'Current operation has been cancelled.\n当前操作已被取消。',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -205,13 +205,13 @@ def login_verify_code(asn, code, message):
             pickle.dump((db, db_privilege), f)
         bot.send_message(
             message.chat.id,
-            (f"Welcome! `{tools.get_asn_mnt_text(asn)}`\n" f"欢迎你！`{tools.get_asn_mnt_text(asn)}`"),
-            parse_mode="Markdown",
+            (f'Welcome! `{tools.get_asn_mnt_text(asn)}`\n' f'欢迎你！`{tools.get_asn_mnt_text(asn)}`'),
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
     else:
         bot.send_message(
             message.chat.id,
-            ("Verification code error!\n" "验证码错误！\n" "You can use /login to retry.\n" "你可以使用 /login 重试。"),
+            ('Verification code error!\n' '验证码错误！\n' 'You can use /login to retry.\n' '你可以使用 /login 重试。'),
             reply_markup=ReplyKeyboardRemove(),
         )

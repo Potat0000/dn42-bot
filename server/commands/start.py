@@ -10,12 +10,12 @@ from commands.user_manage.whoami import whoami
 def startup(message):
     try:
         command = message.text.split()[1]
-        if command.startswith("whoami_"):
+        if command.startswith('whoami_'):
             whoami(message, *command[7:].split('_'))
         elif command == 'info':
             get_info(message)
-        elif command.startswith("info_"):
-            _, asn, node = command.split("_", 3)
+        elif command.startswith('info_'):
+            _, asn, node = command.split('_', 3)
             get_info(message, int(asn), node)
         elif command == 'login':
             start_login(message)

@@ -23,11 +23,11 @@ class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(message):
-        is_private = message.chat.type == "private"
+        is_private = message.chat.type == 'private'
         if not is_private:
             bot.reply_to(
                 message,
-                "This command can only be used in private chat.\n此命令只能在私聊中使用。",
+                'This command can only be used in private chat.\n此命令只能在私聊中使用。',
                 reply_markup=ReplyKeyboardRemove(),
             )
         return is_private
@@ -38,7 +38,7 @@ class IsForMe(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(message):
-        command = message.text.split()[0].split("@")
+        command = message.text.split()[0].split('@')
         if len(command) > 1:
             return command[-1].lower() == bot.get_me().username.lower()
         else:
@@ -52,59 +52,59 @@ class MyMiddleware(BaseMiddleware):
     def pre_process(self, message, data):
         if not message.text:
             return CancelUpdate()
-        command = message.text.split()[0].split("@")
+        command = message.text.split()[0].split('@')
         if len(command) > 1:
             if command[-1].lower() != bot.get_me().username.lower():
                 return CancelUpdate()
-        if config.SENTRY_DSN and command[0].startswith("/"):
+        if config.SENTRY_DSN and command[0].startswith('/'):
             self.transaction = sentry_sdk.start_transaction(
-                name=f"Server {command[0]}",
+                name=f'Server {command[0]}',
                 op=message.text.strip(),
                 sampled=True,
             )
             if message.from_user.username:
-                self.transaction.set_tag("username", message.from_user.username)
+                self.transaction.set_tag('username', message.from_user.username)
                 sentry_sdk.set_user(
                     {
-                        "username": f"{message.from_user.full_name} @{message.from_user.username}",
-                        "id": message.from_user.id,
+                        'username': f'{message.from_user.full_name} @{message.from_user.username}',
+                        'id': message.from_user.id,
                     }
                 )
             else:
                 sentry_sdk.set_user(
                     {
-                        "username": f"{message.from_user.full_name}",
-                        "id": message.from_user.id,
+                        'username': f'{message.from_user.full_name}',
+                        'id': message.from_user.id,
                     }
                 )
-                sentry_sdk.set_user({"id": message.from_user.id})
-            self.transaction.set_tag("user_fullname", message.from_user.full_name)
-            self.transaction.set_tag("chat_id", message.chat.id)
-            self.transaction.set_tag("chat_type", message.chat.type)
-            if message.chat.type == "private":
+                sentry_sdk.set_user({'id': message.from_user.id})
+            self.transaction.set_tag('user_fullname', message.from_user.full_name)
+            self.transaction.set_tag('chat_id', message.chat.id)
+            self.transaction.set_tag('chat_type', message.chat.type)
+            if message.chat.type == 'private':
                 if message.chat.id in db_privilege:
-                    self.transaction.set_tag("privilege", "True")
-                    self.transaction.set_tag("ASN", db[message.chat.id])
+                    self.transaction.set_tag('privilege', 'True')
+                    self.transaction.set_tag('ASN', db[message.chat.id])
                 elif message.chat.id in db:
-                    self.transaction.set_tag("ASN", db[message.chat.id])
+                    self.transaction.set_tag('ASN', db[message.chat.id])
             else:
                 if message.chat.title:
-                    self.transaction.set_tag("title", message.chat.title)
+                    self.transaction.set_tag('title', message.chat.title)
 
     def post_process(self, message, data, exception):
         if exception:
             bot.send_message(
                 message.chat.id,
-                f"Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}",
+                f'Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}',
                 parse_mode='HTML',
                 reply_markup=ReplyKeyboardRemove(),
             )
         try:
             if self.transaction:
                 if exception:
-                    self.transaction.set_status("error")
+                    self.transaction.set_status('error')
                 else:
-                    self.transaction.set_status("ok")
+                    self.transaction.set_status('ok')
                 self.transaction.finish()
         except BaseException:
             pass
@@ -120,7 +120,7 @@ tools.update_china_ip()
 tools.update_as_route_table()
 tools.servers_check()
 try:
-    with open("./rank.pkl", "rb") as f:
+    with open('./rank.pkl', 'rb') as f:
         tools.get_map(update=pickle.load(f))
 except BaseException:
     tools.get_map(update=True)
@@ -169,8 +169,8 @@ bot.set_my_commands(
     scope=BotCommandScopeAllPrivateChats(),
 )
 
-bot.enable_save_next_step_handlers(delay=2, filename="./step.save")
-bot.load_next_step_handlers(filename="./step.save")
+bot.enable_save_next_step_handlers(delay=2, filename='./step.save')
+bot.load_next_step_handlers(filename='./step.save')
 
 
 bot.remove_webhook()
@@ -181,7 +181,7 @@ if config.WEBHOOK_URL:
     bot.set_webhook(url=config.WEBHOOK_URL, secret_token=WEBHOOK_SECRET)
 
     async def handle(request):
-        secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+        secret = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
         if secret == WEBHOOK_SECRET:
             request_body_dict = await request.json()
             update = telebot.types.Update.de_json(request_body_dict)

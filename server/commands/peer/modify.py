@@ -34,10 +34,10 @@ def step_manage(next_step, peer_info, stop_sign, message):
             elif rtn_next_step.startswith('pre_'):
                 step_manage(rtn_next_step, rtn_peer_info, rtn_stop_sign, rtn_msg)
 
-    if message.text.strip() == "/cancel":
+    if message.text.strip() == '/cancel':
         bot.send_message(
             message.chat.id,
-            "Current operation has been cancelled.\n当前操作已被取消。",
+            'Current operation has been cancelled.\n当前操作已被取消。',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -54,36 +54,36 @@ def step_manage(next_step, peer_info, stop_sign, message):
 
 
 def get_diff_text(old_peer_info, peer_info, asn):
-    diff_text = ""
+    diff_text = ''
 
     def diff_print(item, prefix=''):
         nonlocal diff_text
         if peer_info[item] == old_peer_info[item]:
-            diff_text += f"    {prefix}{peer_info[item]}\n"
+            diff_text += f'    {prefix}{peer_info[item]}\n'
         else:
-            diff_text += f"    {prefix}{old_peer_info[item]}\n"
-            diff_text += ' ' * (len(prefix) + 2) + "->\n"
-            diff_text += ' ' * (len(prefix) + 4) + f"{peer_info[item]}\n"
+            diff_text += f'    {prefix}{old_peer_info[item]}\n'
+            diff_text += ' ' * (len(prefix) + 2) + '->\n'
+            diff_text += ' ' * (len(prefix) + 4) + f'{peer_info[item]}\n'
 
-    diff_text += "Region:\n"
+    diff_text += 'Region:\n'
     if peer_info['Region'] == old_peer_info['Region']:
         diff_text += f"    {base.servers[peer_info['Region']]}\n"
     else:
         peer_info['Origin'] = old_peer_info['Region']
         diff_text += f"    {base.servers[old_peer_info['Region']]}\n"
-        diff_text += "  ->\n"
+        diff_text += '  ->\n'
         diff_text += f"    {base.servers[peer_info['Region']]}\n"
-    diff_text += "Basic:\n"
+    diff_text += 'Basic:\n'
     diff_print('ASN', 'ASN:         ')
     diff_print('Channel', 'Channel:     ')
     diff_print('MP-BGP', 'MP-BGP:      ')
     diff_print('IPv6', 'IPv6:        ')
     diff_print('IPv4', 'IPv4:        ')
     diff_print('Request-LinkLocal', 'Request-LLA: ')
-    diff_text += "Tunnel:\n"
+    diff_text += 'Tunnel:\n'
     diff_print('Clearnet', 'Endpoint:    ')
     diff_print('PublicKey', 'PublicKey:   ')
-    diff_text += "Contact:\n"
+    diff_text += 'Contact:\n'
     diff_print('Contact')
     return diff_text
 
@@ -92,7 +92,7 @@ def init(message, peer_info):
     if message.chat.id not in db:
         bot.send_message(
             message.chat.id,
-            "You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login",
+            'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -100,7 +100,7 @@ def init(message, peer_info):
     if not peer_info:
         bot.send_message(
             message.chat.id,
-            ("You are not peer with me yet, you can use /peer to start.\n" "你还没有与我 Peer，可以使用 /peer 开始。"),
+            ('You are not peer with me yet, you can use /peer to start.\n' '你还没有与我 Peer，可以使用 /peer 开始。'),
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -113,11 +113,11 @@ def pre_node_choose(message, peer_info):
         bot.send_message(
             message.chat.id,
             (
-                f"Only one available node, automatically select `{could_chosen}`\n"
-                f"只有一个可选节点，自动选择 `{could_chosen}`\n"
-                "\n"
-                "If not wanted, use /cancel to interrupt the operation.\n"
-                "如非所需，使用 /cancel 终止操作。"
+                f'Only one available node, automatically select `{could_chosen}`\n'
+                f'只有一个可选节点，自动选择 `{could_chosen}`\n'
+                '\n'
+                'If not wanted, use /cancel to interrupt the operation.\n'
+                '如非所需，使用 /cancel 终止操作。'
             ),
             parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
@@ -149,10 +149,7 @@ def post_node_choose(message, peer_info, chosen=None):
             markup.add(KeyboardButton(i))
         msg = bot.send_message(
             message.chat.id,
-            (
-                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
-                "输入不正确，请重试。使用 /cancel 终止操作。"
-            ),
+            ('Invalid input, please try again. Use /cancel to interrupt the operation.\n' '输入不正确，请重试。使用 /cancel 终止操作。'),
             reply_markup=markup,
         )
         return 'post_node_choose', peer_info, msg
@@ -161,44 +158,44 @@ def post_node_choose(message, peer_info, chosen=None):
     if chosen not in raw_info or not isinstance(raw_info[chosen], dict):
         bot.send_message(
             message.chat.id,
-            f"Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}",
+            f'Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}',
             parse_mode='HTML',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
     raw_info = raw_info[chosen]
     peer_info = {
-        "Region": chosen,
-        "ASN": db[message.chat.id],
-        "Channel": None,
-        "MP-BGP": "Not supported",
-        "ENH": None,
-        "IPv6": raw_info['v6'] if raw_info['v6'] else 'Not enabled',
-        "IPv4": raw_info['v4'] if raw_info['v4'] else 'Not enabled',
-        "Request-LinkLocal": "Not required due to not use LLA as IPv6",
-        "Clearnet": raw_info['clearnet'],
-        "PublicKey": raw_info['pubkey'],
-        "Port": raw_info['port'],
-        "Contact": raw_info['desc'],
-        "Net_Support": raw_info['net_support'],
-        "Provide-LinkLocal": raw_info['lla'],
+        'Region': chosen,
+        'ASN': db[message.chat.id],
+        'Channel': None,
+        'MP-BGP': 'Not supported',
+        'ENH': None,
+        'IPv6': raw_info['v6'] if raw_info['v6'] else 'Not enabled',
+        'IPv4': raw_info['v4'] if raw_info['v4'] else 'Not enabled',
+        'Request-LinkLocal': 'Not required due to not use LLA as IPv6',
+        'Clearnet': raw_info['clearnet'],
+        'PublicKey': raw_info['pubkey'],
+        'Port': raw_info['port'],
+        'Contact': raw_info['desc'],
+        'Net_Support': raw_info['net_support'],
+        'Provide-LinkLocal': raw_info['lla'],
     }
-    if raw_info['v6'] and IP(raw_info['v6']) in IP("fe80::/64"):
-        peer_info["Request-LinkLocal"] = raw_info['my_v6']
+    if raw_info['v6'] and IP(raw_info['v6']) in IP('fe80::/64'):
+        peer_info['Request-LinkLocal'] = raw_info['my_v6']
     if raw_info['session'] == 'IPv6 Session with IPv6 channel only':
-        peer_info["Channel"] = "IPv6 only"
+        peer_info['Channel'] = 'IPv6 only'
     elif raw_info['session'] == 'IPv4 Session with IPv4 channel only':
-        peer_info["Channel"] = "IPv4 only"
+        peer_info['Channel'] = 'IPv4 only'
     else:
-        peer_info["Channel"] = "IPv6 & IPv4"
+        peer_info['Channel'] = 'IPv6 & IPv4'
         if raw_info['session'] == 'IPv6 Session with IPv6 & IPv4 Channels':
-            peer_info["MP-BGP"] = "IPv6"
+            peer_info['MP-BGP'] = 'IPv6'
             if peer_info['IPv4'] == 'Not enabled':
-                peer_info["ENH"] = True
+                peer_info['ENH'] = True
             else:
-                peer_info["ENH"] = False
+                peer_info['ENH'] = False
         elif raw_info['session'] == 'IPv4 Session with IPv6 & IPv4 Channels':
-            peer_info["MP-BGP"] = "IPv4"
+            peer_info['MP-BGP'] = 'IPv4'
     peer_info['backup'] = peer_info.copy()
     return 'pre_first_action_choose', peer_info, message
 
@@ -260,8 +257,8 @@ def pre_action_choose(message, peer_info):
         (
             'You have modified the following information\n'
             '已修改以下信息\n'
-            "\n"
-            f"```ModifiedInfo\n{diff_text}```\n"
+            '\n'
+            f'```ModifiedInfo\n{diff_text}```\n'
             'You can continue to modify, or choose to `Finish modification` or `Abort modification`.\n'
             '你可以继续修改，或者选择 `Finish modification` 以提交，或者选择 `Abort modification` 放弃修改。\n'
         ),
@@ -288,10 +285,7 @@ def post_action_choose(message, peer_info):
         markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
         msg = bot.send_message(
             message.chat.id,
-            (
-                "Invalid input, please try again. Use /cancel to interrupt the operation.\n"
-                "输入不正确，请重试。使用 /cancel 终止操作。"
-            ),
+            ('Invalid input, please try again. Use /cancel to interrupt the operation.\n' '输入不正确，请重试。使用 /cancel 终止操作。'),
             reply_markup=markup,
         )
         return 'post_action_choose', peer_info, msg
@@ -300,8 +294,8 @@ def post_action_choose(message, peer_info):
             bot.send_message(
                 message.chat.id,
                 (
-                    f"Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-migrated, please contact {config.CONTACT} for manual handling.\n"
-                    f"你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行转移，请联系 {config.CONTACT} 进行人工处理。"
+                    f'Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-migrated, please contact {config.CONTACT} for manual handling.\n'
+                    f'你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行转移，请联系 {config.CONTACT} 进行人工处理。'
                 ),
                 parse_mode='HTML',
                 reply_markup=ReplyKeyboardRemove(),
@@ -311,7 +305,7 @@ def post_action_choose(message, peer_info):
     elif message.text.strip() == 'Session Type':
         return 'pre_session_type', peer_info, message, 'pre_clearnet'
     elif message.text.strip() == 'DN42 IP':
-        if peer_info["Channel"] == "IPv4 only":
+        if peer_info['Channel'] == 'IPv4 only':
             return 'pre_ipv4', peer_info, message, 'pre_clearnet'
         else:
             return 'pre_ipv6', peer_info, message, 'pre_clearnet'
@@ -326,7 +320,7 @@ def post_action_choose(message, peer_info):
     elif message.text.strip() == 'Abort modification':
         bot.send_message(
             message.chat.id,
-            "Abort modification, operation has been canceled.\n放弃修改，操作已取消。",
+            'Abort modification, operation has been canceled.\n放弃修改，操作已取消。',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -337,7 +331,7 @@ def pre_confirm(message, peer_info):
     if old_peer_info == peer_info:
         msg = bot.send_message(
             message.chat.id,
-            "No changes detected, operation cancelled.\n未检测到任何变更，操作已取消。",
+            'No changes detected, operation cancelled.\n未检测到任何变更，操作已取消。',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -346,12 +340,12 @@ def pre_confirm(message, peer_info):
     msg = bot.send_message(
         message.chat.id,
         (
-            "Please check all your information\n"
-            "请确认你的信息\n"
-            "\n"
-            f"```ComfirmInfo\n{diff_text}```\n"
-            "Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n"
-            "确认无误请输入*大写* `yes`，所有其他输入表示取消操作。"
+            'Please check all your information\n'
+            '请确认你的信息\n'
+            '\n'
+            f'```ComfirmInfo\n{diff_text}```\n'
+            'Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
+            '确认无误请输入*大写* `yes`，所有其他输入表示取消操作。'
         ),
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),

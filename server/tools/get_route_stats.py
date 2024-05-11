@@ -13,7 +13,7 @@ def gen_get_route_stats():
         if not update:
             return data, update_time
         temp = {}
-        raw = get_from_agent("stats", "")
+        raw = get_from_agent('stats', '')
         for node, raw_data in raw.items():
             if raw_data.status != 200:
                 temp[node] = raw_data.text

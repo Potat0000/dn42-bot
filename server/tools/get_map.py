@@ -50,7 +50,7 @@ def gen_get_map():
         G = nx.Graph()
         for ipver in ['4', '6']:
             try:
-                parser = bgpkit.Parser(url=f"https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2")
+                parser = bgpkit.Parser(url=f'https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2')
             except BaseException:
                 continue
             for elem in parser:

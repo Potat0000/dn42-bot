@@ -33,7 +33,7 @@ def split_long_msg(msg, limit=4000):
         if len(not_chunked_text) <= limit:
             chunks.append(not_chunked_text)
             break
-        split_index = not_chunked_text.rfind("\n", 0, limit)
+        split_index = not_chunked_text.rfind('\n', 0, limit)
         if split_index == -1:  # The chunk is too big
             return None
         else:
@@ -45,7 +45,7 @@ def split_long_msg(msg, limit=4000):
 def get_whoisinfo_by_asn(asn, item='mnt-by'):
     try:
         whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(
-            "utf-8"
+            'utf-8'
         )
         for i in whois.splitlines():
             if i.startswith(f'{item}:'):
@@ -63,9 +63,9 @@ def get_whoisinfo_by_asn(asn, item='mnt-by'):
 
 def get_asn_mnt_text(asn):
     if (s := get_whoisinfo_by_asn(asn)) != str(asn):
-        return f"{s} AS{asn}"
+        return f'{s} AS{asn}'
     else:
-        return f"AS{asn}"
+        return f'AS{asn}'
 
 
 def basic_ip_domain_test(address):
@@ -78,7 +78,7 @@ def basic_ip_domain_test(address):
         socket.inet_pton(socket.AF_INET, address)
         domain = None
         try:
-            domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), "PTR")[0])
+            domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), 'PTR')[0])
             if domain.endswith('.'):
                 domain = domain[:-1]
         except BaseException:
@@ -91,7 +91,7 @@ def basic_ip_domain_test(address):
             socket.inet_pton(socket.AF_INET6, address)
             domain = None
             try:
-                domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), "PTR")[0])
+                domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), 'PTR')[0])
                 if domain.endswith('.'):
                     domain = domain[:-1]
             except BaseException:
@@ -214,10 +214,10 @@ def test_ip_domain(testcase):
         try:
             whois4 = subprocess.check_output(
                 shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route {ipv4}'), timeout=3
-            ).decode("utf-8")
+            ).decode('utf-8')
             whois6 = subprocess.check_output(
                 shlex.split(f'whois -h {config.WHOIS_ADDRESS} -T route6 {ipv6}'), timeout=3
-            ).decode("utf-8")
+            ).decode('utf-8')
             asn = set()
             for i in whois4.splitlines() + whois6.splitlines():
                 if i.startswith('origin:'):
@@ -252,12 +252,12 @@ def test_ip_domain(testcase):
 def gen_peer_me_markup(message):
     if message.chat.id in db_privilege:
         return None
-    if message.chat.type == "private" and message.chat.id in db:
+    if message.chat.type == 'private' and message.chat.id in db:
         if get_info(db[message.chat.id]):
             return None
     markup = InlineKeyboardMarkup()
     markup.row_width = 1
-    markup.add(InlineKeyboardButton("Peer with me | 与我 Peer", url=f"https://t.me/{bot.get_me().username}"))
+    markup.add(InlineKeyboardButton('Peer with me | 与我 Peer', url=f'https://t.me/{bot.get_me().username}'))
     return markup
 
 
@@ -279,9 +279,9 @@ def get_from_agent(type, data, server=None, *, timeout=10, backoff_factor=0.1):
     futures = []
     for region in server:
         future = session.post(
-            f"http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}",
+            f'http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}',
             data=data,
-            headers={"X-DN42-Bot-Api-Secret-Token": config.API_TOKEN},
+            headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
             timeout=timeout,
         )
         future.region = region
@@ -301,7 +301,7 @@ def get_from_agent(type, data, server=None, *, timeout=10, backoff_factor=0.1):
 
 def get_info(asn):
     data = {}
-    for k, v in get_from_agent("info", str(asn)).items():
+    for k, v in get_from_agent('info', str(asn)).items():
         if v.status == 200:
             try:
                 data[k] = json.loads(v.text)

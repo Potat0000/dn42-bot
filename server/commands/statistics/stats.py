@@ -22,23 +22,23 @@ def get_stats(asn):
             centrality = next(i for i in data['centrality'] if i[1] == asn)
             centrality = f'{centrality[3]:.4f}  #{centrality[0]}'
         except StopIteration:
-            centrality = "N/A"
+            centrality = 'N/A'
         try:
             closeness = next(i for i in data['closeness'] if i[1] == asn)
             closeness = f'{closeness[3]:.5f}  #{closeness[0]}'
         except StopIteration:
-            closeness = "N/A"
+            closeness = 'N/A'
         try:
             betweenness = next(i for i in data['betweenness'] if i[1] == asn)
             betweenness = f'{betweenness[3]:.5f}  #{betweenness[0]}'
         except StopIteration:
-            betweenness = "N/A"
+            betweenness = 'N/A'
         try:
             peer = next(i for i in data['peer'] if i[1] == asn)
             peer = f'{str(peer[3]).ljust(7)}  #{peer[0]}'
         except StopIteration:
-            peer = "N/A"
-        if not centrality == closeness == betweenness == peer == "N/A":
+            peer = 'N/A'
+        if not centrality == closeness == betweenness == peer == 'N/A':
             return time_delta, {
                 'asn': asn,
                 'mnt': mnt,
@@ -60,7 +60,7 @@ def stats(message):
         else:
             bot.reply_to(
                 message,
-                "Usage: /stats [asn]\n用法：/stats [asn]",
+                'Usage: /stats [asn]\n用法：/stats [asn]',
                 reply_markup=tools.gen_peer_me_markup(message),
             )
             return

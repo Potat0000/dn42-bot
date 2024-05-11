@@ -11,7 +11,7 @@ from IPy import IP
 
 
 def get_extra_route(asn):
-    route_result = ""
+    route_result = ''
     route4, route6 = [], []
     for route in base.AS_ROUTE[asn]:
         if (ip := IP(route)).version() == 4:
@@ -19,9 +19,9 @@ def get_extra_route(asn):
         else:
             route6.append((ip.int(), route))
     for _, route in sorted(route4, key=lambda x: x[0]):
-        route_result += f"route4:             {route}\n"
+        route_result += f'route4:             {route}\n'
     for _, route in sorted(route6, key=lambda x: x[0]):
-        route_result += f"route6:             {route}\n"
+        route_result += f'route6:             {route}\n'
     if route_result:
         return f"% Routes for 'AS{asn}':\n{route_result.strip()}"
 
@@ -31,29 +31,29 @@ def whois(message):
     if len(message.text.split()) < 2:
         bot.reply_to(
             message,
-            "Usage: /whois [something]\n用法：/whois [something]",
+            'Usage: /whois [something]\n用法：/whois [something]',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
     whois_str = message.text.split()[1]
-    allowed_punctuation = "_-./:"
+    allowed_punctuation = '_-./:'
     if any(c not in (string.ascii_letters + string.digits + allowed_punctuation) for c in whois_str):
         bot.reply_to(
             message,
             (
-                "Invalid input.\n"
-                "输入无效\n"
-                "\n"
-                "Only non-empty strings which contain only upper and lower case letters, numbers, spaces and the following special symbols are accepted.\n"
-                "只接受仅由大小写英文字母、数字、空格及以下特殊符号组成的非空字符串。\n"
-                f"`{allowed_punctuation}`\n"
+                'Invalid input.\n'
+                '输入无效\n'
+                '\n'
+                'Only non-empty strings which contain only upper and lower case letters, numbers, spaces and the following special symbols are accepted.\n'
+                '只接受仅由大小写英文字母、数字、空格及以下特殊符号组成的非空字符串。\n'
+                f'`{allowed_punctuation}`\n'
             ),
-            parse_mode="Markdown",
+            parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
+    whois_command = f'whois -h {config.WHOIS_ADDRESS} {whois_str}'
     while True:
         try:
             whois_result = (
@@ -62,7 +62,7 @@ def whois(message):
                     stdout=subprocess.PIPE,
                     timeout=3,
                 )
-                .stdout.decode("utf-8")
+                .stdout.decode('utf-8')
                 .strip()
             )
         except subprocess.TimeoutExpired:
@@ -76,14 +76,14 @@ def whois(message):
         try:
             asn = int(whois_str)
             if asn < 10000:
-                whois_str = f"AS424242{asn:04d}"
+                whois_str = f'AS424242{asn:04d}'
             elif 20000 <= asn < 30000:
-                whois_str = f"AS42424{asn}"
+                whois_str = f'AS42424{asn}'
             else:
-                whois_str = f"AS{asn}"
-            whois_command = f"whois -h {config.WHOIS_ADDRESS} {whois_str}"
+                whois_str = f'AS{asn}'
+            whois_command = f'whois -h {config.WHOIS_ADDRESS} {whois_str}'
         except ValueError:
-            whois_command = f"whois -I {message.text.split()[1]}"
+            whois_command = f'whois -I {message.text.split()[1]}'
         whois_result = ''
     try:
         asn = int(whois_str[2:])
@@ -121,7 +121,7 @@ def whois(message):
     else:
         bot.reply_to(
             message,
-            f"```WhoisResult\n{whois_result}```",
-            parse_mode="Markdown",
+            f'```WhoisResult\n{whois_result}```',
+            parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )

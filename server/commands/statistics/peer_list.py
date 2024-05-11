@@ -15,7 +15,7 @@ def peer_list(message):
             command = message.text.split()[0].split('@')[0][1:]
             bot.reply_to(
                 message,
-                f"Usage: /{command} [asn]\n用法：/{command} [asn]",
+                f'Usage: /{command} [asn]\n用法：/{command} [asn]',
                 reply_markup=tools.gen_peer_me_markup(message),
             )
             return

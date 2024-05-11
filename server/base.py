@@ -22,7 +22,7 @@ ChinaIPv6 = []
 AS_ROUTE = {}
 
 try:
-    with open("./user_db.pkl", "rb") as f:
+    with open('./user_db.pkl', 'rb') as f:
         db, db_privilege = pickle.load(f)
 except BaseException:
     db = {}

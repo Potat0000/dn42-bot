@@ -14,22 +14,22 @@ def gen_generaltest_markup(chat, data_id, node, available_nodes):
     markup = InlineKeyboardMarkup()
     for n in available_nodes:
         if n == node:
-            markup.row(InlineKeyboardButton(f'✅ {base.servers[n]}', callback_data=f"generaltest_{data_id}_{n}"))
+            markup.row(InlineKeyboardButton(f'✅ {base.servers[n]}', callback_data=f'generaltest_{data_id}_{n}'))
         else:
-            markup.row(InlineKeyboardButton(base.servers[n], callback_data=f"generaltest_{data_id}_{n}"))
+            markup.row(InlineKeyboardButton(base.servers[n], callback_data=f'generaltest_{data_id}_{n}'))
     if chat.id in db_privilege:
         return markup
-    if chat.type == "private" and chat.id in db:
+    if chat.type == 'private' and chat.id in db:
         if tools.get_info(db[chat.id]):
             return markup
-    markup.row(InlineKeyboardButton("Peer with me | 与我 Peer", url=f"https://t.me/{bot.get_me().username}"))
+    markup.row(InlineKeyboardButton('Peer with me | 与我 Peer', url=f'https://t.me/{bot.get_me().username}'))
     return markup
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("generaltest_"))
+@bot.callback_query_handler(func=lambda call: call.data.startswith('generaltest_'))
 def generaltest_callback_query(call):
-    data_id = call.data.split("_", 2)[1]
-    node = call.data.split("_", 2)[2]
+    data_id = call.data.split('_', 2)[1]
+    node = call.data.split('_', 2)[2]
     try:
         data_type, data = cache.get(data_id)
     except BaseException:
@@ -75,20 +75,20 @@ def generaltest(message):
     command = message.text.split()
     if len(command) == 1:
         command = command[0].split('@')[0][1:]
-        if command.endswith("4") or command.endswith("6"):
+        if command.endswith('4') or command.endswith('6'):
             cmd = command[:-1]
         else:
             cmd = command
         if command != 'path':
             cmd = command + '{4|6}'
-        addon = ""
+        addon = ''
         if cmd == 'tcping':
-            addon = " {port}"
+            addon = ' {port}'
         bot.reply_to(
             message,
             (
-                f"Usage: /{cmd} [ip/domain]{addon} {{node1}} {{node2}} ...\n"
-                f"用法：/{cmd} [ip/domain]{addon} {{node1}} {{node2}} ..."
+                f'Usage: /{cmd} [ip/domain]{addon} {{node1}} {{node2}} ...\n'
+                f'用法：/{cmd} [ip/domain]{addon} {{node1}} {{node2}} ...'
             ),
             reply_markup=tools.gen_peer_me_markup(message),
         )
@@ -97,7 +97,7 @@ def generaltest(message):
     target = command[1]
     command = command[0].split('@')[0][1:]
     netlen = None
-    if (command.startswith("route") or command.startswith("path")) and '/' in target:
+    if (command.startswith('route') or command.startswith('path')) and '/' in target:
         target, netlen = target.rsplit('/', 1)
         try:
             netlen = int(netlen)
@@ -114,19 +114,19 @@ def generaltest(message):
     if config.DN42_ONLY and not parsed_info.dn42:
         bot.reply_to(
             message,
-            "IP/Domain not in DN42\nIP/域名不属于 DN42",
+            'IP/Domain not in DN42\nIP/域名不属于 DN42',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
     if not base.servers:
         bot.send_message(
             message.chat.id,
-            f"No available nodes. Please contact {config.CONTACT}\n当前无可用节点，请联系 {config.CONTACT}",
+            f'No available nodes. Please contact {config.CONTACT}\n当前无可用节点，请联系 {config.CONTACT}',
             parse_mode='HTML',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    if command.endswith("4"):
+    if command.endswith('4'):
         command = command[:-1]
         if parsed_info.ipv4:
             ip = parsed_info.ipv4
@@ -137,7 +137,7 @@ def generaltest(message):
                 reply_markup=tools.gen_peer_me_markup(message),
             )
             return
-    if command.endswith("6"):
+    if command.endswith('6'):
         command = command[:-1]
         if parsed_info.ipv6:
             ip = parsed_info.ipv6
@@ -152,7 +152,7 @@ def generaltest(message):
         ip = parsed_info.ipv4 if parsed_info.ipv4 else parsed_info.ipv6
     server_list = [i.lower() for i in message.text.split()[2:]]
     command_data = ip
-    addon = ""
+    addon = ''
     timeout = 10
     if command == 'ping':
         command_text = 'Ping'
@@ -165,26 +165,26 @@ def generaltest(message):
                 server_list = server_list[1:]
         except BaseException:
             port = 80
-        addon = f" Port {port}"
-        command_data = f"{ip} {port}"
+        addon = f' Port {port}'
+        command_data = f'{ip} {port}'
     elif command == 'trace':
         command_text = 'Traceroute'
     elif command == 'route':
         command_text = 'Route to'
         if netlen:
-            command_data = f"{ip}/{netlen}"
+            command_data = f'{ip}/{netlen}'
     elif command == 'path':
         command_text = 'AS-Path of'
         if netlen:
-            command_data = f"{ip}/{netlen}"
+            command_data = f'{ip}/{netlen}'
     msg = bot.reply_to(
         message,
-        "```Querying\n{command_text} {address}{addon}...\n```".format(
+        '```Querying\n{command_text} {address}{addon}...\n```'.format(
             command_text=command_text,
-            address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip),
+            address=f'{parsed_info.domain} ({ip})' if parsed_info.domain else str(ip),
             addon=addon,
         ),
-        parse_mode="Markdown",
+        parse_mode='Markdown',
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing', timeout=20 if command == 'trace' else 10)
     try:
@@ -201,31 +201,31 @@ def generaltest(message):
     for k, v in raw.items():
         if v.status == 200:
             if command == 'ping':
-                if v.text.strip().startswith("PING "):
-                    text = "Ping {address} 56(84) bytes of data\n".format(
-                        address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip)
+                if v.text.strip().startswith('PING '):
+                    text = 'Ping {address} 56(84) bytes of data\n'.format(
+                        address=f'{parsed_info.domain} ({ip})' if parsed_info.domain else str(ip)
                     )
-                    text += v.text.strip().split("\n", 1)[1]
+                    text += v.text.strip().split('\n', 1)[1]
                 else:
                     text = v.text.strip()
             elif command == 'tcping':
-                text = "TCPing {address}{addon}\n".format(
-                    address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip),
+                text = 'TCPing {address}{addon}\n'.format(
+                    address=f'{parsed_info.domain} ({ip})' if parsed_info.domain else str(ip),
                     addon=addon,
                 )
                 text += v.text.strip()
             elif command == 'trace':
-                if v.text.strip().startswith("traceroute to "):
-                    text = "Traceroute to {address}, 30 hops max, 80 byte packets\n".format(
-                        address=f"{parsed_info.domain} ({ip})" if parsed_info.domain else str(ip)
+                if v.text.strip().startswith('traceroute to '):
+                    text = 'Traceroute to {address}, 30 hops max, 80 byte packets\n'.format(
+                        address=f'{parsed_info.domain} ({ip})' if parsed_info.domain else str(ip)
                     )
-                    text += v.text.strip().split("\n", 1)[1]
+                    text += v.text.strip().split('\n', 1)[1]
                 else:
                     text = v.text.strip()
             elif command == 'route' or command == 'path':
                 text = v.text.strip()
-                if text.startswith("BIRD "):
-                    text = v.text.strip().split("\n", 1)[1]
+                if text.startswith('BIRD '):
+                    text = v.text.strip().split('\n', 1)[1]
             data[k] = text
         elif v.status == 408:
             data[k] = 'Request Timeout 请求超时'
@@ -240,7 +240,7 @@ def generaltest(message):
     text = data[node]
     bot.edit_message_text(
         f'```{command_text}Result-{node.upper()}\n{text.strip()}\n```',
-        parse_mode="Markdown",
+        parse_mode='Markdown',
         chat_id=message.chat.id,
         message_id=msg.message_id,
         reply_markup=gen_generaltest_markup(message.chat, data_id, node, specific_server),

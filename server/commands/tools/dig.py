@@ -10,7 +10,7 @@ def dig(message):
     if len(message.text.split()) not in [2, 3]:
         bot.reply_to(
             message,
-            "Usage: /dig [domain] {type}\n用法：/dig [domain] {type}",
+            'Usage: /dig [domain] {type}\n用法：/dig [domain] {type}',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
@@ -20,13 +20,13 @@ def dig(message):
     if dig_type not in dig_type_whitelist:
         bot.reply_to(
             message,
-            "Only accept following types\n只接受以下类型的查询\n\n" + ', '.join(f'`{i}`' for i in dig_type_whitelist),
-            parse_mode="Markdown",
+            'Only accept following types\n只接受以下类型的查询\n\n' + ', '.join(f'`{i}`' for i in dig_type_whitelist),
+            parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    dig_command = f"dig +noall +answer +comments +multiline {dig_target} {dig_type}"
+    dig_command = f'dig +noall +answer +comments +multiline {dig_target} {dig_type}'
     try:
         dig_result = (
             subprocess.run(
@@ -34,7 +34,7 @@ def dig(message):
                 stdout=subprocess.PIPE,
                 timeout=8,
             )
-            .stdout.decode("utf-8")
+            .stdout.decode('utf-8')
             .strip()
         )
     except subprocess.TimeoutExpired:
@@ -64,7 +64,7 @@ def dig(message):
     else:
         bot.reply_to(
             message,
-            f"```DigResult\n{dig_result}```",
-            parse_mode="Markdown",
+            f'```DigResult\n{dig_result}```',
+            parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
