@@ -71,8 +71,8 @@ def get_asn_mnt_text(asn):
 def basic_ip_domain_test(address):
     resolver = dns.resolver.Resolver()
     resolver.nameservers = ['127.0.0.1', '172.20.0.53', '172.23.0.53', '8.8.8.8', '8.8.4.4']
-    resolver.timeout = 0.15
-    resolver.lifetime = 1
+    resolver.timeout = 0.5
+    resolver.lifetime = 3
     test_result = namedtuple('test_result', ['raw', 'ipv4', 'ipv6', 'domain'])
     try:  # Test for IPv4
         socket.inet_pton(socket.AF_INET, address)
