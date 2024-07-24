@@ -71,7 +71,15 @@ def whois(message):
         except BaseException:
             whois_result = 'Something went wrong.\n发生了一些错误。'
             break
-        if len(whois_result.splitlines()) > 1 and '% 404' not in whois_result:
+        if (
+            len(whois_result.splitlines()) > 1
+            and '% 404' not in whois_result
+            and (
+                whois_result.count("Information related to 'inetnum/")
+                + whois_result.count("Information related to 'inet6num/")
+                != 1
+            )
+        ):
             break
         try:
             asn = int(whois_str)
