@@ -3,6 +3,7 @@ import subprocess
 
 import tools
 from base import bot
+from config import DN42_ONLY
 
 
 @bot.message_handler(commands=['dig', 'nslookup'])
@@ -17,6 +18,14 @@ def dig(message):
     dig_target = message.text.split()[1]
     dig_type = message.text.split()[2] if len(message.text.split()) == 3 else 'ANY'
     dig_type_whitelist = ['ANY', 'A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SOA', 'SRV', 'PTR']
+    if DN42_ONLY and not dig_target.endswith('.dn42'):
+        bot.reply_to(
+            message,
+            'Only accept `.dn42` domain.\n只接受 `.dn42` 域名。',
+            parse_mode='Markdown',
+            reply_markup=tools.gen_peer_me_markup(message),
+        )
+        return
     if dig_type not in dig_type_whitelist:
         bot.reply_to(
             message,

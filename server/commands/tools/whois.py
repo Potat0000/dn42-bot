@@ -91,6 +91,8 @@ def whois(message):
                 whois_str = f'AS{asn}'
             whois_command = f'whois -h {config.WHOIS_ADDRESS} {whois_str}'
         except ValueError:
+            if config.DN42_ONLY:
+                break
             whois_command = f'whois -I {message.text.split()[1]}'
         whois_result = ''
     try:
