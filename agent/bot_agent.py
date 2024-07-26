@@ -241,12 +241,12 @@ async def get_info(request):
         out = out[2].strip().split(maxsplit=6)
         if out[0] != the_session:
             return web.Response(body='bird error', status=500)
-        bird_status[the_session] = [out[5], '', {}]
+        bird_status[the_session] = [out[5] if len(out) >= 6 else 'N/A', '', {}]
         try:
             bird_status[the_session][1] = out[6]
         except IndexError:
             pass
-        if out[5] == 'Established':
+        if len(out) >= 6 and out[5] == 'Established':
             out = simple_run(f'birdc show protocols all {the_session}')
             out = [i.strip().splitlines() for i in out.split('Channel ')]
             out = {
@@ -294,7 +294,7 @@ async def get_route_stats(request):
     sessions = []
     for line in out[2:]:
         s = line.split()
-        if s[1] == 'BGP' and s[0].startswith('DN42_') and s[5] == 'Established':
+        if s[1] == 'BGP' and s[0].startswith('DN42_') and len(s) >= 6 and s[5] == 'Established':
             try:
                 int(s[0].split('_')[1])
                 sessions.append(s[0])
