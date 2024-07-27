@@ -173,7 +173,7 @@ def pre_mpbgp_support(message, peer_info):
     markup.add(KeyboardButton('Yes'), KeyboardButton('No'))
     msg = bot.send_message(
         message.chat.id,
-        'Do you support Multiprotocol BGP?\n你支持多协议 BGP 吗？',
+        'Do you support Multi-Protocol BGP?\n你支持多协议 BGP 吗？',
         reply_markup=markup,
     )
     return 'post_mpbgp_support', peer_info, msg
@@ -567,7 +567,7 @@ def post_clearnet_port(message, peer_info):
 
 
 def pre_port_myside(message, peer_info):
-    text = '*[Privilege]*\n' 'Enter the port number you provided to your peer-er\n' '请输入你给对方提供的端口号'
+    text = '*[Privilege]*\n' 'Enter the port number provided to your peer\n' '请输入给对方提供的端口号'
     if peer_info['Port']:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
