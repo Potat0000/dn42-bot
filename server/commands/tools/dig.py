@@ -4,20 +4,86 @@ import subprocess
 import tools
 from base import bot
 from config import DN42_ONLY
+from IPy import IP
+from pyunycode import convert as punycode
 
 
 @bot.message_handler(commands=['dig', 'nslookup'])
 def dig(message):
-    if len(message.text.split()) not in [2, 3]:
+    dig_type_whitelist = ['ANY', 'A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SOA', 'SRV', 'PTR']
+    help_text = ', '.join(f'`{i}`' for i in dig_type_whitelist)
+    help_text = (
+        'Usage: /dig [domain] {type} {@dns_server}\n'
+        '用法：/dig [domain] {type} {@dns_server}\n\n'
+        'Only accept following types\n'
+        '只接受以下类型的查询\n'
+        f'{help_text}'
+    )
+    raw = message.text.split()[1:]
+    if len(raw) == 0 or len(raw) > 3:
         bot.reply_to(
             message,
-            'Usage: /dig [domain] {type}\n用法：/dig [domain] {type}',
+            help_text,
+            parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    dig_target = message.text.split()[1]
-    dig_type = message.text.split()[2] if len(message.text.split()) == 3 else 'ANY'
-    dig_type_whitelist = ['ANY', 'A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SOA', 'SRV', 'PTR']
+    dig_server = ''
+    dig_type = 'ANY'
+    try:
+        t = [i for i in raw if i.startswith('@')]
+        if len(t) > 1:
+            raise RuntimeError
+        elif len(t) == 1:
+            dig_server = t[0]
+            raw.remove(dig_server)
+            dig_server = dig_server[1:].strip()
+        t = [i for i in raw if '.' not in i]
+        if len(t) > 1:
+            raise RuntimeError
+        elif len(t) == 1:
+            dig_type = t[0]
+            raw.remove(dig_type)
+            dig_type = dig_type.strip().upper()
+        if len(raw) != 1:
+            raise RuntimeError
+        else:
+            dig_target = raw[0].strip()
+    except BaseException:
+        bot.reply_to(
+            message,
+            help_text,
+            parse_mode='Markdown',
+            reply_markup=tools.gen_peer_me_markup(message),
+        )
+        return
+    if dig_server:
+        try:
+            t = IP(dig_server)
+        except BaseException:
+            bot.reply_to(
+                message,
+                'Invalid DNS server.\n无效的 DNS 服务器。',
+                reply_markup=tools.gen_peer_me_markup(message),
+            )
+            return
+        if DN42_ONLY and t not in IP('172.20.0.0/14') and t not in IP('fc00::/7'):
+            bot.reply_to(
+                message,
+                'Only accept DN42 DNS server.\n只接受 DN42 DNS 服务器。',
+                reply_markup=tools.gen_peer_me_markup(message),
+            )
+            return
+        dig_server = f' @{dig_server}'
+    try:
+        dig_target = punycode(dig_target)
+    except BaseException:
+        bot.reply_to(
+            message,
+            'Invalid domain.\n无效的域名。',
+            reply_markup=tools.gen_peer_me_markup(message),
+        )
+        return
     if DN42_ONLY and not dig_target.endswith('.dn42'):
         bot.reply_to(
             message,
@@ -29,13 +95,13 @@ def dig(message):
     if dig_type not in dig_type_whitelist:
         bot.reply_to(
             message,
-            'Only accept following types\n只接受以下类型的查询\n\n' + ', '.join(f'`{i}`' for i in dig_type_whitelist),
+            help_text,
             parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    dig_command = f'dig +noall +answer +comments +multiline {dig_target} {dig_type}'
+    dig_command = f'dig +noall +answer +comments +multiline {dig_target} {dig_type}{dig_server}'
     try:
         dig_result = (
             subprocess.run(
