@@ -278,8 +278,12 @@ def get_from_agent(type, data, server=None, *, timeout=10, backoff_factor=0.1):
     )
     futures = []
     for region in server:
+        if region in config.HOSTS:
+            api = config.HOSTS[region]
+        else:
+            api = f'{region}.{config.ENDPOINT}'
         future = session.post(
-            f'http://{region}.{config.ENDPOINT}:{config.API_PORT}/{type}',
+            f'http://{api}:{config.API_PORT}/{type}',
             data=data,
             headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
             timeout=timeout,

@@ -698,8 +698,12 @@ def post_confirm(message, peer_info):
         return
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
     try:
+        if peer_info['Region'] in config.HOSTS:
+            api = config.HOSTS[peer_info['Region']]
+        else:
+            api = f'{peer_info["Region"]}.{config.ENDPOINT}'
         r = requests.post(
-            f"http://{peer_info['Region']}.{config.ENDPOINT}:{config.API_PORT}/peer",
+            f"http://{api}:{config.API_PORT}/peer",
             data=json.dumps(peer_info),
             headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
             timeout=10,

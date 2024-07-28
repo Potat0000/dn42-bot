@@ -130,8 +130,12 @@ def remove_peer_choose(removable, chosen, message):
 def remove_peer_confirm(code, region, message):
     if message.text.strip() == code:
         try:
+            if region in config.HOSTS:
+                api = config.HOSTS[region]
+            else:
+                api = f'{region}.{config.ENDPOINT}'
             r = requests.post(
-                f'http://{region}.{config.ENDPOINT}:{config.API_PORT}/remove',
+                f'http://{api}:{config.API_PORT}/remove',
                 data=str(db[message.chat.id]),
                 headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
                 timeout=10,

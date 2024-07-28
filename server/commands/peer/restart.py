@@ -107,8 +107,12 @@ def restart_peer_confirm(region, message):
         )
         return
     try:
+        if region in config.HOSTS:
+            api = config.HOSTS[region]
+        else:
+            api = f'{region}.{config.ENDPOINT}'
         r = requests.post(
-            f'http://{region}.{config.ENDPOINT}:{config.API_PORT}/restart',
+            f'http://{api}:{config.API_PORT}/restart',
             data=str(db[message.chat.id]),
             headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
             timeout=10,

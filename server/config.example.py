@@ -22,7 +22,15 @@ ALLOW_NO_CLEARNET = True
 ENDPOINT = 'dn42.domain.tld'  # Also used for tunnel
 API_PORT = 54321
 API_TOKEN = 'secret_token'
-SERVER = {'us1': 'US1 | New York - BuyVM', 'jp1': 'JP1 | Tokyo - AWS'}
+SERVER = {
+    'las': 'LAS | Las Vegas, USA | BuyVM',
+    'hkg': 'HKG | Hong Kong | Skywolf',
+    'trf': 'TRF | Sandefjord, Norway | Gigahost',
+}
+HOSTS = {
+    'las': '192.168.1.1',
+    'hkg': 'hkg.domain.tld',
+}
 
 # Webhook settings
 WEBHOOK_URL = ''
