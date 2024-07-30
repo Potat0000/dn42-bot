@@ -2,8 +2,8 @@ import pickle
 from re import sub as re_sub
 from time import time
 
-import bgpkit
 import networkx as nx
+from pybgpkit_parser import Parser
 from tools.tools import get_whoisinfo_by_asn
 
 
@@ -50,7 +50,7 @@ def gen_get_map():
         G = nx.Graph()
         for ipver in ['4', '6']:
             try:
-                parser = bgpkit.Parser(url=f'https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2')
+                parser = Parser(url=f'https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2')
             except BaseException:
                 continue
             for elem in parser:
