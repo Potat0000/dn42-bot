@@ -25,6 +25,22 @@ def restart_peer(message):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
+    bot.send_message(
+        message.chat.id,
+        (
+            'You will restart a peer with me through the following identity:\n'
+            '你将通过以下身份重启一个与我的 Peer：\n'
+            f'<code>{tools.get_asn_mnt_text(db[message.chat.id])}</code>\n'
+            '\n'
+            'If it is wrong, please use /cancel to interrupt the operation.\n'
+            '如果有误请输入 /cancel 终止操作。\n'
+            '\n'
+            f'Any problems with the restarting process, please contact {config.CONTACT}\n'
+            f'删除过程中产生任何问题，请联系 {config.CONTACT}'
+        ),
+        parse_mode='HTML',
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
     peered = [base.servers[i] for i in peer_info.keys()]
 

@@ -89,15 +89,15 @@ def init(message, peer_info):
     bot.send_message(
         message.chat.id,
         (
-            'You will peer with me through the following identity:\n'
-            '你将通过以下身份与我 Peer：\n'
-            f'<code>AS{db[message.chat.id]}</code>\n'
+            'You will create a peer with me through the following identity:\n'
+            '你将通过以下身份创建一个与我的 Peer：\n'
+            f'<code>{tools.get_asn_mnt_text(db[message.chat.id])}</code>\n'
             '\n'
             'If it is wrong, please use /cancel to interrupt the operation.\n'
             '如果有误请输入 /cancel 终止操作。\n'
             '\n'
-            f'Any problems with the AutoPeer process, please contact {config.CONTACT}\n'
-            f'AutoPeer 过程中产生任何问题，请联系 {config.CONTACT}'
+            f'Any problems with the creation process, please contact {config.CONTACT}\n'
+            f'创建过程中产生任何问题，请联系 {config.CONTACT}'
         ),
         parse_mode='HTML',
         reply_markup=ReplyKeyboardRemove(),
