@@ -24,19 +24,22 @@ def whoami(message, new_asn=None, info_node=None):
                 db[message.chat.id] = int(new_asn)
                 with open('./user_db.pkl', 'wb') as f:
                     pickle.dump((db, db_privilege), f)
-            except BaseException:
-                pass
-            else:
-                if not info_node:
-                    info_node = ''
-                markup = InlineKeyboardMarkup()
-                markup.row_width = 1
-                markup.add(
-                    InlineKeyboardButton(
-                        'Show info | 查看信息',
-                        url=f'https://t.me/{bot.get_me().username}?start=info_{new_asn}_{info_node}',
-                    )
+            except ValueError:
+                if new_asn.upper().startswith('AS') and new_asn[2:].isdigit():
+                    new_asn = new_asn[2:]
+                    db[message.chat.id] = int(new_asn)
+                    with open('./user_db.pkl', 'wb') as f:
+                        pickle.dump((db, db_privilege), f)
+            if not info_node:
+                info_node = ''
+            markup = InlineKeyboardMarkup()
+            markup.row_width = 1
+            markup.add(
+                InlineKeyboardButton(
+                    'Show info | 查看信息',
+                    url=f'https://t.me/{bot.get_me().username}?start=info_{new_asn}_{info_node}',
                 )
+            )
     else:
         text = ''
     text += 'Current login user:\n当前登录用户：\n' f'`{tools.get_asn_mnt_text(db[message.chat.id])}`'

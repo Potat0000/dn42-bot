@@ -60,16 +60,23 @@ def start_login(message):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    try:
-        asn = int(message.text.split()[1])
-        login_input_asn(asn, message)
-    except (IndexError, ValueError):
-        msg = bot.send_message(
-            message.chat.id,
-            'Enter your ASN, without prefix AS\n请输入你的 ASN，不要加 AS 前缀',
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        bot.register_next_step_handler(msg, partial(login_input_asn, None))
+    if len(message.text.split()) == 2:
+        asn = message.text.split()[1]
+        try:
+            asn = int(asn)
+            login_input_asn(asn, message)
+            return
+        except ValueError:
+            if asn.upper().startswith('AS') and asn[2:].isdigit():
+                asn = int(asn[2:])
+                login_input_asn(asn, message)
+                return
+    msg = bot.send_message(
+        message.chat.id,
+        'Enter your ASN\n请输入你的 ASN',
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    bot.register_next_step_handler(msg, partial(login_input_asn, None))
 
 
 def login_input_asn(exist_asn, message):
@@ -84,11 +91,15 @@ def login_input_asn(exist_asn, message):
     try:
         asn = int(raw)
     except ValueError:
-        bot.send_message(
+        msg = bot.send_message(
             message.chat.id,
-            ('ASN error!\n' 'ASN 错误！\n' 'You can use /login to retry.\n' '你可以使用 /login 重试。'),
+            (
+                'Input is invalid, please try again. Use /cancel to interrupt the operation.\n'
+                '输入无效，请重试。使用 /cancel 终止操作。'
+            ),
             reply_markup=ReplyKeyboardRemove(),
         )
+        bot.register_next_step_handler(msg, partial(login_input_asn, None))
     else:
         emails = get_email(asn)
 
@@ -99,7 +110,10 @@ def login_input_asn(exist_asn, message):
         markup.add(KeyboardButton('None of the above 以上都不是'))
         msg = bot.send_message(
             message.chat.id,
-            ('Select the email address to receive the verification code.\n' '选择接收验证码的邮箱。'),
+            (
+                'Select the email address to receive the verification code. Use /cancel to interrupt the operation.\n'
+                '选择接收验证码的邮箱。使用 /cancel 终止操作。'
+            ),
             reply_markup=markup,
         )
         bot.register_next_step_handler(msg, partial(login_choose_email, asn, emails, msg.message_id))
@@ -156,7 +170,7 @@ def login_choose_email(asn, emails, last_msg_id, message):
         reply_markup=ReplyKeyboardRemove(),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    code = tools.gen_random_code(32)
+    code = 'DN42_VERIFICATION_' + tools.gen_random_code(32)
     try:
         config.send_email(asn, tools.get_whoisinfo_by_asn(asn), code, message.text.strip())
     except RuntimeError:
