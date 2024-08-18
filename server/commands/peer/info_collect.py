@@ -320,8 +320,8 @@ def pre_request_linklocal(message, peer_info):
         (
             'Link-Local address detected. You can enter the address required on my side as needed, without `/L` suffix.\n'
             '检测到 Link-Local 地址。你可以按需输入所需的我这边的地址，不包含 `/L` 后缀。\n\n'
-            "If you don't know what this is, or don't need to specify it, select the option below.\n"
-            '如果你不知道这是什么，或者不需要指定，直接选择下方的选项。'
+            "Make modifications only if you know exactly what it is and are convinced it's needed, otherwise please directly select the option below.\n"
+            '仅在你明确知道这是什么并且确信有必要时再做出修改，否则请直接选择下方的选项。'
         ),
         parse_mode='Markdown',
         reply_markup=markup,
@@ -346,8 +346,8 @@ def post_request_linklocal(message, peer_info):
             (
                 'Invalid DN42 IPv6 Link-Local address, please try again. Use /cancel to interrupt the operation.\n'
                 '输入不是有效的 DN42 IPv6 Link-Local 地址，请重试。使用 /cancel 终止操作。\n\n'
-                "If you don't know what this is, or don't need to specify it, select the option below.\n"
-                '如果你不知道这是什么，或者不需要指定，直接选择下方的选项。'
+                "Make modifications only if you know exactly what it is and are convinced it's needed, otherwise please directly select the option below.\n"
+                '仅在你明确知道这是什么并且确信有必要时再做出修改，否则请直接选择下方的选项。'
             ),
             reply_markup=markup,
         )
@@ -703,7 +703,7 @@ def post_confirm(message, peer_info):
         else:
             api = f'{peer_info["Region"]}.{config.ENDPOINT}'
         r = requests.post(
-            f"http://{api}:{config.API_PORT}/peer",
+            f'http://{api}:{config.API_PORT}/peer',
             data=json.dumps(peer_info),
             headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
             timeout=10,
