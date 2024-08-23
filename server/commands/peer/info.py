@@ -95,6 +95,8 @@ def gen_info_markup(chatid, asn, node, available_node, session_name):
                 )
             else:
                 markup.row(InlineKeyboardButton(text=base.servers[node_name], callback_data=f'info_{asn}_{node_name}'))
+    else:
+        markup.row(InlineKeyboardButton(text='Refresh | 刷新', callback_data=f'info_{asn}_{node}'))
     if chatid in db_privilege and db[chatid] != asn:
         if not node:
             node = ''
