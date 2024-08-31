@@ -105,8 +105,8 @@ def restart_peer_choose(peered, chosen, message):
             '\n'
             f'`{base.servers[chosen]}`\n'
             '\n'
-            'Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
-            '确认无误请输入*大写* `yes`，所有其他输入表示取消操作。'
+            'Please enter `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
+            '确认无误请输入 `yes`，所有其他输入表示取消操作。'
         ),
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),

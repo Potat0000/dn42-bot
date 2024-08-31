@@ -364,8 +364,8 @@ def pre_confirm(message, peer_info):
             '请确认你的信息\n'
             '\n'
             f'```ComfirmInfo\n{diff_text}```\n'
-            'Please enter an *uppercase* `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
-            '确认无误请输入*大写* `yes`，所有其他输入表示取消操作。'
+            'Please enter `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
+            '确认无误请输入 `yes`，所有其他输入表示取消操作。'
         ),
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),

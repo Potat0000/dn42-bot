@@ -688,9 +688,7 @@ def post_confirm(message, peer_info):
     progress_type = peer_info.pop('ProgressType')
     info_text = peer_info.pop('InfoText')
     check_text = message.text.strip()
-    if progress_type == 'peer':
-        check_text = check_text.upper()
-    if check_text != 'YES':
+    if check_text.lower() != 'yes':
         bot.send_message(
             message.chat.id,
             'Current operation has been cancelled.\n当前操作已被取消。',
