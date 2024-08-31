@@ -215,6 +215,7 @@ def post_mpbgp_type(message, peer_info):
         return 'pre_enh', peer_info, message
     elif message.text.strip().lower() == 'ipv4':
         peer_info['MP-BGP'] = 'IPv4'
+        peer_info['ENH'] = None
         return 'pre_ipv6', peer_info, message
     else:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)

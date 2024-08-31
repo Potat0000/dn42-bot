@@ -53,7 +53,7 @@ def step_manage(next_step, peer_info, stop_sign, message):
         _call(getattr(info_collect, next_step))
 
 
-def get_diff_text(old_peer_info, peer_info, asn):
+def get_diff_text(old_peer_info, peer_info):
     diff_text = ''
 
     def diff_print(item, prefix=''):
@@ -171,10 +171,14 @@ def post_node_choose(message, peer_info, chosen=None):
         return 'post_node_choose', peer_info, msg
 
     raw_info = tools.get_info(db[message.chat.id])
-    if chosen not in raw_info or not isinstance(raw_info[chosen], dict):
+    if not isinstance(raw_info[chosen], dict):
         bot.send_message(
             message.chat.id,
-            f'Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}',
+            (
+                f'Error encountered! Please contact {config.CONTACT} the following error message\n'
+                f'遇到错误！请附带下属错误信息联系 {config.CONTACT}\n'
+                f'<code>{raw_info[chosen]}</code>'
+            ),
             parse_mode='HTML',
             reply_markup=ReplyKeyboardRemove(),
         )
@@ -267,7 +271,7 @@ def pre_action_choose(message, peer_info):
     markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
     markup.row(KeyboardButton('Finish modification'), KeyboardButton('Abort modification'))
 
-    diff_text = get_diff_text(peer_info['backup'], peer_info, db[message.chat.id])
+    diff_text = get_diff_text(peer_info['backup'], peer_info)
     msg = bot.send_message(
         message.chat.id,
         (
@@ -352,7 +356,7 @@ def pre_confirm(message, peer_info):
         )
         return
 
-    diff_text = get_diff_text(old_peer_info, peer_info, db[message.chat.id])
+    diff_text = get_diff_text(old_peer_info, peer_info)
     msg = bot.send_message(
         message.chat.id,
         (
