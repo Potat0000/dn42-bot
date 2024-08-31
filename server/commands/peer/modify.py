@@ -109,7 +109,7 @@ def init(message, peer_info):
         (
             'You will modify a peer with me through the following identity:\n'
             '你将通过以下身份修改一个与我的 Peer：\n'
-            f'<code>{tools.get_asn_mnt_text(db[message.chat.id])}</code>\n'
+            f'`{tools.get_asn_mnt_text(db[message.chat.id])}`\n'
             '\n'
             'If it is wrong, please use /cancel to interrupt the operation.\n'
             '如果有误请输入 /cancel 终止操作。\n'
@@ -117,7 +117,7 @@ def init(message, peer_info):
             f'Any problems with the modification process, please contact {config.CONTACT}\n'
             f'修改过程中产生任何问题，请联系 {config.CONTACT}'
         ),
-        parse_mode='HTML',
+        parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
     return 'pre_node_choose', peer_info, message
@@ -176,10 +176,12 @@ def post_node_choose(message, peer_info, chosen=None):
             message.chat.id,
             (
                 f'Error encountered! Please contact {config.CONTACT} the following error message\n'
-                f'遇到错误！请附带下属错误信息联系 {config.CONTACT}\n'
-                f'<code>{raw_info[chosen]}</code>'
+                f'遇到错误！请附带下述错误信息联系 {config.CONTACT}\n\n'
+                '```ErrorMsg\n'
+                f'{raw_info[chosen]}\n'
+                '```'
             ),
-            parse_mode='HTML',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -314,10 +316,10 @@ def post_action_choose(message, peer_info):
             bot.send_message(
                 message.chat.id,
                 (
-                    f'Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-migrated, please contact {config.CONTACT} for manual handling.\n'
-                    f'你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行转移，请联系 {config.CONTACT} 进行人工处理。'
+                    f'Your ASN is not in standard DN42 format (`AS424242xxxx`), so it cannot be auto-migrated, please contact {config.CONTACT} for manual handling.\n'
+                    f'你的 ASN 不是标准 DN42 格式 (`AS424242xxxx`)，因此无法进行转移，请联系 {config.CONTACT} 进行人工处理。'
                 ),
-                parse_mode='HTML',
+                parse_mode='Markdown',
                 reply_markup=ReplyKeyboardRemove(),
             )
             return

@@ -7,8 +7,8 @@ CONTACT = '@Potat00000'
 DN42_ASN = 4242421816
 
 WELCOME_TEXT = (
-    f"Hello, I'm the bot for Potat0's DN42 Network (<code>AS{DN42_ASN}</code>).\n"
-    f'你好，我是 Potat0 (<code>AS{DN42_ASN}</code>) 的 DN42 机器人。\n'
+    f"Hello, I'm the bot for Potat0's DN42 Network (`AS{DN42_ASN}`).\n"
+    f'你好，我是 Potat0 (`AS{DN42_ASN}`) 的 DN42 机器人。\n'
     '\n'
     'For more information, please check: 更多信息请查看：\n'
     'https://dn42.potat0.cc/\n'

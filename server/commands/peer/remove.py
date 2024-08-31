@@ -30,7 +30,7 @@ def remove_peer(message):
         (
             'You will remove a peer with me through the following identity:\n'
             '你将通过以下身份删除一个与我的 Peer：\n'
-            f'<code>{tools.get_asn_mnt_text(db[message.chat.id])}</code>\n'
+            f'`{tools.get_asn_mnt_text(db[message.chat.id])}`\n'
             '\n'
             'If it is wrong, please use /cancel to interrupt the operation.\n'
             '如果有误请输入 /cancel 终止操作。\n'
@@ -38,7 +38,7 @@ def remove_peer(message):
             f'Any problems with the removal process, please contact {config.CONTACT}\n'
             f'删除过程中产生任何问题，请联系 {config.CONTACT}'
         ),
-        parse_mode='HTML',
+        parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
 
@@ -113,17 +113,17 @@ def remove_peer_choose(removable, chosen, message):
         bot.send_message(
             message.chat.id,
             (
-                f'Peer information with <code>{base.servers[chosen]}</code> will be deleted (including BGP Sessions and WireGuard tunnels).\n'
-                f'将要删除与 <code>{base.servers[chosen]}</code> 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n\n'
+                f'Peer information with `{base.servers[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels).\n'
+                f'将要删除与 `{base.servers[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n\n'
                 'If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n'
                 '如果你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。\n\n'
-                '<b>Attention 注意</b>\n\n'
-                'Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-peered\n'
-                '你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行 AutoPeer\n'
+                '**Attention 注意**\n\n'
+                'Your ASN is not in standard DN42 format (`AS424242xxxx`), so it cannot be auto-peered\n'
+                '你的 ASN 不是标准 DN42 格式 (`AS424242xxxx`)，因此无法进行 AutoPeer\n'
                 f'After deleting peer information, you need to contact {config.CONTACT} for manual operation if you need to re-peer.\n'
                 f'删除 Peer 信息后，如需重新 Peer，需要联系 {config.CONTACT} 进行人工操作。'
             ),
-            parse_mode='HTML',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
     msg = bot.send_message(
@@ -165,7 +165,7 @@ def remove_peer_confirm(code, region, message):
                     f'Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n'
                     f'遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}'
                 ),
-                parse_mode='HTML',
+                parse_mode='Markdown',
                 reply_markup=ReplyKeyboardRemove(),
             )
             return
@@ -191,7 +191,7 @@ def remove_peer_confirm(code, region, message):
                     f'Contact {config.CONTACT} if you need to re-peer.\n'
                     f'如需重新 Peer 请联系 {config.CONTACT}'
                 ),
-                parse_mode='HTML',
+                parse_mode='Markdown',
                 reply_markup=ReplyKeyboardRemove(),
             )
         for i in db_privilege - {message.chat.id}:

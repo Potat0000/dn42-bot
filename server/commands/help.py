@@ -19,7 +19,7 @@ def send_welcome(message):
             f"When something unexpected happens or the bot can't meet your needs, please contact {config.CONTACT}\n"
             f'当出现了什么意料之外的，或者机器人无法满足你的需求，请联系 {config.CONTACT}'
         ),
-        parse_mode='HTML',
+        parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
     bot.send_message(

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import pickle
+import re
 import time
 
 import base
+import commands  # noqa: F401
 import config
 import sentry_sdk
 import telebot
@@ -14,8 +16,6 @@ from base import bot, db, db_privilege
 from pytz import utc
 from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import BotCommandScopeAllPrivateChats, ReplyKeyboardRemove
-
-import commands  # noqa: F401
 
 
 class IsPrivateChat(telebot.custom_filters.SimpleCustomFilter):
@@ -96,7 +96,7 @@ class MyMiddleware(BaseMiddleware):
             bot.send_message(
                 message.chat.id,
                 f'Error encountered! Please contact {config.CONTACT}\n遇到错误！请联系 {config.CONTACT}',
-                parse_mode='HTML',
+                parse_mode='Markdown',
                 reply_markup=ReplyKeyboardRemove(),
             )
         try:
@@ -109,6 +109,8 @@ class MyMiddleware(BaseMiddleware):
         except BaseException:
             pass
 
+
+config.CONTACT = re.sub(f'([{re.escape(r"_*`[")}])', r'\\\1', config.CONTACT)
 
 if config.SENTRY_DSN:
     sentry_sdk.init(

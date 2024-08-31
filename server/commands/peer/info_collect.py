@@ -442,7 +442,7 @@ def pre_clearnet(message, peer_info):
             '请输入你用于 WireGurad 隧道的公网地址，不包含端口。\n\n'
             f'{msg}'
         ),
-        parse_mode='HTML',
+        parse_mode='Markdown',
         reply_markup=markup,
     )
     return 'post_clearnet', peer_info, msg
@@ -507,7 +507,7 @@ def post_clearnet(message, peer_info):
                     '使用 /cancel 终止操作。'
                 ),
                 reply_markup=ReplyKeyboardRemove(),
-                parse_mode='HTML',
+                parse_mode='Markdown',
             )
             return 'post_clearnet', peer_info, msg
         else:
@@ -726,7 +726,7 @@ def post_confirm(message, peer_info):
                 f'Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n'
                 f'遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}'
             ),
-            parse_mode='HTML',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return

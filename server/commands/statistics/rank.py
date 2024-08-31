@@ -61,7 +61,7 @@ def get_rank_text(page, rank_type):
             msg += f'\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:.{5 - len(str(int(value)))}f}'
         else:
             msg += f'\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:>6}'
-    return f'```Rank\n{msg}\n```', 'Markdown'
+    return f'```Rank\n{msg}\n```'
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('rank_'))
@@ -71,8 +71,8 @@ def rank_callback_query(call):
     rank_text = get_rank_text(*choice)
     try:
         bot.edit_message_text(
-            rank_text[0],
-            parse_mode=rank_text[1],
+            rank_text,
+            parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             reply_markup=gen_rank_markup(*choice),
@@ -92,6 +92,4 @@ def get_rank(message):
     except (ValueError, IndexError):
         init_arg = (0, 'centrality')
         rank_text = get_rank_text(*init_arg)
-        bot.send_message(
-            message.chat.id, rank_text[0], parse_mode=rank_text[1], reply_markup=gen_rank_markup(*init_arg)
-        )
+        bot.send_message(message.chat.id, rank_text, parse_mode='Markdown', reply_markup=gen_rank_markup(*init_arg))

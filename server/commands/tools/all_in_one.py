@@ -122,7 +122,7 @@ def generaltest(message):
         bot.send_message(
             message.chat.id,
             f'No available nodes. Please contact {config.CONTACT}\n当前无可用节点，请联系 {config.CONTACT}',
-            parse_mode='HTML',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return

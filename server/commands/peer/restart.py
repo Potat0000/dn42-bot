@@ -30,7 +30,7 @@ def restart_peer(message):
         (
             'You will restart a peer with me through the following identity:\n'
             '你将通过以下身份重启一个与我的 Peer：\n'
-            f'<code>{tools.get_asn_mnt_text(db[message.chat.id])}</code>\n'
+            f'`{tools.get_asn_mnt_text(db[message.chat.id])}`\n'
             '\n'
             'If it is wrong, please use /cancel to interrupt the operation.\n'
             '如果有误请输入 /cancel 终止操作。\n'
@@ -38,7 +38,7 @@ def restart_peer(message):
             f'Any problems with the restarting process, please contact {config.CONTACT}\n'
             f'删除过程中产生任何问题，请联系 {config.CONTACT}'
         ),
-        parse_mode='HTML',
+        parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
 
@@ -142,7 +142,7 @@ def restart_peer_confirm(region, message):
                 f'Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n'
                 f'遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}'
             ),
-            parse_mode='HTML',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return

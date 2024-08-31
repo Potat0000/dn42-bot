@@ -66,10 +66,10 @@ def init(message, peer_info):
         bot.send_message(
             message.chat.id,
             (
-                f'Your ASN is not in standard DN42 format (<code>AS424242xxxx</code>), so it cannot be auto-peered, please contact {config.CONTACT} for manual peer.\n'
-                f'你的 ASN 不是标准 DN42 格式 (<code>AS424242xxxx</code>)，因此无法进行 AutoPeer，请联系 {config.CONTACT} 进行人工 Peer。'
+                f'Your ASN is not in standard DN42 format (`AS424242xxxx`), so it cannot be auto-peered, please contact {config.CONTACT} for manual peer.\n'
+                f'你的 ASN 不是标准 DN42 格式 (`AS424242xxxx`)，因此无法进行 AutoPeer，请联系 {config.CONTACT} 进行人工 Peer。'
             ),
-            parse_mode='HTML',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -91,7 +91,7 @@ def init(message, peer_info):
         (
             'You will create a peer with me through the following identity:\n'
             '你将通过以下身份创建一个与我的 Peer：\n'
-            f'<code>{tools.get_asn_mnt_text(db[message.chat.id])}</code>\n'
+            f'`{tools.get_asn_mnt_text(db[message.chat.id])}`\n'
             '\n'
             'If it is wrong, please use /cancel to interrupt the operation.\n'
             '如果有误请输入 /cancel 终止操作。\n'
@@ -99,7 +99,7 @@ def init(message, peer_info):
             f'Any problems with the creation process, please contact {config.CONTACT}\n'
             f'创建过程中产生任何问题，请联系 {config.CONTACT}'
         ),
-        parse_mode='HTML',
+        parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
     peer_info['ASN'] = db[message.chat.id]

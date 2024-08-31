@@ -76,7 +76,7 @@ def get_route_stats_text(ip_ver, simple, node):
             msg += f'updated {time_delta}s ago'.rjust(max_len) + '\n\n'
             msg += 'No data available.'.center(max_len) + '\n'
             msg += '暂无数据。'.center(max_len)
-        return f'```RouteStatistics\n{msg}\n```', 'Markdown'
+        return f'```RouteStatistics\n{msg}\n```'
     else:
         return (
             f'Error encountered! Please contact {config.CONTACT} with the following information:\n'
@@ -84,7 +84,7 @@ def get_route_stats_text(ip_ver, simple, node):
             '```ErrorMsg\n'
             f'{data[node]}\n'
             '```'
-        ), 'HTML'
+        )
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('stats_'))
@@ -94,8 +94,8 @@ def stats_callback_query(call):
     stats_text = get_route_stats_text(*choice)
     try:
         bot.edit_message_text(
-            stats_text[0],
-            parse_mode=stats_text[1],
+            stats_text,
+            parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             reply_markup=gen_stats_markup(*choice),
@@ -108,4 +108,4 @@ def stats_callback_query(call):
 def get_route_stats(message):
     init_arg = ('4', False, list(base.servers.keys())[0])
     stats_text = get_route_stats_text(*init_arg)
-    bot.send_message(message.chat.id, stats_text[0], parse_mode=stats_text[1], reply_markup=gen_stats_markup(*init_arg))
+    bot.send_message(message.chat.id, stats_text, parse_mode='Markdown', reply_markup=gen_stats_markup(*init_arg))

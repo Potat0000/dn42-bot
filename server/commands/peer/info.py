@@ -115,11 +115,11 @@ def get_info_text(chatid, asn, node):
         markup.row(
             InlineKeyboardButton(text='Login now | 立即登录', url=f'https://t.me/{bot.get_me().username}?start=login')
         )
-        return 'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login', None, markup
+        return 'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login', markup
     elif asn and asn != db[chatid] and chatid not in db_privilege:
         markup = InlineKeyboardMarkup()
         markup.row(InlineKeyboardButton(text='Show my info | 显示我的信息', callback_data=f'info_{db[chatid]}_'))
-        return 'You are not allowed to view information of other ASN.\n你无权查看其他 ASN 的信息。', None, markup
+        return 'You are not allowed to view information of other ASN.\n你无权查看其他 ASN 的信息。', markup
     elif not asn:
         asn = db[chatid]
     all_peers = tools.get_info(asn)
@@ -132,7 +132,6 @@ def get_info_text(chatid, asn, node):
             )
             return (
                 'You are not peer with me yet, you can use /peer to start.\n你还没有与我 Peer，可以使用 /peer 开始。',
-                None,
                 markup,
             )
         else:
@@ -140,7 +139,6 @@ def get_info_text(chatid, asn, node):
                 '*[Privilege]*\n'
                 'This user has no peer at the moment, may have been deleted already.\n'
                 '该用户目前无 Peer，可能已经被对方删除',
-                'Markdown',
                 None,
             )
     if not node:
@@ -149,14 +147,12 @@ def get_info_text(chatid, asn, node):
         else:
             return (
                 'Select an available node from the list below to get information\n从下方列表中选择一个可用节点以获取信息',
-                None,
                 gen_info_markup(chatid, asn, '', available_node, []),
             )
 
     if node not in all_peers:
         return (
             'Node does not exist, please select another available node\n节点不存在，请选择其他可用节点',
-            None,
             gen_info_markup(chatid, asn, '', available_node, []),
         )
 
@@ -167,9 +163,8 @@ def get_info_text(chatid, asn, node):
                 f'{base.servers[node]}:\n'
                 f'Error occurred. Please contact {config.CONTACT} with following message.\n'
                 f'遇到错误。请联系 {config.CONTACT} 并附带下述结果。\n'
-                f'<code>{peer_info}</code>'
+                f'`{peer_info}`'
             ),
-            'HTML',
             gen_info_markup(chatid, asn, '', available_node, []),
         )
 
@@ -237,7 +232,6 @@ def get_info_text(chatid, asn, node):
 
     return (
         f'```Info\n{detail_text.strip()}```',
-        'Markdown',
         gen_info_markup(chatid, asn, node, available_node, peer_info['session_name']),
     )
 
@@ -249,10 +243,10 @@ def info_callback_query(call):
     try:
         bot.edit_message_text(
             info_text[0],
-            parse_mode=info_text[1],
+            parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=info_text[2],
+            reply_markup=info_text[1],
         )
     except BaseException:
         pass
@@ -267,4 +261,4 @@ def get_info(message, asn=None, node=None):
             if t[1].upper().startswith('AS') and t[1][2:].isdigit():
                 asn = int(t[1][2:])
     info_text = get_info_text(message.chat.id, asn, node)
-    bot.send_message(message.chat.id, info_text[0], parse_mode=info_text[1], reply_markup=info_text[2])
+    bot.send_message(message.chat.id, info_text[0], parse_mode='Markdown', reply_markup=info_text[1])
