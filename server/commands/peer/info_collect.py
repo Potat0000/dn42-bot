@@ -149,10 +149,12 @@ def post_session_type(message, peer_info):
     elif message.text.strip().lower() == 'ipv6 only' or message.text.strip().lower() == 'ipv6':
         peer_info['Channel'] = 'IPv6 only'
         peer_info['MP-BGP'] = 'Not supported'
+        peer_info['ENH'] = None
         return 'pre_ipv6', peer_info, message
     elif message.text.strip().lower() == 'ipv4 only' or message.text.strip().lower() == 'ipv4':
         peer_info['Channel'] = 'IPv4 only'
         peer_info['MP-BGP'] = 'Not supported'
+        peer_info['ENH'] = None
         peer_info['IPv6'] = 'Not enabled'
         return 'pre_ipv4', peer_info, message
     else:
@@ -184,6 +186,7 @@ def post_mpbgp_support(message, peer_info):
         return 'pre_mpbgp_type', peer_info, message
     elif message.text.strip().lower() == 'no':
         peer_info['MP-BGP'] = 'Not supported'
+        peer_info['ENH'] = None
         return 'pre_ipv6', peer_info, message
     else:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
