@@ -87,7 +87,7 @@ def gen_info_markup(chatid, asn, node, available_node, session_name):
             markup.row(
                 InlineKeyboardButton(text='Looking Glass', url=f'{config.LG_DOMAIN}/detail/{node}/{session_name[0]}')
             )
-    if len(available_node) >= 2:
+    if len(available_node) != 1:
         for node_name in available_node:
             if node_name == node:
                 markup.row(
