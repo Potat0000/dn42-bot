@@ -115,7 +115,7 @@ def restart_peer_choose(peered, chosen, message):
 
 
 def restart_peer_confirm(region, message):
-    if message.text.strip() != 'YES':
+    if message.text.strip().lower() != 'yes':
         bot.send_message(
             message.chat.id,
             'Current operation has been cancelled.\n当前操作已被取消。',
