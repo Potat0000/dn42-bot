@@ -219,6 +219,18 @@ def post_node_choose(message, peer_info, chosen=None):
         elif raw_info['session'] == 'IPv4 Session with IPv6 & IPv4 Channels':
             peer_info['MP-BGP'] = 'IPv4'
     peer_info['backup'] = peer_info.copy()
+    diff_text = get_diff_text(peer_info['backup'], peer_info)
+    bot.send_message(
+        message.chat.id,
+        (
+            'Current information is as follows\n'
+            '当前信息如下\n'
+            '\n'
+            f'```CurrentInfo\n{diff_text}```\n'
+        ),
+        parse_mode='Markdown',
+        reply_markup=ReplyKeyboardRemove(),
+    )
     return 'pre_first_action_choose', peer_info, message
 
 
