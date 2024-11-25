@@ -273,8 +273,8 @@ def pre_ipv6(message, peer_info):
     msg = bot.send_message(
         message.chat.id,
         (
-            'Input your DN42 IPv6 address, without `/L` suffix.\n'
-            '请输入你的 DN42 IPv6 地址，不包含 `/L` 后缀。\n'
+            'Input your DN42 IPv6 address.\n'
+            '请输入你的 DN42 IPv6 地址。\n'
             '\n'
             'Both Link-Local and ULA address are support. Link-Local is preferred for Bird users while ULA is preferred for other BGP clients.\n'
             'Link-Local 和 ULA 地址均支持。Bird 用户首选 Link-Local，其他 BGP 客户端首选 ULA。'
@@ -286,9 +286,16 @@ def pre_ipv6(message, peer_info):
 
 
 def post_ipv6(message, peer_info):
+    msg = message.text.strip()
+    if '/' in msg:
+        try:
+            int(msg.rsplit('/', 1)[1])
+            msg = msg.rsplit('/', 1)[0]
+        except ValueError:
+            pass
     try:  # Test for IPv6
-        socket.inet_pton(socket.AF_INET6, message.text.strip())
-        if IP(message.text.strip()) not in IP('fc00::/7') and IP(message.text.strip()) not in IP('fe80::/64'):
+        socket.inet_pton(socket.AF_INET6, msg)
+        if IP(msg) not in IP('fc00::/7') and IP(msg) not in IP('fe80::/64'):
             raise ValueError
     except (socket.error, OSError, ValueError):
         msg = bot.send_message(
@@ -300,8 +307,8 @@ def post_ipv6(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return 'post_ipv6', peer_info, msg
-    peer_info['IPv6'] = message.text.strip()
-    if IP(message.text.strip()) in IP('fe80::/64'):
+    peer_info['IPv6'] = msg
+    if IP(peer_info['IPv6']) in IP('fe80::/64'):
         return 'pre_request_linklocal', peer_info, message
     else:
         peer_info['Request-LinkLocal'] = 'Not required due to not use LLA as IPv6'
@@ -322,8 +329,8 @@ def pre_request_linklocal(message, peer_info):
     msg = bot.send_message(
         message.chat.id,
         (
-            'Link-Local address detected. You can enter the address required on my side as needed, without `/L` suffix.\n'
-            '检测到 Link-Local 地址。你可以按需输入所需的我这边的地址，不包含 `/L` 后缀。\n\n'
+            'Link-Local address detected. You can enter the address required on my side as needed.\n'
+            '检测到 Link-Local 地址。你可以按需输入所需的我这边的地址。\n\n'
             "Make modifications only if you know exactly what it is and are convinced it's needed, otherwise please directly select the option below.\n"
             '仅在你明确知道这是什么并且确信有必要时再做出修改，否则请直接选择下方的选项。'
         ),
@@ -334,9 +341,16 @@ def pre_request_linklocal(message, peer_info):
 
 
 def post_request_linklocal(message, peer_info):
+    msg = message.text.strip()
+    if '/' in msg:
+        try:
+            int(msg.rsplit('/', 1)[1])
+            msg = msg.rsplit('/', 1)[0]
+        except ValueError:
+            pass
     try:  # Test for IPv6
-        socket.inet_pton(socket.AF_INET6, message.text.strip())
-        if IP(message.text.strip()) not in IP('fe80::/64'):
+        socket.inet_pton(socket.AF_INET6, msg)
+        if IP(msg) not in IP('fe80::/64'):
             raise ValueError
     except (socket.error, OSError, ValueError):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -356,7 +370,7 @@ def post_request_linklocal(message, peer_info):
             reply_markup=markup,
         )
         return 'post_request_linklocal', peer_info, msg
-    peer_info['Request-LinkLocal'] = message.text.strip()
+    peer_info['Request-LinkLocal'] = msg
     if peer_info['Channel'] == 'IPv6 & IPv4' and peer_info['ENH'] is not True:
         return 'pre_ipv4', peer_info, message
     else:
@@ -373,7 +387,7 @@ def pre_ipv4(message, peer_info):
         markup = ReplyKeyboardRemove()
     msg = bot.send_message(
         message.chat.id,
-        ('Input your DN42 IPv4 address, without `/L` suffix.\n' '请输入你的 DN42 IPv4 地址，不包含 `/L` 后缀。'),
+        ('Input your DN42 IPv4 address.\n' '请输入你的 DN42 IPv4 地址。'),
         parse_mode='Markdown',
         reply_markup=markup,
     )
@@ -381,9 +395,16 @@ def pre_ipv4(message, peer_info):
 
 
 def post_ipv4(message, peer_info):
+    msg = message.text.strip()
+    if '/' in msg:
+        try:
+            int(msg.rsplit('/', 1)[1])
+            msg = msg.rsplit('/', 1)[0]
+        except ValueError:
+            pass
     try:  # Test for IPv4
-        socket.inet_pton(socket.AF_INET, message.text.strip())
-        if IP(message.text.strip()) not in IP('172.20.0.0/14'):
+        socket.inet_pton(socket.AF_INET, msg)
+        if IP(msg) not in IP('172.20.0.0/14'):
             raise ValueError
     except (socket.error, OSError, ValueError):
         msg = bot.send_message(
@@ -395,7 +416,7 @@ def post_ipv4(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return 'post_ipv4', peer_info, msg
-    peer_info['IPv4'] = message.text.strip()
+    peer_info['IPv4'] = msg
     return 'pre_clearnet', peer_info, message
 
 
@@ -440,11 +461,7 @@ def pre_clearnet(message, peer_info):
             )
     msg = bot.send_message(
         message.chat.id,
-        (
-            'Input your clearnet address for WireGuard tunnel, without port.\n'
-            '请输入你用于 WireGurad 隧道的公网地址，不包含端口。\n\n'
-            f'{msg}'
-        ),
+        ('Input your clearnet address for WireGuard tunnel.\n' '请输入你用于 WireGurad 隧道的公网地址。\n\n' f'{msg}'),
         parse_mode='Markdown',
         reply_markup=markup,
     )
@@ -465,8 +482,28 @@ def post_clearnet(message, peer_info):
         else:
             return 'pre_pubkey', peer_info, message
 
+    if ':' in message.text.strip():
+        domain_part, port_part = message.text.strip().rsplit(':', 1)
+        try:
+            assert ':' not in domain_part
+            assert 0 < int(port_part) <= 65535
+            peer_info['ClearnetPort'] = port_part
+            bot.send_message(
+                message.chat.id,
+                f'Port number `{port_part}` detected, automatically separated.\n'
+                f'识别到端口号 `{port_part}`，已自动分离。\n\n'
+                f'If this is not the correct port number, please try to restart the process, do not include the port number here, and contact {config.CONTACT} for help to improve the recognition accuracy.\n'
+                f'识别可能有误。如果这不是正确的端口号，请尝试重新开始流程，在此处输入时不要包含端口号，并联系 {config.CONTACT} 以帮助提升识别准确性。\n',
+                parse_mode='Markdown',
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        except (ValueError, AssertionError):
+            pass
+    else:
+        domain_part = message.text.strip()
+
     msg = None
-    if test_result := tools.test_ip_domain(message.text.strip()):
+    if test_result := tools.test_ip_domain(domain_part):
         if test_result.clearnet:
             if (test_result.ipv4 and not test_result.ipv6) and not peer_info['Net_Support']['ipv4']:
                 msg = 'IPv4 is not supported on this node', '该节点不支持IPv4'
@@ -488,7 +525,7 @@ def post_clearnet(message, peer_info):
                     )
                 if not msg:
                     peer_info['Clearnet'] = test_result.raw
-                    if all(i in '0123456789ABCDEFabcdef:' for i in message.text.strip()):
+                    if all(i in '0123456789ABCDEFabcdef:' for i in peer_info['Clearnet']):
                         peer_info['Clearnet'] = f"[{peer_info['Clearnet']}]"
         else:
             msg = 'Invalid or unreachable clearnet address', '输入不是有效的公网地址或该地址不可达'
@@ -526,7 +563,7 @@ def post_clearnet(message, peer_info):
                 parse_mode='Markdown',
                 reply_markup=ReplyKeyboardRemove(),
             )
-            peer_info['Clearnet'] = message.text.strip()
+            peer_info['Clearnet'] = domain_part
     return 'pre_clearnet_port', peer_info, message
 
 
@@ -535,6 +572,8 @@ def pre_clearnet_port(message, peer_info):
     markup.row_width = 1
     if port := peer_info.pop('ClearnetPort', None):
         markup.add(KeyboardButton(port))
+        if port != str(config.DN42_ASN % 100000):
+            markup.add(KeyboardButton(str(config.DN42_ASN % 100000)))
     else:
         markup.add(KeyboardButton(str(config.DN42_ASN % 100000)))
     msg = bot.send_message(

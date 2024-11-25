@@ -317,6 +317,7 @@ def post_action_choose(message, peer_info):
         markup.row(KeyboardButton('Region'), KeyboardButton('Clearnet Endpoint'))
         markup.row(KeyboardButton('Session Type'), KeyboardButton('WireGuard PublicKey'))
         markup.row(KeyboardButton('DN42 IP'), KeyboardButton('Contact'))
+        markup.row(KeyboardButton('Finish modification'), KeyboardButton('Abort modification'))
         msg = bot.send_message(
             message.chat.id,
             ('Invalid input, please try again. Use /cancel to interrupt the operation.\n' '输入不正确，请重试。使用 /cancel 终止操作。'),
