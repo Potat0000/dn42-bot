@@ -63,14 +63,13 @@ def start_login(message):
     if len(message.text.split()) == 2:
         asn = message.text.split()[1]
         try:
+            if asn.upper().startswith('AS'):
+                asn = asn[2:]
             asn = int(asn)
             login_input_asn(asn, message)
             return
         except ValueError:
-            if asn.upper().startswith('AS') and asn[2:].isdigit():
-                asn = int(asn[2:])
-                login_input_asn(asn, message)
-                return
+            pass
     msg = bot.send_message(
         message.chat.id,
         'Enter your ASN\n请输入你的 ASN',
@@ -89,6 +88,8 @@ def login_input_asn(exist_asn, message):
         )
         return
     try:
+        if raw.upper().startswith('AS'):
+            raw = raw[2:]
         asn = int(raw)
     except ValueError:
         msg = bot.send_message(

@@ -256,9 +256,11 @@ def info_callback_query(call):
 def get_info(message, asn=None, node=None):
     if not asn and message.chat.id in db_privilege and len(t := message.text.split()) == 2:
         try:
-            asn = int(t[1])
+            asn = t[1]
+            if asn.upper().startswith('AS'):
+                asn = int(asn[2:])
+            asn = int(asn)
         except ValueError:
-            if t[1].upper().startswith('AS') and t[1][2:].isdigit():
-                asn = int(t[1][2:])
+            asn = None
     info_text = get_info_text(message.chat.id, asn, node)
     bot.send_message(message.chat.id, info_text[0], parse_mode='Markdown', reply_markup=info_text[1])

@@ -21,15 +21,14 @@ def whoami(message, new_asn=None, info_node=None):
             new_asn = message.text.split()[1]
         if new_asn:
             try:
-                db[message.chat.id] = int(new_asn)
+                if new_asn.upper().startswith('AS'):
+                    new_asn = new_asn[2:]
+                new_asn = int(new_asn)
+                db[message.chat.id] = new_asn
                 with open('./user_db.pkl', 'wb') as f:
                     pickle.dump((db, db_privilege), f)
             except ValueError:
-                if new_asn.upper().startswith('AS') and new_asn[2:].isdigit():
-                    new_asn = new_asn[2:]
-                    db[message.chat.id] = int(new_asn)
-                    with open('./user_db.pkl', 'wb') as f:
-                        pickle.dump((db, db_privilege), f)
+                pass
             if not info_node:
                 info_node = ''
             markup = InlineKeyboardMarkup()

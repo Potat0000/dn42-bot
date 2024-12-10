@@ -53,7 +53,10 @@ def get_stats(asn):
 @bot.message_handler(commands=['stats'])
 def stats(message):
     try:
-        asn = int(message.text.split()[1])
+        asn = message.text.split()[1]
+        if asn.upper().startswith('AS'):
+            asn = asn[2:]
+        asn = int(asn)
     except (ValueError, IndexError):
         if message.chat.type == 'private' and message.chat.id in db:
             asn = db[message.chat.id]
