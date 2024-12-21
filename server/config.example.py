@@ -22,7 +22,7 @@ ALLOW_NO_CLEARNET = True
 ENDPOINT = 'dn42.domain.tld'  # Also used for tunnel
 API_PORT = 54321
 API_TOKEN = 'secret_token'
-SERVER = {
+SERVERS = {
     'las': 'LAS | Las Vegas, USA | BuyVM',
     'hkg': 'HKG | Hong Kong | Skywolf',
     'trf': 'TRF | Sandefjord, Norway | Gigahost',

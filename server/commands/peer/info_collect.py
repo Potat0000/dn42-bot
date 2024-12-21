@@ -23,8 +23,8 @@ def pre_region(message, peer_info):
     could_peer = []
     msg = ''
     peer_info['Region'] = {}
-    for k in config.SERVER:
-        msg += f'- `{config.SERVER[k]}`\n'
+    for k in config.SERVERS:
+        msg += f'- `{config.SERVERS[k]}`\n'
         try:
             v = pre_peer_info[k]
         except KeyError:

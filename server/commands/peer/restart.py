@@ -42,7 +42,7 @@ def restart_peer(message):
         reply_markup=ReplyKeyboardRemove(),
     )
 
-    if offline_servers := set(config.SERVER.values()) - set(base.servers.values()):
+    if offline_servers := set(config.SERVERS.values()) - set(base.servers.values()):
         msg = 'The following servers are currently offline, please try again later:\n以下服务器目前处于离线状态，如有需要请稍后再试：'
         for i in offline_servers:
             msg += f'\n`{i}`'
