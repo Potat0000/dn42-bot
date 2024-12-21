@@ -23,14 +23,19 @@ def pre_region(message, peer_info):
     could_peer = []
     msg = ''
     peer_info['Region'] = {}
-    for k, v in pre_peer_info.items():
-        msg += f'- `{base.servers[k]}`\n'
+    for k in config.SERVER:
+        msg += f'- `{config.SERVER[k]}`\n'
+        try:
+            v = pre_peer_info[k]
+        except KeyError:
+            msg += '  Server offline, please try again later.\n' '  服务器离线，请稍后重试。\n\n'
+            continue
         try:
             if v.status != 200:
                 raise RuntimeError
             data = json.loads(v.text)
         except BaseException:
-            msg += '  `Server error, please try again later.`\n' '  `服务器错误，请稍后重试。`\n\n'
+            msg += '  Server error, please try again later.\n' '  服务器错误，请稍后重试。\n\n'
             continue
         if 'backup' in peer_info and peer_info['backup']['Region'] == k:
             msg += '  ℹ️ Current Node\n'
@@ -775,7 +780,12 @@ def post_confirm(message, peer_info):
     if progress_type == 'peer':
         msg_text = 'Peer has been created\nPeer 已建立'
     elif progress_type == 'modify':
-        msg_text = 'Peer information has been modified\nPeer 信息已修改'
+        msg_text = (
+            'Peer information has been modified\n'
+            'Peer 信息已修改\n\n'
+            'Try /restart if any problem occurs\n'
+            '若遇到问题可先尝试使用 /restart 命令重启'
+        )
     markup = InlineKeyboardMarkup()
     markup.row_width = 1
     markup.add(

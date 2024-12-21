@@ -120,7 +120,7 @@ if config.SENTRY_DSN:
 
 tools.update_china_ip()
 tools.update_as_route_table()
-tools.servers_check()
+tools.servers_check(startup=True)
 try:
     with open('./rank.pkl', 'rb') as f:
         tools.get_map(update=pickle.load(f))

@@ -61,7 +61,6 @@ def init(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    could_peer = set(base.servers.keys()) - set(tools.get_info(db[message.chat.id]).keys())
     if (db[message.chat.id] // 10000 != 424242) and (message.chat.id not in db_privilege):
         bot.send_message(
             message.chat.id,
@@ -73,6 +72,7 @@ def init(message, peer_info):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
+    could_peer = set(base.servers.keys()) - set(tools.get_info(db[message.chat.id]).keys())
     if not could_peer:
         bot.send_message(
             message.chat.id,

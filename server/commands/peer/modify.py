@@ -124,6 +124,16 @@ def init(message, peer_info):
 
 
 def pre_node_choose(message, peer_info):
+    if offline_servers := set(config.SERVER.values()) - set(base.servers.values()):
+        msg = 'The following servers are currently offline, please try again later:\n以下服务器目前处于离线状态，如有需要请稍后再试：'
+        for i in offline_servers:
+            msg += f'\n`{i}`'
+        bot.send_message(
+            message.chat.id,
+            msg,
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
     if len(peer_info) == 1:
         could_chosen = base.servers[list(peer_info.keys())[0]]
         bot.send_message(
@@ -222,12 +232,7 @@ def post_node_choose(message, peer_info, chosen=None):
     diff_text = get_diff_text(peer_info['backup'], peer_info)
     bot.send_message(
         message.chat.id,
-        (
-            'Current information is as follows\n'
-            '当前信息如下\n'
-            '\n'
-            f'```CurrentInfo\n{diff_text}```\n'
-        ),
+        ('Current information is as follows\n' '当前信息如下\n' '\n' f'```CurrentInfo\n{diff_text}```\n'),
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )

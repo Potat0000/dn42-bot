@@ -4,10 +4,14 @@ from telebot.types import ReplyKeyboardRemove
 from tools.tools import get_from_agent
 
 
-def servers_check():
+def servers_check(startup=False):
     offline_node = []
     old_node = []
-    for k, v in get_from_agent('version', None, config.SERVER.keys(), backoff_factor=1).items():
+    if startup:
+        nodes = get_from_agent('version', None, config.SERVER.keys(), retry=0)
+    else:
+        nodes = get_from_agent('version', None, config.SERVER.keys(), backoff_factor=1)
+    for k, v in nodes.items():
         if v.status != 200:
             offline_node.append(k)
         elif int(v.text) < base.MIN_AGENT_VERSION:

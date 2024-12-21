@@ -6,7 +6,7 @@ import config
 import tools
 from base import bot, db, db_privilege
 from IPy import IP
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 
 # https://stackoverflow.com/a/14822210
@@ -254,6 +254,16 @@ def info_callback_query(call):
 
 @bot.message_handler(commands=['info'], is_private_chat=True)
 def get_info(message, asn=None, node=None):
+    if offline_servers := set(config.SERVER.values()) - set(base.servers.values()):
+        msg = 'The following servers are currently offline, please try again later:\n以下服务器目前处于离线状态，如有需要请稍后再试：'
+        for i in offline_servers:
+            msg += f'\n`{i}`'
+        bot.send_message(
+            message.chat.id,
+            msg,
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
     if not asn and message.chat.id in db_privilege and len(t := message.text.split()) == 2:
         try:
             asn = t[1]

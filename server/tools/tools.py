@@ -261,7 +261,7 @@ def gen_peer_me_markup(message):
     return markup
 
 
-def get_from_agent(type, data, server=None, *, timeout=10, backoff_factor=0.1):
+def get_from_agent(type, data, server=None, *, timeout=10, retry=5, backoff_factor=0.1):
     api_result = namedtuple('api_result', ['text', 'status'])
     if not server:
         server = base.servers.keys()
@@ -270,7 +270,7 @@ def get_from_agent(type, data, server=None, *, timeout=10, backoff_factor=0.1):
         'http://',
         HTTPAdapter(
             max_retries=Retry(
-                total=5,
+                total=retry,
                 backoff_factor=backoff_factor,
                 allowed_methods=('GET', 'POST'),
             )
