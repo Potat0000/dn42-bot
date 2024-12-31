@@ -65,7 +65,7 @@ def start_login(message):
         try:
             if asn.upper().startswith('AS'):
                 asn = asn[2:]
-            asn = int(asn)
+            int(asn)
             login_input_asn(asn, message)
             return
         except ValueError:
@@ -79,7 +79,7 @@ def start_login(message):
 
 
 def login_input_asn(exist_asn, message):
-    raw = exist_asn if exist_asn else message.text.strip()
+    raw = str(exist_asn) if exist_asn else message.text.strip()
     if raw == '/cancel':
         bot.send_message(
             message.chat.id,
