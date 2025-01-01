@@ -265,12 +265,6 @@ def get_info(message, asn=None, node=None):
             reply_markup=ReplyKeyboardRemove(),
         )
     if not asn and message.chat.id in db_privilege and len(t := message.text.split()) == 2:
-        try:
-            asn = t[1]
-            if asn.upper().startswith('AS'):
-                asn = int(asn[2:])
-            asn = int(asn)
-        except ValueError:
-            asn = None
+        asn = tools.extract_asn(t[1], privilege=True)
     info_text = get_info_text(message.chat.id, asn, node)
     bot.send_message(message.chat.id, info_text[0], parse_mode='Markdown', reply_markup=info_text[1])

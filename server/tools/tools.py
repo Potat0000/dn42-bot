@@ -314,3 +314,51 @@ def get_info(asn):
         elif v.status == 500:
             data[k] = v.text
     return data
+
+
+def extract_asn(text, *, privilege=False):
+    if not text:
+        return None
+    disallow_extend = False
+    try:
+        original_asn = str(text)
+    except ValueError:
+        original_asn = text
+    try:
+        if original_asn.upper().startswith('AS'):
+            original_asn = int(original_asn[2:])
+            disallow_extend = True
+        original_asn = int(original_asn)
+    except ValueError:
+        return None
+    asn = original_asn
+    try:
+        whois_result = (
+            subprocess.run(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), stdout=subprocess.PIPE, timeout=3)
+            .stdout.decode('utf-8')
+            .strip()
+        )
+        if "% Information related to 'aut-num/AS" in whois_result:
+            return asn
+        else:
+            if disallow_extend:
+                return original_asn if privilege else None
+            elif asn < 10000:
+                asn += 4242420000
+            elif 20000 <= asn < 30000:
+                asn += 4242400000
+            else:
+                return original_asn if privilege else None
+            whois_result = (
+                subprocess.run(
+                    shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), stdout=subprocess.PIPE, timeout=3
+                )
+                .stdout.decode('utf-8')
+                .strip()
+            )
+            if "% Information related to 'aut-num/AS" in whois_result:
+                return asn
+            else:
+                return original_asn if privilege else None
+    except BaseException:
+        return original_asn

@@ -7,10 +7,9 @@ from base import bot, db
 @bot.message_handler(commands=['peer_list', 'peerlist'])
 def peer_list(message):
     try:
-        asn = message.text.split()[1]
-        if asn.upper().startswith('AS'):
-            asn = asn[2:]
-        asn = int(asn)
+        asn = tools.extract_asn(message.text.split()[1])
+        if not asn:
+            raise ValueError
     except (ValueError, IndexError):
         if message.chat.type == 'private' and message.chat.id in db:
             asn = db[message.chat.id]

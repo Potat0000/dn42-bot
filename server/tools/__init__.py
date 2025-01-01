@@ -5,6 +5,7 @@ import tools.tools as tools
 import tools.update_as_route_table as update_as_route_table
 import tools.update_china_ip as update_china_ip
 
+extract_asn = tools.extract_asn
 gen_peer_me_markup = tools.gen_peer_me_markup
 gen_random_code = tools.gen_random_code
 get_asn_mnt_text = tools.get_asn_mnt_text

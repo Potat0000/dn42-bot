@@ -87,10 +87,9 @@ def get_rank(message):
         bot.send_message(message.chat.id, 'No data available.\n暂无数据。', reply_markup=tools.gen_peer_me_markup(message))
         return
     try:
-        asn = message.text.split()[1].upper()
-        if asn.startswith('AS'):
-            asn = asn[2:]
-        asn = int(asn)
+        asn = tools.extract_asn(message.text.split()[1])
+        if not asn:
+            raise ValueError
         stats(message)
     except (ValueError, IndexError):
         init_arg = (0, 'centrality')

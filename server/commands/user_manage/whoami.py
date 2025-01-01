@@ -19,16 +19,11 @@ def whoami(message, new_asn=None, info_node=None):
         text = '*[Privilege]*\n'
         if not new_asn and len(message.text.split()) == 2:
             new_asn = message.text.split()[1]
+        new_asn = tools.extract_asn(new_asn, privilege=True)
         if new_asn:
-            try:
-                if new_asn.upper().startswith('AS'):
-                    new_asn = new_asn[2:]
-                new_asn = int(new_asn)
-                db[message.chat.id] = new_asn
-                with open('./user_db.pkl', 'wb') as f:
-                    pickle.dump((db, db_privilege), f)
-            except ValueError:
-                pass
+            db[message.chat.id] = new_asn
+            with open('./user_db.pkl', 'wb') as f:
+                pickle.dump((db, db_privilege), f)
             if not info_node:
                 info_node = ''
             markup = InlineKeyboardMarkup()
