@@ -62,6 +62,12 @@ def generaltest_callback_query(call):
         'trace',
         'trace4',
         'trace6',
+        'traceroute',
+        'traceroute4',
+        'traceroute6',
+        'mtr',
+        'mtr4',
+        'mtr6',
         'route',
         'route4',
         'route6',
@@ -137,7 +143,7 @@ def generaltest(message):
                 reply_markup=tools.gen_peer_me_markup(message),
             )
             return
-    if command.endswith('6'):
+    elif command.endswith('6'):
         command = command[:-1]
         if parsed_info.ipv6:
             ip = parsed_info.ipv6
@@ -150,6 +156,8 @@ def generaltest(message):
             return
     else:
         ip = parsed_info.ipv4 if parsed_info.ipv4 else parsed_info.ipv6
+    if command in ['traceroute', 'mtr']:
+        command = 'trace'
     server_list = [i.lower() for i in message.text.split()[2:]]
     command_data = ip
     addon = ''
