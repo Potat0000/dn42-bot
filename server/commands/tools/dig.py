@@ -5,7 +5,7 @@ import tools
 from base import bot
 from config import DN42_ONLY
 from IPy import IP
-from pyunycode import convert as punycode
+from punycode import convert as punycode
 
 
 @bot.message_handler(commands=['dig', 'nslookup'])
@@ -76,7 +76,7 @@ def dig(message):
             return
         dig_server = f' @{dig_server}'
     try:
-        dig_target = punycode(dig_target)
+        dig_target = punycode(dig_target, ascii_only=True)
     except BaseException:
         bot.reply_to(
             message,
