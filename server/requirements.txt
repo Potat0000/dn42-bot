@@ -2,7 +2,6 @@ aiohttp==3.11.11
 APScheduler==3.11.0
 dnspython==2.7.0
 expiringdict==1.2.2
-IPy==1.1
 networkx==3.4.2
 punycode==0.2.1
 pybgpkit_parser==0.5.2

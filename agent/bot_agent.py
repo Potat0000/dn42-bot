@@ -5,12 +5,12 @@ import os
 import re
 import shlex
 import subprocess
+from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import sentry_sdk
 from aiohttp import web
-from IPy import IP
 
-AGENT_VERSION = 18
+AGENT_VERSION = 19
 
 try:
     with open('agent_config.json', 'r') as f:
@@ -22,9 +22,9 @@ try:
     MAX_PEERS = raw_config['MAX_PEERS'] if raw_config['MAX_PEERS'] > 0 else 0
     NET_SUPPORT = raw_config['NET_SUPPORT']
     EXTRA_MSG = raw_config['EXTRA_MSG']
-    MY_DN42_LINK_LOCAL_ADDRESS = IP(raw_config['MY_DN42_LINK_LOCAL_ADDRESS'])
-    MY_DN42_ULA_ADDRESS = IP(raw_config['MY_DN42_ULA_ADDRESS'])
-    MY_DN42_IPv4_ADDRESS = IP(raw_config['MY_DN42_IPv4_ADDRESS'])
+    MY_DN42_LINK_LOCAL_ADDRESS = ip_address(raw_config['MY_DN42_LINK_LOCAL_ADDRESS'])
+    MY_DN42_ULA_ADDRESS = ip_address(raw_config['MY_DN42_ULA_ADDRESS'])
+    MY_DN42_IPv4_ADDRESS = ip_address(raw_config['MY_DN42_IPv4_ADDRESS'])
     MY_WG_PUBLIC_KEY = raw_config['MY_WG_PUBLIC_KEY']
     BIRD_TABLE_4 = raw_config['BIRD_TABLE_4']
     BIRD_TABLE_6 = raw_config['BIRD_TABLE_6']
@@ -345,22 +345,22 @@ async def setup_peer(request):
     ll = None
     ipv4 = None
     try:
-        if IP(peer_info['IPv6']) in IP('fc00::/7'):
-            ula = str(IP(peer_info['IPv6']))
+        if ip_address(peer_info['IPv6']) in IPv6Network('fc00::/7'):
+            ula = str(ip_address(peer_info['IPv6']))
     except BaseException:
         pass
     try:
-        if IP(peer_info['IPv6']) in IP('fe80::/64'):
-            ll = str(IP(peer_info['IPv6']))
+        if ip_address(peer_info['IPv6']) in IPv6Network('fe80::/64'):
+            ll = str(ip_address(peer_info['IPv6']))
     except BaseException:
         pass
     try:
-        if IP(peer_info['IPv4']) in IP('172.20.0.0/14'):
-            ipv4 = str(IP(peer_info['IPv4']))
+        if ip_address(peer_info['IPv4']) in IPv4Network('172.20.0.0/14'):
+            ipv4 = str(ip_address(peer_info['IPv4']))
     except BaseException:
         pass
     try:
-        my_lla = str(IP(peer_info['Request-LinkLocal']))
+        my_lla = str(ip_address(peer_info['Request-LinkLocal']))
     except BaseException:
         my_lla = str(MY_DN42_LINK_LOCAL_ADDRESS)
     wg = (

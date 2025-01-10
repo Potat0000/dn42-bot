@@ -5,6 +5,7 @@ import socket
 import string
 import subprocess
 from collections import namedtuple
+from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import base
 import config
@@ -13,7 +14,6 @@ import dns.reversename
 import requests
 from base import bot, db, db_privilege
 from dns.exception import DNSException
-from IPy import IP
 from requests.adapters import HTTPAdapter, Retry
 from requests_futures.sessions import FuturesSession
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -78,27 +78,27 @@ def basic_ip_domain_test(address):
         socket.inet_pton(socket.AF_INET, address)
         domain = None
         try:
-            domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), 'PTR')[0])
+            domain = str(resolver.resolve(dns.reversename.from_address(str(ip_address()(address))), 'PTR')[0])
             if domain.endswith('.'):
                 domain = domain[:-1]
         except BaseException:
             pass
-        if str(IP(address)) == domain:
+        if str(ip_address(address)) == domain:
             domain = None
-        return test_result(str(IP(address)), str(IP(address)), None, domain)
+        return test_result(str(ip_address(address)), str(ip_address(address)), None, domain)
     except (socket.error, OSError):
         try:  # Test for IPv6
             socket.inet_pton(socket.AF_INET6, address)
             domain = None
             try:
-                domain = str(resolver.resolve(dns.reversename.from_address(str(IP(address))), 'PTR')[0])
+                domain = str(resolver.resolve(dns.reversename.from_address(str(ip_address(address))), 'PTR')[0])
                 if domain.endswith('.'):
                     domain = domain[:-1]
             except BaseException:
                 pass
-            if str(IP(address)) == domain:
+            if str(ip_address(address)) == domain:
                 domain = None
-            return test_result(str(IP(address)), None, str(IP(address)), domain)
+            return test_result(str(ip_address(address)), None, str(ip_address(address)), domain)
         except (socket.error, OSError):  # Test for domain
             ipv4 = None
             ipv6 = None
@@ -132,63 +132,63 @@ def basic_ip_domain_test(address):
 
 def test_ip_domain(testcase):
     IPv4_Bogon = [
-        IP('0.0.0.0/8'),
-        IP('10.0.0.0/8'),
-        IP('100.64.0.0/10'),
-        IP('127.0.0.0/8'),
-        IP('127.0.53.53'),
-        IP('169.254.0.0/16'),
-        IP('172.16.0.0/12'),
-        IP('192.0.0.0/24'),
-        IP('192.0.2.0/24'),
-        IP('192.168.0.0/16'),
-        IP('198.18.0.0/15'),
-        IP('198.51.100.0/24'),
-        IP('203.0.113.0/24'),
-        IP('224.0.0.0/4'),
-        IP('240.0.0.0/4'),
-        IP('255.255.255.255/32'),
+        IPv4Network('0.0.0.0/8'),
+        IPv4Network('10.0.0.0/8'),
+        IPv4Network('100.64.0.0/10'),
+        IPv4Network('127.0.0.0/8'),
+        IPv4Network('127.0.53.53'),
+        IPv4Network('169.254.0.0/16'),
+        IPv4Network('172.16.0.0/12'),
+        IPv4Network('192.0.0.0/24'),
+        IPv4Network('192.0.2.0/24'),
+        IPv4Network('192.168.0.0/16'),
+        IPv4Network('198.18.0.0/15'),
+        IPv4Network('198.51.100.0/24'),
+        IPv4Network('203.0.113.0/24'),
+        IPv4Network('224.0.0.0/4'),
+        IPv4Network('240.0.0.0/4'),
+        IPv4Network('255.255.255.255/32'),
     ]
     IPv6_Bogon = [
-        IP('::/128'),
-        IP('::1/128'),
-        IP('::ffff:0:0/96'),
-        IP('::/96'),
-        IP('100::/64'),
-        IP('2001:10::/28'),
-        IP('2001:db8::/32'),
-        IP('fc00::/7'),
-        IP('fe80::/10'),
-        IP('fec0::/10'),
-        IP('ff00::/8'),
-        IP('2002::/24'),
-        IP('2002:a00::/24'),
-        IP('2002:7f00::/24'),
-        IP('2002:a9fe::/32'),
-        IP('2002:ac10::/28'),
-        IP('2002:c000::/40'),
-        IP('2002:c000:200::/40'),
-        IP('2002:c0a8::/32'),
-        IP('2002:c612::/31'),
-        IP('2002:c633:6400::/40'),
-        IP('2002:cb00:7100::/40'),
-        IP('2002:e000::/20'),
-        IP('2002:f000::/20'),
-        IP('2002:ffff:ffff::/48'),
-        IP('2001::/40'),
-        IP('2001:0:a00::/40'),
-        IP('2001:0:7f00::/40'),
-        IP('2001:0:a9fe::/48'),
-        IP('2001:0:ac10::/44'),
-        IP('2001:0:c000::/56'),
-        IP('2001:0:c000:200::/56'),
-        IP('2001:0:c0a8::/48'),
-        IP('2001:0:c612::/47'),
-        IP('2001:0:c633:6400::/56'),
-        IP('2001:0:cb00:7100::/56'),
-        IP('2001:0:e000::/36'),
-        IP('2001:0:f000::/36'),
-        IP('2001:0:ffff:ffff::/64'),
+        IPv6Network('::/128'),
+        IPv6Network('::1/128'),
+        IPv6Network('::ffff:0:0/96'),
+        IPv6Network('::/96'),
+        IPv6Network('100::/64'),
+        IPv6Network('2001:10::/28'),
+        IPv6Network('2001:db8::/32'),
+        IPv6Network('fc00::/7'),
+        IPv6Network('fe80::/10'),
+        IPv6Network('fec0::/10'),
+        IPv6Network('ff00::/8'),
+        IPv6Network('2002::/24'),
+        IPv6Network('2002:a00::/24'),
+        IPv6Network('2002:7f00::/24'),
+        IPv6Network('2002:a9fe::/32'),
+        IPv6Network('2002:ac10::/28'),
+        IPv6Network('2002:c000::/40'),
+        IPv6Network('2002:c000:200::/40'),
+        IPv6Network('2002:c0a8::/32'),
+        IPv6Network('2002:c612::/31'),
+        IPv6Network('2002:c633:6400::/40'),
+        IPv6Network('2002:cb00:7100::/40'),
+        IPv6Network('2002:e000::/20'),
+        IPv6Network('2002:f000::/20'),
+        IPv6Network('2002:ffff:ffff::/48'),
+        IPv6Network('2001::/40'),
+        IPv6Network('2001:0:a00::/40'),
+        IPv6Network('2001:0:7f00::/40'),
+        IPv6Network('2001:0:a9fe::/48'),
+        IPv6Network('2001:0:ac10::/44'),
+        IPv6Network('2001:0:c000::/56'),
+        IPv6Network('2001:0:c000:200::/56'),
+        IPv6Network('2001:0:c0a8::/48'),
+        IPv6Network('2001:0:c612::/47'),
+        IPv6Network('2001:0:c633:6400::/56'),
+        IPv6Network('2001:0:cb00:7100::/56'),
+        IPv6Network('2001:0:e000::/36'),
+        IPv6Network('2001:0:f000::/36'),
+        IPv6Network('2001:0:ffff:ffff::/64'),
     ]
     testcase = testcase.strip()
     return_tuple = namedtuple('IP_Domain_Info', ['raw', 'ipv4', 'ipv6', 'domain', 'asn', 'mnt', 'dn42', 'clearnet'])
@@ -208,7 +208,10 @@ def test_ip_domain(testcase):
         dn42 = True
     elif domain and domain.endswith('.dn42'):
         dn42 = True
-    elif (raw == ipv4 or raw == ipv6) and ((ipv4 and ipv4 in IP('172.20.0.0/14')) or (ipv6 and ipv6 in IP('fc00::/7'))):
+    elif (raw == ipv4 or raw == ipv6) and (
+        (ipv4 and ip_address(ipv4) in IPv4Network('172.20.0.0/14'))
+        or (ipv6 and ip_address(ipv6) in IPv6Network('fc00::/7'))
+    ):
         dn42 = True
     if dn42:
         try:
@@ -234,9 +237,9 @@ def test_ip_domain(testcase):
     if not dn42:
         clearnet4 = False
         clearnet6 = False
-        if ipv4 and all(ipv4 not in i for i in IPv4_Bogon):
+        if ipv4 and all(ip_address(ipv4) not in i for i in IPv4_Bogon):
             clearnet4 = True
-        if ipv6 and all(ipv6 not in i for i in IPv6_Bogon):
+        if ipv6 and all(ip_address(ipv6) not in i for i in IPv6_Bogon):
             clearnet6 = True
         if not (clearnet4 or clearnet6):
             clearnet = False

@@ -1,10 +1,10 @@
 import shlex
 import subprocess
+from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import tools
 from base import bot
 from config import DN42_ONLY
-from IPy import IP
 from punycode import convert as punycode
 
 
@@ -59,7 +59,7 @@ def dig(message):
         return
     if dig_server:
         try:
-            t = IP(dig_server)
+            t = ip_address(dig_server)
         except BaseException:
             bot.reply_to(
                 message,
@@ -67,7 +67,7 @@ def dig(message):
                 reply_markup=tools.gen_peer_me_markup(message),
             )
             return
-        if DN42_ONLY and t not in IP('172.20.0.0/14') and t not in IP('fc00::/7'):
+        if DN42_ONLY and t not in IPv4Network('172.20.0.0/14') and t not in IPv6Network('fc00::/7'):
             bot.reply_to(
                 message,
                 'Only accept DN42 DNS server.\n只接受 DN42 DNS 服务器。',

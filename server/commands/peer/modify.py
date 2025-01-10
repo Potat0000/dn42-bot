@@ -1,12 +1,12 @@
 from collections.abc import Iterable
 from functools import partial
+from ipaddress import IPv6Network, ip_address
 
 import base
 import commands.peer.info_collect as info_collect
 import config
 import tools
 from base import bot, db, db_privilege
-from IPy import IP
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
@@ -212,7 +212,7 @@ def post_node_choose(message, peer_info, chosen=None):
         'Net_Support': raw_info['net_support'],
         'Provide-LinkLocal': raw_info['lla'],
     }
-    if raw_info['v6'] and IP(raw_info['v6']) in IP('fe80::/64'):
+    if raw_info['v6'] and ip_address(raw_info['v6']) in IPv6Network('fe80::/64'):
         peer_info['Request-LinkLocal'] = raw_info['my_v6']
     if raw_info['session'] == 'IPv6 Session with IPv6 channel only':
         peer_info['Channel'] = 'IPv6 only'

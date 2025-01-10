@@ -1,11 +1,11 @@
 import math
 from datetime import datetime, timezone
+from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import base
 import config
 import tools
 from base import bot, db, db_privilege
-from IPy import IP
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 
@@ -54,19 +54,19 @@ def basic_info(asn, endpoint, pubkey, v6, v4):
     )
     ipv6_space = ''
     try:
-        if IP(v6) in IP('fc00::/7'):
+        if ip_address(v6) in IPv6Network('fc00::/7'):
             text += f'        IPv6 ULA: {v6}/128\n'
             ipv6_space = ' ' * 4
     except BaseException:
         pass
     try:
-        if IP(v6) in IP('fe80::/64'):
+        if ip_address(v6) in IPv6Network('fe80::/64'):
             text += f'        IPv6 Link-Local: {v6}/64\n'
             ipv6_space = ' ' * 11
     except BaseException:
         pass
     try:
-        if IP(v4) in IP('172.20.0.0/14'):
+        if ip_address(v4) in IPv4Network('172.20.0.0/14'):
             text += f'        IPv4: {ipv6_space}{v4}/32\n'
     except BaseException:
         pass

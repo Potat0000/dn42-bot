@@ -1,13 +1,13 @@
 import json
 import socket
 import string
+from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import base
 import config
 import requests
 import tools
 from base import bot, db, db_privilege
-from IPy import IP
 from telebot.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -300,7 +300,7 @@ def post_ipv6(message, peer_info):
             pass
     try:  # Test for IPv6
         socket.inet_pton(socket.AF_INET6, msg)
-        if IP(msg) not in IP('fc00::/7') and IP(msg) not in IP('fe80::/64'):
+        if ip_address(msg) not in IPv6Network('fc00::/7') and ip_address(msg) not in IPv6Network('fe80::/64'):
             raise ValueError
     except (socket.error, OSError, ValueError):
         msg = bot.send_message(
@@ -313,7 +313,7 @@ def post_ipv6(message, peer_info):
         )
         return 'post_ipv6', peer_info, msg
     peer_info['IPv6'] = msg
-    if IP(peer_info['IPv6']) in IP('fe80::/64'):
+    if ip_address(peer_info['IPv6']) in IPv6Network('fe80::/64'):
         return 'pre_request_linklocal', peer_info, message
     else:
         peer_info['Request-LinkLocal'] = 'Not required due to not use LLA as IPv6'
@@ -355,7 +355,7 @@ def post_request_linklocal(message, peer_info):
             pass
     try:  # Test for IPv6
         socket.inet_pton(socket.AF_INET6, msg)
-        if IP(msg) not in IP('fe80::/64'):
+        if ip_address(msg) not in IPv6Network('fe80::/64'):
             raise ValueError
     except (socket.error, OSError, ValueError):
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -409,7 +409,7 @@ def post_ipv4(message, peer_info):
             pass
     try:  # Test for IPv4
         socket.inet_pton(socket.AF_INET, msg)
-        if IP(msg) not in IP('172.20.0.0/14'):
+        if ip_address(msg) not in IPv4Network('172.20.0.0/14'):
             raise ValueError
     except (socket.error, OSError, ValueError):
         msg = bot.send_message(
@@ -517,8 +517,8 @@ def post_clearnet(message, peer_info):
             else:
                 msg = None
                 if not peer_info['Net_Support']['cn'] and (
-                    (test_result.ipv4 and any(test_result.ipv4 in i for i in base.ChinaIPv4))
-                    or (test_result.ipv6 and any(test_result.ipv6 in i for i in base.ChinaIPv6))
+                    (test_result.ipv4 and any(ip_address(test_result.ipv4) in i for i in base.ChinaIPv4))
+                    or (test_result.ipv6 and any(ip_address(test_result.ipv6) in i for i in base.ChinaIPv6))
                 ):
                     msg = (
                         'Peering with Chinese Mainland is not allowed on this node',

@@ -1,27 +1,24 @@
 import shlex
 import string
 import subprocess
+from ipaddress import ip_address
 
 import base
 import config
 import tools
 from base import bot
 from commands.statistics.stats import get_stats
-from IPy import IP
 
 
 def get_extra_route(asn):
     route_result = ''
-    route4, route6 = [], []
+    route = {4: [], 6: []}
     for route in base.AS_ROUTE[asn]:
-        if (ip := IP(route)).version() == 4:
-            route4.append((ip.int(), route))
-        else:
-            route6.append((ip.int(), route))
-    for _, route in sorted(route4, key=lambda x: x[0]):
-        route_result += f'route4:             {route}\n'
-    for _, route in sorted(route6, key=lambda x: x[0]):
-        route_result += f'route6:             {route}\n'
+        ip = ip_address(route)
+        route[ip.version].append((int(ip), route))
+    for ip_version in [4, 6]:
+        for _, route in sorted(route[ip_version], key=lambda x: x[0]):
+            route_result += f'route{ip_version}:             {route}\n'
     if route_result:
         return f"% Routes for 'AS{asn}':\n{route_result.strip()}"
 
