@@ -10,6 +10,7 @@ import config
 import sentry_sdk
 import telebot
 import tools
+import urllib3
 from aiohttp import web
 from apscheduler.schedulers.background import BackgroundScheduler
 from base import bot, db, db_privilege
@@ -111,6 +112,8 @@ class MyMiddleware(BaseMiddleware):
 
 
 # Startup and initialization
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 config.CONTACT = re.sub(f'([{re.escape(r"_*`[")}])', r'\\\1', config.CONTACT)
 
 if config.SENTRY_DSN:
@@ -123,7 +126,7 @@ tools.update_china_ip()
 tools.update_as_route_table()
 tools.servers_check(startup=True)
 try:
-    with open('./rank.pkl', 'rb') as f:
+    with open('./map.pkl', 'rb') as f:
         tools.get_map(update=pickle.load(f))
 except BaseException:
     tools.get_map(update=True)
