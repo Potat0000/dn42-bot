@@ -110,6 +110,7 @@ class MyMiddleware(BaseMiddleware):
             pass
 
 
+# Startup and initialization
 config.CONTACT = re.sub(f'([{re.escape(r"_*`[")}])', r'\\\1', config.CONTACT)
 
 if config.SENTRY_DSN:
@@ -128,14 +129,29 @@ except BaseException:
     tools.get_map(update=True)
 tools.get_route_stats(update=True)
 
-scheduler = BackgroundScheduler(timezone=utc)
-scheduler.add_job(tools.servers_check, 'cron', minute='*/3')
-scheduler.add_job(tools.update_as_route_table, 'cron', minute='2/10')
-scheduler.add_job(tools.update_china_ip, 'cron', hour='1', minute='30')
-scheduler.add_job(tools.get_route_stats, 'cron', kwargs={'update': True}, minute='3/10')
-scheduler.add_job(tools.get_map, 'cron', kwargs={'update': True}, minute='3/10')
+
+# Setup scheduler
+scheduler = BackgroundScheduler(
+    timezone=utc,
+    job_defaults={'misfire_grace_time': None, 'coalesce': True, 'replace_existing': True},
+)
+
+
+def scheduler_add_job(func, *args, **kwargs):
+    kwargs['trigger'] = 'cron'
+    kwargs['id'] = 'dn42bot_' + func.__name__
+    scheduler.add_job(func, *args, **kwargs)
+
+
+scheduler_add_job(tools.servers_check, minute='*/3')
+scheduler_add_job(tools.update_china_ip, hour='1', minute='30')
+scheduler_add_job(tools.get_route_stats, kwargs={'update': True}, minute='1/10')
+scheduler_add_job(tools.get_map, kwargs={'update': True}, minute='3/10')
+scheduler_add_job(tools.update_as_route_table, minute='3/10')
 scheduler.start()
 
+
+# Setup bot
 bot.add_custom_filter(IsPrivateChat())
 bot.setup_middleware(MyMiddleware())
 

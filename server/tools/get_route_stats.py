@@ -8,7 +8,7 @@ def gen_get_route_stats():
     update_time = 0
     data = {}
 
-    def inner(*, update=False):
+    def get_route_stats(*, update=False):
         nonlocal data, update_time
         if not update:
             return data, update_time
@@ -30,7 +30,7 @@ def gen_get_route_stats():
                     temp[node][ip_ver] = s
         data, update_time = temp, int(time())
 
-    return inner
+    return get_route_stats
 
 
 get_route_stats = gen_get_route_stats()

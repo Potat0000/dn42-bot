@@ -40,7 +40,7 @@ def gen_get_map():
     data = {}
     peer_map = {}
 
-    def inner(*, update=None):
+    def get_map(*, update=None):
         nonlocal data, peer_map, update_time
         if not update:
             return update_time, data, peer_map
@@ -83,7 +83,7 @@ def gen_get_map():
         with open('./rank.pkl', 'wb') as f:
             pickle.dump((data, update_time, peer_map), f)
 
-    return inner
+    return get_map
 
 
 get_map = gen_get_map()
