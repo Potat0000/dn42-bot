@@ -161,7 +161,7 @@ def login_choose_email(asn, emails, last_msg_id, message):
         reply_markup=ReplyKeyboardRemove(),
     )
     bot.send_chat_action(chat_id=message.chat.id, action='typing')
-    code = 'DN42_VERIFICATION_' + tools.gen_random_code(32)
+    code = tools.gen_random_code(16)
     try:
         config.send_email(asn, tools.get_whoisinfo_by_asn(asn), code, message.text.strip())
     except RuntimeError:
