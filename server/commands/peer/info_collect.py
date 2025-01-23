@@ -2,6 +2,7 @@ import json
 import socket
 import string
 from ipaddress import IPv4Network, IPv6Network, ip_address
+from time import sleep
 
 import base
 import config
@@ -766,6 +767,16 @@ def post_confirm(message, peer_info):
             return
         elif r.status_code != 200:
             raise RuntimeError
+        if progress_type == 'modify':
+            sleep(1)
+            r = requests.post(
+                f'http://{api}:{config.API_PORT}/restart',
+                data=str(db[message.chat.id]),
+                headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
+                timeout=10,
+            )
+            if r.status_code != 200:
+                raise RuntimeError
     except BaseException:
         bot.send_message(
             message.chat.id,
@@ -780,12 +791,7 @@ def post_confirm(message, peer_info):
     if progress_type == 'peer':
         msg_text = 'Peer has been created\nPeer 已建立'
     elif progress_type == 'modify':
-        msg_text = (
-            'Peer information has been modified\n'
-            'Peer 信息已修改\n\n'
-            'Try /restart if any problem occurs\n'
-            '若遇到问题可先尝试使用 /restart 命令重启'
-        )
+        msg_text = 'Peer information has been modified\nPeer 信息已修改'
     markup = InlineKeyboardMarkup()
     markup.row_width = 1
     markup.add(
