@@ -17,5 +17,7 @@
     "MY_WG_PUBLIC_KEY": "LUwqKS6QrCPv510Pwt1eAIiHACYDsbMjrkrbGTJfviU=",
     "SENTRY_DSN": "",
     "BIRD_TABLE_4": "master4",
-    "BIRD_TABLE_6": "master6"
+    "BIRD_TABLE_6": "master6",
+    "VNSTAT_AUTO_ADD": true,
+    "VNSTAT_AUTO_REMOVE": false
 }

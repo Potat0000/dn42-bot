@@ -95,6 +95,8 @@ Config items are located at `agent/agent_config.json`.
 | SENTRY_DSN                 | Sentry DSN. Leave empty to disable Sentry exception tracking |
 | BIRD_TABLE_4               | The name of the BIRD table for IPv4                          |
 | BIRD_TABLE_6               | The name of the BIRD table for IPv6                          |
+| VNSTAT_AUTO_ADD            | Whether to automatically add tunnel interface to vnstat      |
+| VNSTAT_AUTO_REMOVE         | Whether to automatically remove tunnel interface from vnstat |
 
 `NET_SUPPORT` item has following subconfig items:
 

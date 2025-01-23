@@ -10,7 +10,7 @@ from ipaddress import IPv4Network, IPv6Network, ip_address
 import sentry_sdk
 from aiohttp import web
 
-AGENT_VERSION = 19
+AGENT_VERSION = 20
 
 try:
     with open('agent_config.json', 'r') as f:
@@ -28,6 +28,8 @@ try:
     MY_WG_PUBLIC_KEY = raw_config['MY_WG_PUBLIC_KEY']
     BIRD_TABLE_4 = raw_config['BIRD_TABLE_4']
     BIRD_TABLE_6 = raw_config['BIRD_TABLE_6']
+    VNSTAT_AUTO_ADD = raw_config['VNSTAT_AUTO_ADD']
+    VNSTAT_AUTO_REMOVE = raw_config['VNSTAT_AUTO_REMOVE'] if VNSTAT_AUTO_ADD else False
 except BaseException:
     print('Failed to load config file. Exiting.')
     exit(1)
@@ -431,6 +433,9 @@ async def setup_peer(request):
     simple_run(f"systemctl enable wg-quick@dn42-{peer_info['ASN']}")
     simple_run(f"systemctl restart wg-quick@dn42-{peer_info['ASN']}")
     simple_run('birdc c')
+    if VNSTAT_AUTO_ADD:
+        simple_run(f'vnstat --add -i dn42-{peer_info["ASN"]}')
+
     return web.Response(status=200)
 
 
@@ -457,6 +462,9 @@ async def remove_peer(request):
     except BaseException:
         pass
     simple_run('birdc c')
+    if VNSTAT_AUTO_REMOVE:
+        simple_run(f'vnstat --remove -i dn42-{asn} --force')
+
     return web.Response(status=200)
 
 
