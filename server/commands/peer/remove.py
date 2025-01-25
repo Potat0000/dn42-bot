@@ -5,6 +5,7 @@ import config
 import requests
 import tools
 from base import bot, db, db_privilege
+from commands.peer.modify import get_diff_text, recreate_peer_info
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
@@ -107,27 +108,25 @@ def remove_peer_choose(removable, chosen, message):
         return
 
     chosen = next(k for k, v in base.servers.items() if v == chosen)
+    peer_info = recreate_peer_info(message, chosen)
+    last_info = get_diff_text(peer_info, peer_info)
     code = tools.gen_random_code(32)
-    if db[message.chat.id] // 10000 == 424242:
+    bot.send_message(
+        message.chat.id,
+        (
+            f'Peer information with `{base.servers[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels), and you can always re-create it using /peer.\n'
+            f'将要删除与 `{base.servers[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道），你可以随时使用 /peer 重新建立。\n'
+            f'```LastInfo\n{last_info}```'
+            'If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n'
+            '如果你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。'
+        ),
+        parse_mode='Markdown',
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    if db[message.chat.id] // 10000 != 424242:
         bot.send_message(
             message.chat.id,
             (
-                f'Peer information with `{base.servers[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels), and you can always re-create it using /peer.\n'
-                f'将要删除与 `{base.servers[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道），你可以随时使用 /peer 重新建立。\n\n'
-                'If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n'
-                '如果你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。'
-            ),
-            parse_mode='Markdown',
-            reply_markup=ReplyKeyboardRemove(),
-        )
-    else:
-        bot.send_message(
-            message.chat.id,
-            (
-                f'Peer information with `{base.servers[chosen]}` will be deleted (including BGP Sessions and WireGuard tunnels).\n'
-                f'将要删除与 `{base.servers[chosen]}` 的 Peer 信息（包括 BGP Session 和 WireGuard 隧道）。\n\n'
-                'If you want to modify Peer information, you can use the /modify command instead of deleting and recreating.\n'
-                '如果你想要修改 Peer 信息，可以使用 /modify 命令，而无需删除再重建。\n\n'
                 '**Attention 注意**\n\n'
                 'Your ASN is not in standard DN42 format (`AS424242xxxx`), so it cannot be auto-peered\n'
                 '你的 ASN 不是标准 DN42 格式 (`AS424242xxxx`)，因此无法进行 AutoPeer\n'
@@ -151,75 +150,72 @@ def remove_peer_choose(removable, chosen, message):
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
-    bot.register_next_step_handler(msg, partial(remove_peer_confirm, code, chosen))
+    if (whoisinfo := tools.get_whoisinfo_by_asn(db[message.chat.id])).lower() != peer_info['Contact'].lower():
+        last_info += f'\n    ({whoisinfo})\n'
+    bot.register_next_step_handler(msg, partial(remove_peer_confirm, code, chosen, last_info))
 
 
-def remove_peer_confirm(code, region, message):
-    if message.text.strip() == code:
-        try:
-            if region in config.HOSTS:
-                api = config.HOSTS[region]
-            else:
-                api = f'{region}.{config.ENDPOINT}'
-            r = requests.post(
-                f'http://{api}:{config.API_PORT}/remove',
-                data=str(db[message.chat.id]),
-                headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
-                timeout=10,
-            )
-            if r.status_code != 200:
-                raise RuntimeError
-        except BaseException:
-            bot.send_message(
-                message.chat.id,
-                (
-                    f'Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n'
-                    f'遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}'
-                ),
-                parse_mode='Markdown',
-                reply_markup=ReplyKeyboardRemove(),
-            )
-            return
-        if db[message.chat.id] // 10000 == 424242:
-            bot.send_message(
-                message.chat.id,
-                (
-                    'Peer information has been deleted.\n'
-                    'Peer 信息已删除。\n'
-                    '\n'
-                    'You can always re-create it using /peer.\n'
-                    '你可以随时使用 /peer 重新建立。'
-                ),
-                reply_markup=ReplyKeyboardRemove(),
-            )
-        else:
-            bot.send_message(
-                message.chat.id,
-                (
-                    'Peer information has been deleted.\n'
-                    'Peer 信息已删除。\n'
-                    '\n'
-                    f'Contact {config.CONTACT} if you need to re-peer.\n'
-                    f'如需重新 Peer 请联系 {config.CONTACT}'
-                ),
-                parse_mode='Markdown',
-                reply_markup=ReplyKeyboardRemove(),
-            )
-        for i in db_privilege - {message.chat.id}:
-            bot.send_message(
-                i,
-                (
-                    '*[Privilege]*\n'
-                    'Peer Removed!   有 Peer 被删除！\n'
-                    f'`{tools.get_asn_mnt_text(db[message.chat.id])}`\n'
-                    f'`{base.servers[region]}`'
-                ),
-                parse_mode='Markdown',
-                reply_markup=ReplyKeyboardRemove(),
-            )
-    else:
+def remove_peer_confirm(code, region, last_info, message):
+    if message.text.strip() != code:
         bot.send_message(
             message.chat.id,
             'Current operation has been cancelled.\n当前操作已被取消。',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+    try:
+        if region in config.HOSTS:
+            api = config.HOSTS[region]
+        else:
+            api = f'{region}.{config.ENDPOINT}'
+        r = requests.post(
+            f'http://{api}:{config.API_PORT}/remove',
+            data=str(db[message.chat.id]),
+            headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
+            timeout=10,
+        )
+        if r.status_code != 200:
+            raise RuntimeError
+    except BaseException:
+        bot.send_message(
+            message.chat.id,
+            (
+                f'Error encountered, please try again. If the problem remains, please contact {config.CONTACT}\n'
+                f'遇到错误，请重试。如果问题依旧，请联系 {config.CONTACT}'
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+    if db[message.chat.id] // 10000 == 424242:
+        bot.send_message(
+            message.chat.id,
+            (
+                'Peer information has been deleted.\n'
+                'Peer 信息已删除。\n'
+                '\n'
+                'You can always re-create it using /peer.\n'
+                '你可以随时使用 /peer 重新建立。'
+            ),
+            reply_markup=ReplyKeyboardRemove(),
+        )
+    else:
+        bot.send_message(
+            message.chat.id,
+            (
+                'Peer information has been deleted.\n'
+                'Peer 信息已删除。\n'
+                '\n'
+                f'Contact {config.CONTACT} if you need to re-peer.\n'
+                f'如需重新 Peer 请联系 {config.CONTACT}'
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+    for i in db_privilege - {message.chat.id}:
+        bot.send_message(
+            i,
+            f'*[Privilege]*\nPeer Removed!   有 Peer 被删除！\n```PrivilegeNote\n{last_info}```',
+            parse_mode='Markdown',
             reply_markup=ReplyKeyboardRemove(),
         )

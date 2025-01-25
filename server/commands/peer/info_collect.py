@@ -734,7 +734,9 @@ def post_contact(message, peer_info):
 
 def post_confirm(message, peer_info):
     progress_type = peer_info.pop('ProgressType')
-    info_text = peer_info.pop('InfoText')
+    info_text = peer_info.pop('InfoText').strip()
+    if (whoisinfo := tools.get_whoisinfo_by_asn(db[message.chat.id])).lower() != peer_info['Contact'].lower():
+        info_text += f'\n    ({whoisinfo})\n'
     check_text = message.text.strip()
     if check_text.lower() != 'yes':
         bot.send_message(
@@ -806,7 +808,7 @@ def post_confirm(message, peer_info):
         msg_text = 'New Peer!   新 Peer！\n'
     elif progress_type == 'modify':
         msg_text = 'Peer Modified!   Peer 信息修改！\n'
-    text = f'*[Privilege]*\n{msg_text}```PrivilegeNote\n{info_text.strip()}```'
+    text = f'*[Privilege]*\n{msg_text}```PrivilegeNote\n{info_text}```'
     markup2 = InlineKeyboardMarkup()
     markup2.row_width = 1
     markup2.add(
@@ -823,6 +825,6 @@ def post_confirm(message, peer_info):
     )
     for i in db_privilege - {message.chat.id}:
         if peer_info['ASN'] == db[i]:
-            bot.send_message(i, text + '\n\nAlready as this user 已在该身份', parse_mode='Markdown', reply_markup=markup)
+            bot.send_message(i, text + 'Already as this user 已在该身份', parse_mode='Markdown', reply_markup=markup)
         else:
             bot.send_message(i, text, parse_mode='Markdown', reply_markup=markup2)

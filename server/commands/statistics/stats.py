@@ -78,7 +78,7 @@ def stats(message):
                 f'closeness    {stats_result["closeness"]}\n'
                 f'betweenness  {stats_result["betweenness"]}\n'
                 f'peer count   {stats_result["peer"]}'
-                '```\n'
+                '```'
                 f'Updated {time_delta}s ago'
             ),
             parse_mode='Markdown',

@@ -53,6 +53,58 @@ def step_manage(next_step, peer_info, stop_sign, message):
         _call(getattr(info_collect, next_step))
 
 
+def recreate_peer_info(message, chosen):
+    raw_info = tools.get_info(db[message.chat.id])
+    if not isinstance(raw_info[chosen], dict):
+        bot.send_message(
+            message.chat.id,
+            (
+                f'Error encountered! Please contact {config.CONTACT} the following error message\n'
+                f'遇到错误！请附带下述错误信息联系 {config.CONTACT}\n\n'
+                '```ErrorMsg\n'
+                f'{raw_info[chosen]}\n'
+                '```'
+            ),
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return
+    raw_info = raw_info[chosen]
+    peer_info = {
+        'Region': chosen,
+        'ASN': db[message.chat.id],
+        'Channel': None,
+        'MP-BGP': 'Not supported',
+        'ENH': None,
+        'IPv6': raw_info['v6'] if raw_info['v6'] else 'Not enabled',
+        'IPv4': raw_info['v4'] if raw_info['v4'] else 'Not enabled',
+        'Request-LinkLocal': 'Not required due to not use LLA as IPv6',
+        'Clearnet': raw_info['clearnet'],
+        'PublicKey': raw_info['pubkey'],
+        'Port': raw_info['port'],
+        'Contact': raw_info['desc'],
+        'Net_Support': raw_info['net_support'],
+        'Provide-LinkLocal': raw_info['lla'],
+    }
+    if raw_info['v6'] and ip_address(raw_info['v6']) in IPv6Network('fe80::/64'):
+        peer_info['Request-LinkLocal'] = raw_info['my_v6']
+    if raw_info['session'] == 'IPv6 Session with IPv6 channel only':
+        peer_info['Channel'] = 'IPv6 only'
+    elif raw_info['session'] == 'IPv4 Session with IPv4 channel only':
+        peer_info['Channel'] = 'IPv4 only'
+    else:
+        peer_info['Channel'] = 'IPv6 & IPv4'
+        if raw_info['session'] == 'IPv6 Session with IPv6 & IPv4 Channels':
+            peer_info['MP-BGP'] = 'IPv6'
+            if peer_info['IPv4'] == 'Not enabled':
+                peer_info['ENH'] = True
+            else:
+                peer_info['ENH'] = False
+        elif raw_info['session'] == 'IPv4 Session with IPv6 & IPv4 Channels':
+            peer_info['MP-BGP'] = 'IPv4'
+    return peer_info
+
+
 def get_diff_text(old_peer_info, peer_info):
     diff_text = ''
 
@@ -180,59 +232,12 @@ def post_node_choose(message, peer_info, chosen=None):
         )
         return 'post_node_choose', peer_info, msg
 
-    raw_info = tools.get_info(db[message.chat.id])
-    if not isinstance(raw_info[chosen], dict):
-        bot.send_message(
-            message.chat.id,
-            (
-                f'Error encountered! Please contact {config.CONTACT} the following error message\n'
-                f'遇到错误！请附带下述错误信息联系 {config.CONTACT}\n\n'
-                '```ErrorMsg\n'
-                f'{raw_info[chosen]}\n'
-                '```'
-            ),
-            parse_mode='Markdown',
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
-    raw_info = raw_info[chosen]
-    peer_info = {
-        'Region': chosen,
-        'ASN': db[message.chat.id],
-        'Channel': None,
-        'MP-BGP': 'Not supported',
-        'ENH': None,
-        'IPv6': raw_info['v6'] if raw_info['v6'] else 'Not enabled',
-        'IPv4': raw_info['v4'] if raw_info['v4'] else 'Not enabled',
-        'Request-LinkLocal': 'Not required due to not use LLA as IPv6',
-        'Clearnet': raw_info['clearnet'],
-        'PublicKey': raw_info['pubkey'],
-        'Port': raw_info['port'],
-        'Contact': raw_info['desc'],
-        'Net_Support': raw_info['net_support'],
-        'Provide-LinkLocal': raw_info['lla'],
-    }
-    if raw_info['v6'] and ip_address(raw_info['v6']) in IPv6Network('fe80::/64'):
-        peer_info['Request-LinkLocal'] = raw_info['my_v6']
-    if raw_info['session'] == 'IPv6 Session with IPv6 channel only':
-        peer_info['Channel'] = 'IPv6 only'
-    elif raw_info['session'] == 'IPv4 Session with IPv4 channel only':
-        peer_info['Channel'] = 'IPv4 only'
-    else:
-        peer_info['Channel'] = 'IPv6 & IPv4'
-        if raw_info['session'] == 'IPv6 Session with IPv6 & IPv4 Channels':
-            peer_info['MP-BGP'] = 'IPv6'
-            if peer_info['IPv4'] == 'Not enabled':
-                peer_info['ENH'] = True
-            else:
-                peer_info['ENH'] = False
-        elif raw_info['session'] == 'IPv4 Session with IPv6 & IPv4 Channels':
-            peer_info['MP-BGP'] = 'IPv4'
+    peer_info = recreate_peer_info(message, chosen)
     peer_info['backup'] = peer_info.copy()
     diff_text = get_diff_text(peer_info['backup'], peer_info)
     bot.send_message(
         message.chat.id,
-        ('Current information is as follows\n' '当前信息如下\n' '\n' f'```CurrentInfo\n{diff_text}```\n'),
+        ('Current information is as follows\n' '当前信息如下\n' f'```CurrentInfo\n{diff_text}```'),
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
@@ -297,7 +302,7 @@ def pre_action_choose(message, peer_info):
             'You have modified the following information\n'
             '已修改以下信息\n'
             '\n'
-            f'```ModifiedInfo\n{diff_text}```\n'
+            f'```ModifiedInfo\n{diff_text}```'
             'You can continue to modify, or choose to `Finish modification` or `Abort modification`.\n'
             '你可以继续修改，或者选择 `Finish modification` 以提交，或者选择 `Abort modification` 放弃修改。\n'
         ),
@@ -383,7 +388,7 @@ def pre_confirm(message, peer_info):
             'Please check all your information\n'
             '请确认你的信息\n'
             '\n'
-            f'```ComfirmInfo\n{diff_text}```\n'
+            f'```ComfirmInfo\n{diff_text}```'
             'Please enter `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
             '确认无误请输入 `yes`，所有其他输入表示取消操作。'
         ),

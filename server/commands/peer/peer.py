@@ -130,7 +130,7 @@ def pre_confirm(message, peer_info):
             'Please check all your information\n'
             '请确认你的信息\n'
             '\n'
-            f'```PeerInfo\n{all_text}```\n'
+            f'```PeerInfo\n{all_text}```'
             'Please enter `yes` to confirm. All other inputs indicate the cancellation of the operation.\n'
             '确认无误请输入 `yes`，所有其他输入表示取消操作。'
         ),
