@@ -55,11 +55,7 @@ def step_manage(next_step, peer_info, message):
 
 def init(message, peer_info):
     if message.chat.id not in db:
-        bot.send_message(
-            message.chat.id,
-            'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login',
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        tools.gen_login_message(message)
         return
     if (db[message.chat.id] // 10000 != 424242) and (message.chat.id not in db_privilege):
         bot.send_message(

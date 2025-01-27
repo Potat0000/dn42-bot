@@ -11,11 +11,7 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemo
 @bot.message_handler(commands=['restart'], is_private_chat=True)
 def restart_peer(message):
     if message.chat.id not in db:
-        bot.send_message(
-            message.chat.id,
-            'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login',
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        tools.gen_login_message(message)
         return
     peer_info = tools.get_info(db[message.chat.id])
     if not peer_info:

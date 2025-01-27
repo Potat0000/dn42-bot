@@ -110,16 +110,23 @@ def gen_info_markup(chatid, asn, node, available_node, session_name):
 
 
 def get_info_text(chatid, asn, node):
-    if chatid not in db:
+    if asn and chatid not in db_privilege:
+        if chatid not in db:
+            markup = InlineKeyboardMarkup()
+            markup.row(
+                InlineKeyboardButton(text='Login now | 立即登录', url=f'https://t.me/{bot.get_me().username}?start=login')
+            )
+            return 'You are not allowed to view information of other ASN.\n你无权查看其他 ASN 的信息。', markup
+        elif asn != db[chatid]:
+            markup = InlineKeyboardMarkup()
+            markup.row(InlineKeyboardButton(text='Show my info | 显示我的信息', callback_data=f'info_{db[chatid]}_'))
+            return 'You are not allowed to view information of other ASN.\n你无权查看其他 ASN 的信息。', markup
+    elif chatid not in db:
         markup = InlineKeyboardMarkup()
         markup.row(
             InlineKeyboardButton(text='Login now | 立即登录', url=f'https://t.me/{bot.get_me().username}?start=login')
         )
         return 'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login', markup
-    elif asn and asn != db[chatid] and chatid not in db_privilege:
-        markup = InlineKeyboardMarkup()
-        markup.row(InlineKeyboardButton(text='Show my info | 显示我的信息', callback_data=f'info_{db[chatid]}_'))
-        return 'You are not allowed to view information of other ASN.\n你无权查看其他 ASN 的信息。', markup
     elif not asn:
         asn = db[chatid]
     all_peers = tools.get_info(asn)

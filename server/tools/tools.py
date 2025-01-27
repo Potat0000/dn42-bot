@@ -264,6 +264,16 @@ def gen_peer_me_markup(message):
     return markup
 
 
+def gen_login_message(message):
+    markup = InlineKeyboardMarkup()
+    markup.row(InlineKeyboardButton(text='Login now | 立即登录', url=f'https://t.me/{bot.get_me().username}?start=login'))
+    bot.send_message(
+        message.chat.id,
+        'You are not logged in yet, please use /login first.\n你还没有登录，请先使用 /login',
+        reply_markup=markup,
+    )
+
+
 def get_from_agent(type, data, server=None, *, timeout=10, retry=5, backoff_factor=0.1):
     api_result = namedtuple('api_result', ['text', 'status'])
     if not server:
