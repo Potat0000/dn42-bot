@@ -137,7 +137,7 @@ def get_diff_text(old_peer_info, peer_info):
     diff_print('PublicKey', 'PublicKey:   ')
     diff_text += 'Contact:\n'
     diff_print('Contact')
-    return diff_text
+    return diff_text.strip()
 
 
 def init(message, peer_info):
