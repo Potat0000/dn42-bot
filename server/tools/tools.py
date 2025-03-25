@@ -41,7 +41,13 @@ def split_long_msg(msg, limit=4000):
     return chunks
 
 
-def get_whoisinfo_by_asn(asn, item='mnt-by'):
+def get_whoisinfo_by_asn(asn, item=...):
+    asn = extract_asn(asn)
+    if item is ...:
+        if 4201270000 <= asn < 4201280000:
+            item = 'admin-c'
+        else:
+            item = 'mnt-by'
     try:
         whois = subprocess.check_output(shlex.split(f'whois -h {config.WHOIS_ADDRESS} AS{asn}'), timeout=3).decode(
             'utf-8'
@@ -49,7 +55,7 @@ def get_whoisinfo_by_asn(asn, item='mnt-by'):
         for i in whois.splitlines():
             if i.startswith(f'{item}:'):
                 raw_name = i.split(':')[1].strip()
-                for w in ['AS', 'DN42', 'MNT']:
+                for w in ['MNT', 'AS', 'DN42']:
                     if raw_name.endswith(f'-{w}'):
                         raw_name = raw_name[: -(len(w) + 1)]
                     if raw_name.startswith(f'{w}-'):
