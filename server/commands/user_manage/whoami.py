@@ -40,6 +40,8 @@ def whoami(message, new_asn=None, info_node=None):
                     url=f'https://t.me/{bot.get_me().username}?start=info_{new_asn}_{info_node}',
                 )
             )
+        else:
+            markup = ReplyKeyboardRemove()
         bot.send_message(
             message.chat.id,
             '*[Privilege]*\nCurrent login user:\n当前登录用户：\n' f'`{tools.get_asn_mnt_text(db[message.chat.id])}`',
