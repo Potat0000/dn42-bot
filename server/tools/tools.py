@@ -42,7 +42,10 @@ def split_long_msg(msg, limit=4000):
 
 
 def get_whoisinfo_by_asn(asn, item=...):
-    asn = extract_asn(asn)
+    if t := extract_asn(asn):
+        asn = t
+    else:
+        return str(asn)
     if item is ...:
         if 4201270000 <= asn < 4201280000:
             item = 'admin-c'

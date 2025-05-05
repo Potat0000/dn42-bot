@@ -61,9 +61,8 @@ def start_login(message):
         )
         return
     if len(message.text.split()) == 2:
-        if asn := tools.extract_asn(message.text.split()[1]):
-            login_input_asn(asn, message)
-            return
+        login_input_asn(message.text.split()[1], message)
+        return
     msg = bot.send_message(
         message.chat.id,
         'Enter your ASN\n请输入你的 ASN',
@@ -98,12 +97,18 @@ def login_input_asn(exist_asn, message):
             reply_markup=markup,
         )
         bot.register_next_step_handler(msg, partial(login_choose_email, asn, emails, msg.message_id))
+    elif exist_asn:
+        msg = bot.send_message(
+            message.chat.id,
+            'Input is not a registered DN42 ASN, please try again.\n输入不是已注册的 DN42 ASN，请重试。',
+            reply_markup=ReplyKeyboardRemove(),
+        )
     else:
         msg = bot.send_message(
             message.chat.id,
             (
-                'Input is invalid, please try again. Use /cancel to interrupt the operation.\n'
-                '输入无效，请重试。使用 /cancel 终止操作。'
+                'Input is not a registered DN42 ASN, please try again. Use /cancel to interrupt the operation.\n'
+                '输入不是已注册的 DN42 ASN，请重试。使用 /cancel 终止操作。'
             ),
             reply_markup=ReplyKeyboardRemove(),
         )
