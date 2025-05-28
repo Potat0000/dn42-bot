@@ -410,7 +410,7 @@ def post_ipv4(message, peer_info):
             pass
     try:  # Test for IPv4
         socket.inet_pton(socket.AF_INET, msg)
-        if ip_address(msg) not in IPv4Network('172.20.0.0/14'):
+        if not any(ip_address(msg) in n for n in [IPv4Network('172.20.0.0/14'), IPv4Network('10.127.0.0/16')]):
             raise ValueError
     except (socket.error, OSError, ValueError):
         msg = bot.send_message(

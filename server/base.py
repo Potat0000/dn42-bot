@@ -11,7 +11,7 @@ class ExceptionHandler(telebot.ExceptionHandler):
             sentry_sdk.capture_exception(exception)
 
 
-MIN_AGENT_VERSION = 19
+MIN_AGENT_VERSION = 21
 
 bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True, exception_handler=ExceptionHandler)
 

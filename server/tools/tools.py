@@ -217,7 +217,7 @@ def test_ip_domain(testcase):
     elif domain and domain.endswith('.dn42'):
         dn42 = True
     elif (raw == ipv4 or raw == ipv6) and (
-        (ipv4 and ip_address(ipv4) in IPv4Network('172.20.0.0/14'))
+        (ipv4 and any(ip_address(ipv4) in n for n in [IPv4Network('172.20.0.0/14'), IPv4Network('10.127.0.0/16')]))
         or (ipv6 and ip_address(ipv6) in IPv6Network('fc00::/7'))
     ):
         dn42 = True

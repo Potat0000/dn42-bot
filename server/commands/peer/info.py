@@ -66,7 +66,7 @@ def basic_info(asn, endpoint, pubkey, v6, v4):
     except BaseException:
         pass
     try:
-        if ip_address(v4) in IPv4Network('172.20.0.0/14'):
+        if any(ip_address(v4) in n for n in [IPv4Network('172.20.0.0/14'), IPv4Network('10.127.0.0/16')]):
             text += f'        IPv4: {ipv6_space}{v4}/32\n'
     except BaseException:
         pass

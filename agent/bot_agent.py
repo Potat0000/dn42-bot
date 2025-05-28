@@ -10,7 +10,7 @@ from ipaddress import IPv4Network, IPv6Network, ip_address
 import sentry_sdk
 from aiohttp import web
 
-AGENT_VERSION = 20
+AGENT_VERSION = 21
 
 try:
     with open('agent_config.json', 'r') as f:
@@ -135,7 +135,7 @@ async def get_info(request):
         r'PostUp = wg set %i private-key /etc/wireguard/dn42-privatekey\n'
         r'PostUp = ip addr add (fe80::[0-9a-f:]+)/64(?: peer (fe80::[0-9a-f:]+)/64)? dev %i\n'
         r'PostUp = ip addr add ' + str(MY_DN42_ULA_ADDRESS) + r'/128(?: peer (f[cd][0-9a-f:]+)/128)? dev %i\n'
-        r'PostUp = ip addr add ' + str(MY_DN42_IPv4_ADDRESS) + r'/32(?: peer (172.[0-9.]+)/32)? dev %i\n'
+        r'PostUp = ip addr add ' + str(MY_DN42_IPv4_ADDRESS) + r'/32(?: peer ([0-9.]+)/32)? dev %i\n'
         r'PostUp = sysctl -w net\.ipv6\.conf\.%i\.autoconf=0\n\n'
         r'\[Peer\]\n'
         r'PublicKey = (.{43}=)\n'
@@ -357,7 +357,9 @@ async def setup_peer(request):
     except BaseException:
         pass
     try:
-        if ip_address(peer_info['IPv4']) in IPv4Network('172.20.0.0/14'):
+        if any(
+            ip_address(peer_info['IPv4']) in n for n in [IPv4Network('172.20.0.0/14'), IPv4Network('10.127.0.0/16')]
+        ):
             ipv4 = str(ip_address(peer_info['IPv4']))
     except BaseException:
         pass
