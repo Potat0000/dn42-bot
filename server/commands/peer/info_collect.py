@@ -735,6 +735,7 @@ def post_contact(message, peer_info):
 def post_confirm(message, peer_info):
     progress_type = peer_info.pop('ProgressType')
     info_text = peer_info.pop('InfoText').strip()
+    old_region = peer_info.pop('OldRegion', None)
     if (whoisinfo := tools.get_whoisinfo_by_asn(db[message.chat.id])).lower() != peer_info['Contact'].lower():
         info_text += f'\n    ({whoisinfo})\n'
     check_text = message.text.strip()
@@ -771,14 +772,46 @@ def post_confirm(message, peer_info):
             raise RuntimeError
         if progress_type == 'modify':
             sleep(1)
-            r = requests.post(
-                f'http://{api}:{config.API_PORT}/restart',
-                data=str(db[message.chat.id]),
-                headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
-                timeout=10,
-            )
-            if r.status_code != 200:
-                raise RuntimeError
+            if old_region == peer_info['Region']:
+                r = requests.post(
+                    f'http://{api}:{config.API_PORT}/restart',
+                    data=str(db[message.chat.id]),
+                    headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
+                    timeout=10,
+                )
+                if r.status_code != 200:
+                    bot.send_message(
+                        message.chat.id,
+                        (
+                            f'The peer information has been modified but failed to restart the service. Please use /restart to restart it manually. If the problem persists, please contact {config.CONTACT}\n'
+                            f'Peer 信息已修改，但服务重启失败，请手工使用 /restart 重启。如果问题依旧，请联系 {config.CONTACT}'
+                        ),
+                        parse_mode='Markdown',
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                    return
+            else:
+                if old_region in config.HOSTS:
+                    old_region_api = config.HOSTS[old_region]
+                else:
+                    old_region_api = f'{old_region}.{config.ENDPOINT}'
+                r = requests.post(
+                    f'http://{old_region_api}:{config.API_PORT}/remove',
+                    data=str(db[message.chat.id]),
+                    headers={'X-DN42-Bot-Api-Secret-Token': config.API_TOKEN},
+                    timeout=10,
+                )
+                if r.status_code != 200:
+                    bot.send_message(
+                        message.chat.id,
+                        (
+                            f'The peer for the new region has been added but failed to remove the one in the origin region. Please use /remove to remove it manually. If the problem persists, please contact {config.CONTACT}\n'
+                            f'新位置的配置已生效，但旧位置的配置删除失败，请手工使用 /remove 删除。如果问题依旧，请联系 {config.CONTACT}'
+                        ),
+                        parse_mode='Markdown',
+                        reply_markup=ReplyKeyboardRemove(),
+                    )
+                    return
     except BaseException:
         bot.send_message(
             message.chat.id,

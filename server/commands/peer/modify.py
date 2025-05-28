@@ -392,5 +392,6 @@ def pre_confirm(message, peer_info):
         reply_markup=ReplyKeyboardRemove(),
     )
     peer_info['InfoText'] = diff_text
+    peer_info['OldRegion'] = old_peer_info['Region']
     peer_info['ProgressType'] = 'modify'
     return 'post_confirm', peer_info, msg
