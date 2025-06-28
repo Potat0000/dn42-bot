@@ -459,6 +459,17 @@ def pre_clearnet(message, peer_info):
                 "If you don't have a clearnet address or is behind NAT, please enter `none`\n"
                 '如果你没有公网地址，或你的服务器在 NAT 网络中，请输入 `none`'
             )
+        elif message.chat.id in db_privilege:
+            msg += (
+                '\n\n'
+                '*[Privilege]*\n'
+                "If your peer don't have a clearnet address or is behind NAT, please enter `none`\n"
+                '如果对方没有公网地址，或对方的服务器在 NAT 网络中，请输入 `none`'
+            )
+            if isinstance(markup, ReplyKeyboardRemove):
+                markup = ReplyKeyboardMarkup(resize_keyboard=True)
+                markup.row_width = 1
+            markup.add(KeyboardButton('none'))
         else:
             msg += (
                 '\n\n'
@@ -476,13 +487,14 @@ def pre_clearnet(message, peer_info):
 
 def post_clearnet(message, peer_info):
     if (
-        config.ALLOW_NO_CLEARNET
+        (config.ALLOW_NO_CLEARNET or message.chat.id in db_privilege)
         and message.text.strip().lower() == 'none'
         and (
             peer_info['Net_Support']['ipv6']
             or (peer_info['Net_Support']['ipv4'] and not peer_info['Net_Support']['ipv4_nat'])
         )
     ):
+        peer_info['Clearnet'] = None
         if message.chat.id in db_privilege:
             return 'pre_port_myside', peer_info, message
         else:
