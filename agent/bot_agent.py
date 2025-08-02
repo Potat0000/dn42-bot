@@ -10,7 +10,7 @@ from ipaddress import IPv4Network, IPv6Network, ip_address
 import sentry_sdk
 from aiohttp import web
 
-AGENT_VERSION = 21
+AGENT_VERSION = 22
 
 try:
     with open('agent_config.json', 'r') as f:
@@ -280,46 +280,6 @@ async def get_info(request):
             'lla': str(MY_DN42_LINK_LOCAL_ADDRESS),
         }
     )
-
-
-@routes.post('/stats')
-async def get_route_stats(request):
-    secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret != SECRET:
-        return web.Response(status=403)
-
-    stats = {'4': {}, '6': {}}
-
-    out = simple_run('birdc show protocols').splitlines()
-    if len(out) < 3:
-        return web.Response(body='bird error', status=500)
-    sessions = []
-    for line in out[2:]:
-        s = line.split()
-        if s[1] == 'BGP' and s[0].startswith('DN42_') and len(s) >= 6 and s[5] == 'Established':
-            try:
-                int(s[0].split('_')[1])
-                sessions.append(s[0])
-            except ValueError:
-                if s[0].startswith('DN42_INNER_'):
-                    sessions.append(s[0])
-    for the_session in sessions:
-        out = simple_run(f'birdc show protocols all {the_session}')
-        out = [i.strip().splitlines() for i in out.split('Channel ')]
-        out = {
-            i[0].strip(): {j.split(':', 1)[0].strip(): j.split(':', 1)[1].strip() for j in i[1:]}
-            for i in out
-            if i[0].strip().startswith('ipv')
-        }
-        for k, v in out.items():
-            if v['State'] == 'UP' and v['Output filter'] == '(unnamed)':
-                if the_session.startswith('DN42_INNER_'):
-                    as_name = the_session[5:]
-                else:
-                    as_name = the_session[5:-3]
-                preferred = int(v['Routes'].split(',')[2].split()[0])
-                stats[k[3]][as_name] = preferred
-    return web.json_response(stats)
 
 
 @routes.post('/peer')

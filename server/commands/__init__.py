@@ -10,7 +10,6 @@ import commands.peer.remove
 import commands.peer.restart
 import commands.statistics.peer_list
 import commands.statistics.rank
-import commands.statistics.route_stats
 import commands.statistics.stats
 import commands.tools.all_in_one
 import commands.tools.dig

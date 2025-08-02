@@ -74,9 +74,6 @@ def send_welcome(message):
             '  - /peer_list [asn]\n'
             '    Show the peer situation of a user\n'
             '    显示某 DN42 用户的 Peer 情况\n'
-            '  - /route_stats\n'
-            '    Show preferred routes ranking\n'
-            '    显示优选 Routes 排名\n'
             '```'
         ),
         parse_mode='Markdown',

@@ -130,7 +130,6 @@ try:
         tools.get_map(update=pickle.load(f))
 except BaseException:
     tools.get_map(update=True)
-tools.get_route_stats(update=True)
 
 
 # Setup scheduler
@@ -148,7 +147,6 @@ def scheduler_add_job(func, *args, **kwargs):
 
 scheduler_add_job(tools.servers_check, minute='*/3')
 scheduler_add_job(tools.update_china_ip, hour='1', minute='30')
-scheduler_add_job(tools.get_route_stats, kwargs={'update': True}, minute='1/10')
 scheduler_add_job(tools.get_map, kwargs={'update': True}, minute='3/10')
 scheduler_add_job(tools.update_as_route_table, minute='3/10')
 scheduler.start()
@@ -177,7 +175,6 @@ cmd_list = {
     'rank': ('Show DN42 global ranking 显示 DN42 总体排名', True),
     'stats': ('Show DN42 user basic info & statistics 显示 DN42 用户基本信息及数据', True),
     'peer_list': ('Show the peer situation of a user 显示某 DN42 用户的 Peer 情况', True),
-    'route_stats': ('Show preferred routes ranking 显示优选 Routes 排名', True),
     'cancel': ('Cancel ongoing operations 取消正在进行的操作', True),
     'help': ('Get help text 获取帮助文本', True),
 }
