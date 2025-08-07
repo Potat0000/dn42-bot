@@ -500,7 +500,7 @@ def post_clearnet(message, peer_info):
         else:
             return 'pre_pubkey', peer_info, message
 
-    if ':' in message.text.strip():
+    if message.text.strip().count(':') == 1:
         domain_part, port_part = message.text.strip().rsplit(':', 1)
         try:
             assert ':' not in domain_part

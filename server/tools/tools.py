@@ -2,7 +2,6 @@ import json
 import random
 import shlex
 import socket
-import string
 import subprocess
 from collections import namedtuple
 from ipaddress import IPv4Network, IPv6Network, ip_address
