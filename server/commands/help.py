@@ -79,3 +79,18 @@ def send_welcome(message):
         parse_mode='Markdown',
         reply_markup=ReplyKeyboardRemove(),
     )
+
+
+@bot.message_handler(commands=['chatid'], is_private_chat=True)
+def get_chatid(message):
+    bot.send_message(
+        message.chat.id,
+        (
+            f'Your chat ID is `{message.chat.id}`.\n'
+            f'你的聊天 ID 是 `{message.chat.id}`。\n'
+            'You can use this ID to report issues or for other purposes.\n'
+            '你可以使用这个 ID 来报告问题或其他用途。'
+        ),
+        parse_mode='Markdown',
+        reply_markup=ReplyKeyboardRemove(),
+    )
