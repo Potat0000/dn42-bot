@@ -17,7 +17,7 @@ rank_type_dict = {
 
 def gen_rank_markup(page, rank_type):
     markup = InlineKeyboardMarkup()
-    total = len(tools.get_map()[2])
+    total = len(tools.get_map().peer_map)
     last_page = (total - 1) // PAGE_SIZE
     if page == 0:
         markup.row(
@@ -83,7 +83,7 @@ def rank_callback_query(call):
 
 @bot.message_handler(commands=['rank'])
 def get_rank(message):
-    if not tools.get_map()[1]:
+    if not tools.get_map().data:
         bot.send_message(message.chat.id, 'No data available.\n暂无数据。', reply_markup=tools.gen_peer_me_markup(message))
         return
     try:

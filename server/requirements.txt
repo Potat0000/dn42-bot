@@ -4,7 +4,6 @@ dnspython==2.7.0
 expiringdict==1.2.2
 networkx==3.4.2
 punycode==0.2.1
-pybgpkit_parser==0.5.2
 pyTelegramBotAPI==4.26.0
 pytz==2024.2
 requests==2.32.3

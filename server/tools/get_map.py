@@ -1,13 +1,8 @@
-import os
 import pickle
-from re import sub as re_sub
-from tempfile import TemporaryDirectory
-from time import time
+from collections import namedtuple
 
 import networkx as nx
-from pybgpkit_parser import Parser
-from requests.adapters import HTTPAdapter, Retry
-from requests_futures.sessions import FuturesSession
+import requests
 from tools.tools import get_whoisinfo_by_asn
 
 
@@ -47,37 +42,21 @@ def gen_get_map():
     def get_map(*, update=None):
         nonlocal data, peer_map, update_time
         if not update:
-            return update_time, data, peer_map
+            map_result = namedtuple('MapResult', ['update_time', 'data', 'peer_map'])
+            return map_result(update_time, data, peer_map)
         if isinstance(update, tuple):
-            data, update_time, peer_map = update
+            update_time, data, peer_map = update
             return
-        session = FuturesSession()
-        session.mount(
-            'https://',
-            HTTPAdapter(max_retries=Retry(total=2, backoff_factor=0.1, allowed_methods=('GET'))),
-        )
-        futures = {'4': None, '6': None}
-        for ipver in futures.keys():
-            future = session.get(f'https://mrt.collector.dn42/master{ipver}_latest.mrt.bz2', verify=False, timeout=20)
-            futures[ipver] = future
-        G = nx.Graph()
-        with TemporaryDirectory() as tmpdir:
-            for ipver, future in futures.items():
-                try:
-                    mrt = future.result()
-                    filename = os.path.join(tmpdir, f'{ipver}.mrt.bz2')
-                    with open(filename, 'wb') as f:
-                        f.write(mrt.content)
-                    parser = Parser(url=filename)
-                except BaseException:
-                    return
-                else:
-                    for elem in parser:
-                        as_path = [int(i) for i in re_sub(r'\{.*?\}', '', elem['as_path']).split()]
-                        for i in range(len(as_path) - 1):
-                            if as_path[i] != as_path[i + 1]:
-                                G.add_edge(as_path[i], as_path[i + 1])
-        if not G.nodes:
+        try:
+            G = nx.Graph()
+            result = requests.get('https://api.iedon.com/dn42/map?type=json', timeout=5).json()
+            node_id_map = {index: value['asn'] for index, value in enumerate(result['nodes'])}
+            for i in result['links']:
+                if i['source'] != i['target']:
+                    G.add_edge(node_id_map[i['source']], node_id_map[i['target']])
+            if not G.nodes:
+                raise RuntimeError
+        except BaseException:
             return
         temp_data = {
             'closeness': nx.closeness_centrality(G),
@@ -97,10 +76,13 @@ def gen_get_map():
                 last_value = value
                 out.append((rank_now, asn, get_whoisinfo_by_asn(asn, 'as-name'), value))
             temp_data[rank_type] = out
-        temp_map = {asn: set(G[asn]) for asn in G.nodes}
-        data, update_time, peer_map = temp_data, int(time()), temp_map
+        data, update_time, peer_map = (
+            temp_data,
+            result['metadata']['generated_timestamp'],
+            {asn: set(G[asn]) for asn in G.nodes},
+        )
         with open('./map.pkl', 'wb') as f:
-            pickle.dump((data, update_time, peer_map), f)
+            pickle.dump((update_time, data, peer_map), f)
 
     return get_map
 

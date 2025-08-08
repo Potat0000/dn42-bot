@@ -1,7 +1,7 @@
 import shlex
 import string
 import subprocess
-from ipaddress import ip_address
+from ipaddress import ip_network
 
 import base
 import config
@@ -13,12 +13,12 @@ from commands.statistics.stats import get_stats
 def get_extra_route(asn):
     route_result = ''
     route = {4: [], 6: []}
-    for route in base.AS_ROUTE[asn]:
-        ip = ip_address(route)
-        route[ip.version].append((int(ip), route))
+    for r in base.AS_ROUTE[asn]:
+        net = ip_network(r)
+        route[net.version].append((int(net.network_address), net.compressed))
     for ip_version in [4, 6]:
-        for _, route in sorted(route[ip_version], key=lambda x: x[0]):
-            route_result += f'route{ip_version}:             {route}\n'
+        for _, r in sorted(route[ip_version], key=lambda x: x[0]):
+            route_result += f'route{ip_version}:             {r}\n'
     if route_result:
         return f"% Routes for 'AS{asn}':\n{route_result.strip()}"
 
