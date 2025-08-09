@@ -146,8 +146,8 @@ def scheduler_add_job(func, *args, **kwargs):
 
 
 scheduler_add_job(tools.servers_check, minute='*/3')
+scheduler_add_job(tools.get_map, kwargs={'update': True}, minute='*/3')
 scheduler_add_job(tools.update_china_ip, hour='1', minute='30')
-scheduler_add_job(tools.get_map, kwargs={'update': True}, minute='1/5')
 scheduler_add_job(tools.update_as_route_table, minute='7/15')
 scheduler.start()
 
