@@ -1,4 +1,5 @@
 import pickle
+from ipaddress import ip_network
 
 import config
 import sentry_sdk
@@ -17,9 +18,10 @@ bot = telebot.TeleBot(config.BOT_TOKEN, use_class_middlewares=True, exception_ha
 
 servers = {}
 
+AS_ROUTE = {}
 ChinaIPv4 = []
 ChinaIPv6 = []
-AS_ROUTE = {}
+ChinaWhitelist = [ip_network(i) for i in config.CN_WHITELIST_IP]
 
 try:
     with open('./user_db.pkl', 'rb') as f:

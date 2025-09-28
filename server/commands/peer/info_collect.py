@@ -530,8 +530,16 @@ def post_clearnet(message, peer_info):
             else:
                 msg = None
                 if not peer_info['Net_Support']['cn'] and (
-                    (test_result.ipv4 and any(ip_address(test_result.ipv4) in i for i in base.ChinaIPv4))
-                    or (test_result.ipv6 and any(ip_address(test_result.ipv6) in i for i in base.ChinaIPv6))
+                    (
+                        test_result.ipv4
+                        and any(ip_address(test_result.ipv4) in i for i in base.ChinaIPv4)
+                        and not any(ip_address(test_result.ipv4) in i for i in base.ChinaWhitelist)
+                    )
+                    or (
+                        test_result.ipv6
+                        and any(ip_address(test_result.ipv6) in i for i in base.ChinaIPv6)
+                        and not any(ip_address(test_result.ipv6) in i for i in base.ChinaWhitelist)
+                    )
                 ):
                     msg = (
                         'Peering with Chinese Mainland is not allowed on this node',
