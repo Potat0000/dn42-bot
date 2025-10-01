@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 
 import tools
 from base import bot
@@ -48,11 +49,11 @@ def gen_rank_markup(page, rank_type):
 def get_rank_text(page, rank_type):
     update_time, data, _ = tools.get_map()
     time_delta = int(time.time()) - update_time
+    update_time = datetime.fromtimestamp(update_time, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
     data = data[rank_type][PAGE_SIZE * page : PAGE_SIZE * (page + 1)]
     mnt_len = 20
     msg = 'DN42 Global Rank'.center(25 + mnt_len) + '\n'
-    msg += rank_type_dict[rank_type].center(25 + mnt_len) + '\n'
-    msg += f'updated {time_delta}s ago'.rjust(25 + mnt_len) + '\n\n'
+    msg += rank_type_dict[rank_type].center(25 + mnt_len) + '\n\n'
     msg += f"Rank  {'ASN':10}  {'MNT':{mnt_len}}  Value"
     for rank, asn, mnt, value in data:
         if len(mnt) > mnt_len:
@@ -61,7 +62,7 @@ def get_rank_text(page, rank_type):
             msg += f'\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:.{5 - len(str(int(value)))}f}'
         else:
             msg += f'\n{rank:>4}  {asn:<10}  {mnt:{mnt_len}} {value:>6}'
-    return f'```Rank\n{msg}\n```'
+    return f'```Rank\n{msg}\n```Updated {time_delta}s ago\n({update_time})'
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('rank_'))

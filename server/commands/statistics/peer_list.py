@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 
 import tools
 from base import bot, db
@@ -23,10 +24,12 @@ def peer_list(message):
             return
     update_time, _, peer_map = tools.get_map()
     time_delta = int(time.time()) - update_time
+    update_time = datetime.fromtimestamp(update_time, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    update_str = f'Updated {time_delta}s ago\n({update_time})'
     if asn not in peer_map:
         bot.reply_to(
             message,
-            f'```PeerList\nNo data available.\n暂无数据。```Updated {time_delta}s ago',
+            f'```PeerList\nNo data available.\n暂无数据。```{update_str}',
             parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
@@ -49,14 +52,14 @@ def peer_list(message):
             else:
                 bot.reply_to(
                     last_msg,
-                    f'```PeerList\n{m}````{len(peer_map[asn])}` peers in total\nUpdated {time_delta}s ago',
+                    f'```PeerList\n{m}````{len(peer_map[asn])}` peers in total\n{update_str}',
                     parse_mode='Markdown',
                     reply_markup=tools.gen_peer_me_markup(message),
                 )
     else:
         bot.reply_to(
             message,
-            f'```PeerList\n{msg}````{len(peer_map[asn])}` peers in total\nUpdated {time_delta}s ago',
+            f'```PeerList\n{msg}````{len(peer_map[asn])}` peers in total\n{update_str}',
             parse_mode='Markdown',
             reply_markup=tools.gen_peer_me_markup(message),
         )
