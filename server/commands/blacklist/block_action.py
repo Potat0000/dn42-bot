@@ -85,7 +85,8 @@ def block_action(message):
 
 
 def unbluck_all_action(message, nodes):
-    get_blocked(message, nodes)
+    if get_blocked(message, nodes) is False:
+        return
     code = tools.gen_random_code(32)
     msg = bot.send_message(
         message.chat.id,

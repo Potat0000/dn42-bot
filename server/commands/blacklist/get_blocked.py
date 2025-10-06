@@ -20,7 +20,7 @@ def get_blocked_text(data, node, page=0, rank_by_time=False):
     if isinstance(blocked_asns, str):
         return blocked_asns
     if not blocked_asns:
-        return "No blocked ASNs\n无封禁ASN"
+        return "- No blocked ASNs\n  无封禁ASN"
     msg = ""
     if rank_by_time and len(blocked_asns) >= 3:
         key_func = lambda x: -x[1]  # noqa: E731
@@ -93,7 +93,6 @@ def blocked_callback_query(call):
             "The result is expired, please run it again.\n结果已失效，请重新运行。",
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=None,
         )
         return
     blocked_text = get_blocked_text(data, node, choice[2], choice[3])
@@ -121,8 +120,7 @@ def get_blocked(message, nodes=None):
         return
     try:
         available_server = [j.lower() for j in base.servers.keys()]
-        if nodes is None:
-            nodes = [i.lower() for i in message.text.split()[1:]]
+        nodes = [i.lower() for i in (nodes if nodes is not None else message.text.split()[1:])]
         if not nodes:
             raise RuntimeError()
         specific_server = [i for i in available_server if i in nodes]
@@ -134,13 +132,23 @@ def get_blocked(message, nodes=None):
         specific_server = list(base.servers.keys())
     result = tools.get_from_agent("get_blocked", None, specific_server)
     data = {}
+    have_blocked = False
     for k, v in result.items():
         if v.status == 200:
             data[k] = json.loads(v.text)
+            if data[k]:
+                have_blocked = True
         elif v.status == 500:
             data[k] = "Blacklist parse error"
         else:
             data[k] = f"Error {v.status}"
+    if not have_blocked:
+        bot.send_message(
+            message.chat.id,
+            "No blocked ASNs on all selected nodes\n所有所选节点均无封禁ASN",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return False
     data_id = str(uuid4()).replace("-", "")
     cache[data_id] = data
     node = specific_server[0]
