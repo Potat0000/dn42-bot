@@ -29,3 +29,11 @@ def servers_check(startup=False):
         text += '```'
         for i in base.db_privilege:
             base.bot.send_message(i, text, parse_mode='Markdown', reply_markup=ReplyKeyboardRemove())
+    elif not base.servers and startup:
+        for i in base.db_privilege:
+            base.bot.send_message(
+                i,
+                '*[Privilege]*\n```ServerStatus\nNo available nodes.\n当前无可用节点。```',
+                parse_mode='Markdown',
+                reply_markup=ReplyKeyboardRemove(),
+            )

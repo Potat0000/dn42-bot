@@ -1,58 +1,10 @@
-#!/usr/bin/env python3
-
-import json
 import os
 import re
-import shlex
-import subprocess
 from ipaddress import IPv4Network, IPv6Network, ip_address
 
-import sentry_sdk
+import base
 from aiohttp import web
-
-AGENT_VERSION = 22
-
-try:
-    with open('agent_config.json', 'r') as f:
-        raw_config = json.load(f)
-    HOST = raw_config['HOST']
-    PORT = raw_config['PORT']
-    SECRET = raw_config['SECRET']
-    OPEN = raw_config['OPEN']
-    MAX_PEERS = raw_config['MAX_PEERS'] if raw_config['MAX_PEERS'] > 0 else 0
-    NET_SUPPORT = raw_config['NET_SUPPORT']
-    EXTRA_MSG = raw_config['EXTRA_MSG']
-    MY_DN42_LINK_LOCAL_ADDRESS = ip_address(raw_config['MY_DN42_LINK_LOCAL_ADDRESS'])
-    MY_DN42_ULA_ADDRESS = ip_address(raw_config['MY_DN42_ULA_ADDRESS'])
-    MY_DN42_IPv4_ADDRESS = ip_address(raw_config['MY_DN42_IPv4_ADDRESS'])
-    MY_WG_PUBLIC_KEY = raw_config['MY_WG_PUBLIC_KEY']
-    BIRD_TABLE_4 = raw_config['BIRD_TABLE_4']
-    BIRD_TABLE_6 = raw_config['BIRD_TABLE_6']
-    VNSTAT_AUTO_ADD = raw_config['VNSTAT_AUTO_ADD']
-    VNSTAT_AUTO_REMOVE = raw_config['VNSTAT_AUTO_REMOVE'] if VNSTAT_AUTO_ADD else False
-except BaseException:
-    print('Failed to load config file. Exiting.')
-    exit(1)
-
-if raw_config['SENTRY_DSN']:
-    sentry_sdk.init(
-        dsn=raw_config['SENTRY_DSN'],
-        traces_sample_rate=0,
-    )
-
-routes = web.RouteTableDef()
-
-
-def simple_run(command, timeout=3):
-    try:
-        output = (
-            subprocess.check_output(shlex.split(command), timeout=timeout, stderr=subprocess.STDOUT)
-            .decode('utf-8')
-            .strip()
-        )
-    except subprocess.CalledProcessError as e:
-        output = e.output.decode('utf-8').strip()
-    return output
+from tools import set_sentry, simple_run
 
 
 def get_current_peer_num():
@@ -66,30 +18,11 @@ def get_current_peer_num():
         return wg_conf_len
 
 
-def set_sentry(func):
-    async def wrapper(request):
-        if raw_config['SENTRY_DSN']:
-            with sentry_sdk.start_transaction(name=f'Agent {request.rel_url}', sampled=True) as transaction:
-                transaction.set_tag('url', request.rel_url)
-                ret = await func(request)
-                transaction.set_http_status(ret.status)
-            return ret
-        else:
-            return func(request)
-
-    return wrapper
-
-
-@routes.post('/version')
-async def version(request):
-    return web.Response(body=str(AGENT_VERSION))
-
-
-@routes.post('/pre_peer')
+@base.routes.post('/pre_peer')
 @set_sentry
 async def pre_peer(request):
     secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret != SECRET:
+    if secret != base.SECRET:
         return web.Response(status=403)
     current_peer_num = get_current_peer_num()
     if current_peer_num is None:
@@ -97,20 +30,20 @@ async def pre_peer(request):
     return web.json_response(
         {
             'existed': current_peer_num,
-            'max': MAX_PEERS,
-            'open': OPEN,
-            'net_support': NET_SUPPORT,
-            'lla': str(MY_DN42_LINK_LOCAL_ADDRESS),
-            'msg': EXTRA_MSG,
+            'max': base.MAX_PEERS,
+            'open': base.OPEN,
+            'net_support': base.NET_SUPPORT,
+            'lla': str(base.MY_DN42_LINK_LOCAL_ADDRESS),
+            'msg': base.EXTRA_MSG,
         }
     )
 
 
-@routes.post('/info')
+@base.routes.post('/info')
 @set_sentry
 async def get_info(request):
     secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
+    if secret == base.SECRET:
         try:
             asn = int(await request.text())
         except BaseException:
@@ -134,8 +67,8 @@ async def get_info(request):
         r'(?:MTU = [0-9]+\n)?'
         r'PostUp = wg set %i private-key /etc/wireguard/dn42-privatekey\n'
         r'PostUp = ip addr add (fe80::[0-9a-f:]+)/64(?: peer (fe80::[0-9a-f:]+)/64)? dev %i\n'
-        r'PostUp = ip addr add ' + str(MY_DN42_ULA_ADDRESS) + r'/128(?: peer (f[cd][0-9a-f:]+)/128)? dev %i\n'
-        r'PostUp = ip addr add ' + str(MY_DN42_IPv4_ADDRESS) + r'/32(?: peer ([0-9.]+)/32)? dev %i\n'
+        r'PostUp = ip addr add ' + str(base.MY_DN42_ULA_ADDRESS) + r'/128(?: peer (f[cd][0-9a-f:]+)/128)? dev %i\n'
+        r'PostUp = ip addr add ' + str(base.MY_DN42_IPv4_ADDRESS) + r'/32(?: peer ([0-9.]+)/32)? dev %i\n'
         r'PostUp = sysctl -w net\.ipv6\.conf\.%i\.autoconf=0\n\n'
         r'\[Peer\]\n'
         r'PublicKey = (.{43}=)\n'
@@ -173,8 +106,8 @@ async def get_info(request):
         my_v6 = wg_info[1]
     else:
         v6 = wg_info[3]
-        my_v6 = str(MY_DN42_ULA_ADDRESS)
-    my_v4 = str(MY_DN42_IPv4_ADDRESS) if wg_info[4] else None
+        my_v6 = str(base.MY_DN42_ULA_ADDRESS)
+    my_v4 = str(base.MY_DN42_IPv4_ADDRESS) if wg_info[4] else None
     if wg_info[6]:
         clearnet = wg_info[6]
     else:
@@ -272,21 +205,21 @@ async def get_info(request):
             'session_name': session_name,
             'my_v6': my_v6,
             'my_v4': my_v4,
-            'my_pubkey': MY_WG_PUBLIC_KEY,
+            'my_pubkey': base.MY_WG_PUBLIC_KEY,
             'wg_last_handshake': wg_last_handshake,
             'wg_transfer': wg_transfer,
             'bird_status': bird_status,
-            'net_support': NET_SUPPORT,
-            'lla': str(MY_DN42_LINK_LOCAL_ADDRESS),
+            'net_support': base.NET_SUPPORT,
+            'lla': str(base.MY_DN42_LINK_LOCAL_ADDRESS),
         }
     )
 
 
-@routes.post('/peer')
+@base.routes.post('/peer')
 @set_sentry
 async def setup_peer(request):
     secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
+    if secret == base.SECRET:
         try:
             peer_info = await request.json()
         except BaseException:
@@ -300,7 +233,7 @@ async def setup_peer(request):
     if not (
         os.path.exists(f"/etc/wireguard/dn42-{peer_info['ASN']}.conf")
         and os.path.exists(f"/etc/bird/dn42_peers/{peer_info['ASN']}.conf")
-    ) and ((MAX_PEERS != 0 and current_peer_num >= MAX_PEERS) or not OPEN):
+    ) and ((base.MAX_PEERS != 0 and current_peer_num >= base.MAX_PEERS) or not base.OPEN):
         return web.Response(status=503)
 
     ula = None
@@ -326,7 +259,7 @@ async def setup_peer(request):
     try:
         my_lla = str(ip_address(peer_info['Request-LinkLocal']))
     except BaseException:
-        my_lla = str(MY_DN42_LINK_LOCAL_ADDRESS)
+        my_lla = str(base.MY_DN42_LINK_LOCAL_ADDRESS)
     wg = (
         '# {comment}\n'
         '[Interface]\n'
@@ -351,8 +284,8 @@ async def setup_peer(request):
         ula=(f' peer {ula}/128' if ula else ''),
         ipv4=(f' peer {ipv4}/32' if ipv4 else ''),
         my_lla=my_lla,
-        my_ula=str(MY_DN42_ULA_ADDRESS),
-        my_ipv4=str(MY_DN42_IPv4_ADDRESS),
+        my_ula=str(base.MY_DN42_ULA_ADDRESS),
+        my_ipv4=str(base.MY_DN42_IPv4_ADDRESS),
         pubkey=peer_info['PublicKey'],
         clearnet=peer_info['Clearnet'],
     )
@@ -395,17 +328,17 @@ async def setup_peer(request):
     simple_run(f"systemctl enable wg-quick@dn42-{peer_info['ASN']}")
     simple_run(f"systemctl restart wg-quick@dn42-{peer_info['ASN']}")
     simple_run('birdc c')
-    if VNSTAT_AUTO_ADD:
+    if base.VNSTAT_AUTO_ADD:
         simple_run(f'vnstat --add -i dn42-{peer_info["ASN"]}')
 
     return web.Response(status=200)
 
 
-@routes.post('/remove')
+@base.routes.post('/remove')
 @set_sentry
 async def remove_peer(request):
     secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
+    if secret == base.SECRET:
         try:
             asn = int(await request.text())
         except BaseException:
@@ -424,17 +357,17 @@ async def remove_peer(request):
     except BaseException:
         pass
     simple_run('birdc c')
-    if VNSTAT_AUTO_REMOVE:
+    if base.VNSTAT_AUTO_REMOVE:
         simple_run(f'vnstat --remove -i dn42-{asn} --force')
 
     return web.Response(status=200)
 
 
-@routes.post('/restart')
+@base.routes.post('/restart')
 @set_sentry
 async def restart_peer(request):
     secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
+    if secret == base.SECRET:
         try:
             asn = int(await request.text())
         except BaseException:
@@ -455,104 +388,3 @@ async def restart_peer(request):
             return web.Response(body='wg error', status=500)
         else:
             return web.Response(status=200)
-
-
-@routes.post('/ping')
-@set_sentry
-async def ping_test(request):
-    secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
-        target = await request.text()
-    else:
-        return web.Response(status=403)
-    try:
-        output = simple_run(f'ping -c 5 -w 6 {target}', timeout=8)
-    except subprocess.TimeoutExpired:
-        return web.Response(status=408)
-    return web.Response(body=output)
-
-
-@routes.post('/trace')
-@set_sentry
-async def trace_test(request):
-    secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
-        target = await request.text()
-    else:
-        return web.Response(status=403)
-    try:
-        output = simple_run(f'traceroute -q1 -N32 -w1 {target}', timeout=8)
-    except subprocess.TimeoutExpired:
-        try:
-            output = simple_run(f'traceroute -q1 -N32 -w1 -n {target}', timeout=8)
-        except subprocess.TimeoutExpired:
-            return web.Response(status=408)
-    output = [i for i in output.splitlines()[::-1] if not re.match(r'^\s*$', i)]
-    total = 0
-    while re.match(r'^\s*\d+(?:\s+\*)+$', output[0]):
-        output.pop(0)
-        total += 1
-    output = '\n'.join(output[::-1])
-    if total > 0:
-        output += f'\n\n{total} hops not responding.'
-    return web.Response(body=output)
-
-
-@routes.post('/tcping')
-@set_sentry
-async def tcping_test(request):
-    secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
-        target = await request.text()
-    else:
-        return web.Response(status=403)
-    try:
-        output = simple_run(f'tcping -n 5 {target}', timeout=10)
-    except subprocess.TimeoutExpired:
-        return web.Response(status=408)
-    output = re.sub(r'\n\nPing (?:stopped|interrupted).\n\n', '\n', output)
-    return web.Response(body=output)
-
-
-@routes.post('/route')
-@set_sentry
-async def get_route(request):
-    secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
-        target = await request.text()
-    else:
-        return web.Response(status=403)
-    try:
-        if ':' in target:
-            output = simple_run(f'birdc show route table {BIRD_TABLE_6} for {target} all primary')
-        else:
-            output = simple_run(f'birdc show route table {BIRD_TABLE_4} for {target} all primary')
-    except subprocess.TimeoutExpired:
-        return web.Response(status=408)
-    return web.Response(body=output)
-
-
-@routes.post('/path')
-@set_sentry
-async def get_path(request):
-    secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret == SECRET:
-        target = await request.text()
-    else:
-        return web.Response(status=403)
-    try:
-        if ':' in target:
-            output = simple_run(f'birdc show route table {BIRD_TABLE_6} for {target} all primary')
-        else:
-            output = simple_run(f'birdc show route table {BIRD_TABLE_4} for {target} all primary')
-    except subprocess.TimeoutExpired:
-        return web.Response(status=408)
-    for line in output.splitlines():
-        if 'BGP.as_path' in line:
-            return web.Response(body=line.split(':')[1].strip())
-    return web.Response(status=404)
-
-
-app = web.Application()
-app.add_routes(routes)
-web.run_app(app, host=HOST, port=PORT)

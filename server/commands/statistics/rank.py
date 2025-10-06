@@ -39,10 +39,8 @@ def gen_rank_markup(page, rank_type):
             InlineKeyboardButton('➡️', callback_data=f'rank_{page + 1}_{rank_type}'),
         )
     for k, v in rank_type_dict.items():
-        if k == rank_type:
-            markup.row(InlineKeyboardButton(f'✅ {v}', callback_data=f'rank_0_{k}'))
-        else:
-            markup.row(InlineKeyboardButton(v, callback_data=f'rank_0_{k}'))
+        selected = '✅ ' if k == rank_type else ''
+        markup.row(InlineKeyboardButton(f'{selected}{v}', callback_data=f'rank_0_{k}'))
     return markup
 
 

@@ -13,10 +13,8 @@ cache = ExpiringDict(max_len=500, max_age_seconds=259200)
 def gen_generaltest_markup(chat, data_id, node, available_nodes):
     markup = InlineKeyboardMarkup()
     for n in available_nodes:
-        if n == node:
-            markup.row(InlineKeyboardButton(f'✅ {base.servers[n]}', callback_data=f'generaltest_{data_id}_{n}'))
-        else:
-            markup.row(InlineKeyboardButton(base.servers[n], callback_data=f'generaltest_{data_id}_{n}'))
+        selected = '✅ ' if n == node else ''
+        markup.row(InlineKeyboardButton(f'{selected}{base.servers[n]}', callback_data=f'generaltest_{data_id}_{n}'))
     if chat.id in db_privilege:
         return markup
     if chat.type == 'private' and chat.id in db:

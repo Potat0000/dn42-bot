@@ -175,6 +175,9 @@ cmd_list = {
     'rank': ('Show DN42 global ranking 显示 DN42 总体排名', True),
     'stats': ('Show DN42 user basic info & statistics 显示 DN42 用户基本信息及数据', True),
     'peer_list': ('Show the peer situation of a user 显示某 DN42 用户的 Peer 情况', True),
+    'block': ('Block an ASN 拉黑一个 ASN', False),
+    'unblock': ('Unblock an ASN 取消拉黑一个 ASN', False),
+    'blocked': ('Get blocked ASN list 获取已拉黑的 ASN 列表', False),
     'cancel': ('Cancel ongoing operations 取消正在进行的操作', True),
     'help': ('Get help text 获取帮助文本', True),
 }

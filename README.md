@@ -24,6 +24,9 @@
   - [x] DN42 user basic info & statistics
   - [x] Peer situation of a user
   - [x] Preferred routes ranking
+- Blacklist
+  - [x] Block / Unblock an ASN
+  - [x] Get blocked ASN list
 
 ## Deployment
 

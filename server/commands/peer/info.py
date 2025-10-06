@@ -89,12 +89,12 @@ def gen_info_markup(chatid, asn, node, available_node, session_name):
             )
     if len(available_node) != 1:
         for node_name in available_node:
-            if node_name == node:
-                markup.row(
-                    InlineKeyboardButton(text=f'✅ {base.servers[node_name]}', callback_data=f'info_{asn}_{node_name}')
+            selected = '✅ ' if node_name == node else ''
+            markup.row(
+                InlineKeyboardButton(
+                    text=f'{selected}{base.servers[node_name]}', callback_data=f'info_{asn}_{node_name}'
                 )
-            else:
-                markup.row(InlineKeyboardButton(text=base.servers[node_name], callback_data=f'info_{asn}_{node_name}'))
+            )
     else:
         markup.row(InlineKeyboardButton(text='Refresh | 刷新', callback_data=f'info_{asn}_{node}'))
     if chatid in db_privilege and db[chatid] != asn:
