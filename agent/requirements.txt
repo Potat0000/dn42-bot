@@ -1,2 +1,2 @@
 aiohttp==3.12.15
-sentry_sdk==2.34.1
+sentry_sdk==2.39.0

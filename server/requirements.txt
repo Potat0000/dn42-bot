@@ -1,12 +1,12 @@
 aiohttp==3.12.15
 APScheduler==3.11.0
-dnspython==2.7.0
+dnspython==2.8.0
 expiringdict==1.2.2
 punycode==0.2.1
-pyTelegramBotAPI==4.28.0
+pyTelegramBotAPI==4.29.1
 pytz==2025.2
-Requests==2.32.4
+Requests==2.32.5
 requests_futures==1.0.2
-rustworkx==0.16.0
-sentry_sdk==2.34.1
+rustworkx==0.17.1
+sentry_sdk==2.39.0
 urllib3==2.5.0
