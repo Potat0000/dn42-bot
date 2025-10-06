@@ -230,6 +230,9 @@ def get_info_text(chatid, asn, node):
                 detail_text += f'        {bird_status[1]}\n'
             if session in bird_status[2]:
                 detail_text += f'        {bird_status[2][session]}\n'
+    if peer_info['blocked_time']:
+        detail_text += f'    [!] Blocked since {peer_info['blocked_time']}\n'
+        detail_text += f'        Contact {config.CONTACT} for help\n'
 
     if tools.get_whoisinfo_by_asn(asn).lower() == peer_info['desc'].lower():
         detail_text += 'Contact:\n' f"    {peer_info['desc']}\n"

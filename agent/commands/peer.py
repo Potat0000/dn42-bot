@@ -4,6 +4,7 @@ from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import base
 from aiohttp import web
+from commands.blacklist import get_blacklist
 from tools import set_sentry, simple_run
 
 
@@ -22,7 +23,12 @@ def get_current_peer_num():
 @set_sentry
 async def pre_peer(request):
     secret = request.headers.get('X-DN42-Bot-Api-Secret-Token')
-    if secret != base.SECRET:
+    if secret == base.SECRET:
+        try:
+            asn = int(await request.text())
+        except BaseException:
+            return web.Response(status=400)
+    else:
         return web.Response(status=403)
     current_peer_num = get_current_peer_num()
     if current_peer_num is None:
@@ -35,6 +41,7 @@ async def pre_peer(request):
             'net_support': base.NET_SUPPORT,
             'lla': str(base.MY_DN42_LINK_LOCAL_ADDRESS),
             'msg': base.EXTRA_MSG,
+            'blocked_time': get_blacklist().get(asn, (None,))[0],
         }
     )
 
@@ -211,6 +218,7 @@ async def get_info(request):
             'bird_status': bird_status,
             'net_support': base.NET_SUPPORT,
             'lla': str(base.MY_DN42_LINK_LOCAL_ADDRESS),
+            'blocked_time': get_blacklist().get(asn, (None,))[0],
         }
     )
 

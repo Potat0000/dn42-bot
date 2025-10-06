@@ -1,6 +1,7 @@
 import json
 import socket
 import string
+from datetime import datetime, timezone
 from ipaddress import IPv4Network, IPv6Network, ip_address
 from time import sleep
 
@@ -20,7 +21,7 @@ from telebot.types import (
 
 def pre_region(message, peer_info):
     peered = set(tools.get_info(db[message.chat.id]).keys())
-    pre_peer_info = tools.get_from_agent('pre_peer', None)
+    pre_peer_info = tools.get_from_agent('pre_peer', str(peer_info['ASN']))
     could_peer = []
     msg = ''
     peer_info['Region'] = {}
@@ -66,6 +67,9 @@ def pre_region(message, peer_info):
             msg += '  ⚠️ IPv6: No\n'
         if not data['net_support']['cn']:
             msg += '  ⚠️ Not allowed to peer with Chinese Mainland\n'
+        if data['blocked_time']:
+            time_str = datetime.fromtimestamp(data['blocked_time'], tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+            msg += f'  ⚠️ ASN been blocked since {time_str}\n'
         if data['msg']:
             msg += f'  {data["msg"]}\n'
         msg += '\n'

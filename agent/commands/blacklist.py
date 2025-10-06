@@ -9,9 +9,14 @@ from tools import set_sentry, simple_run
 def get_blacklist():
     with open('/etc/bird/config/blacklist.conf', 'r') as f:
         raw = f.read()
-    if match := re.search(r'define DN42_BLACKLIST_ASNS\s*=\s*\[(.*?)\];', raw, re.S):
+    if match := re.search(
+        r'define DN42_BLACKLIST_ASNS\s*=\s*\[(.*?)\];', raw, re.S
+    ):
         blocked_asns = {
-            int(asn): (datetime.strptime(time, '%Y-%m-%dT%H:%M:%S').timestamp(), name.strip())
+            int(asn): (
+                datetime.strptime(time, '%Y-%m-%dT%H:%M:%S').timestamp(),
+                name.strip(),
+            )
             for asn, time, name in re.findall(
                 r'\s*(\d+)[, ]   # (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})   (.+)',
                 match.group(1),
@@ -25,11 +30,18 @@ def get_blacklist():
 def gen_blacklist(blocked_asns):
     text = 'define DN42_BLACKLIST_ASNS = [\n'
     if blocked_asns:
-        asns = sorted([(asn, time, name) for asn, (time, name) in blocked_asns.items()], key=lambda x: x[0])
+        asns = sorted(
+            [(asn, time, name) for asn, (time, name) in blocked_asns.items()],
+            key=lambda x: x[0],
+        )
         for asn, time, name in asns[:-1]:
-            time_str = datetime.fromtimestamp(time, tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
+            time_str = datetime.fromtimestamp(time, tz=timezone.utc).strftime(
+                '%Y-%m-%dT%H:%M:%S'
+            )
             text += f'    {asn},   # {time_str}   {name}\n'
-        time_str = datetime.fromtimestamp(asns[-1][1], tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
+        time_str = datetime.fromtimestamp(
+            asns[-1][1], tz=timezone.utc
+        ).strftime('%Y-%m-%dT%H:%M:%S')
         text += f'    {asns[-1][0]}    # {time_str}   {asns[-1][2]}\n'
     text += '];'
     return text
@@ -69,7 +81,12 @@ async def block(request):
     try:
         with open('/etc/bird/config/blacklist.conf', 'r') as f:
             old = f.read()
-        new = re.sub(r'define DN42_BLACKLIST_ASNS\s*=\s*\[.*?\];', gen_blacklist(blocked_asns), old, flags=re.S)
+        new = re.sub(
+            r'define DN42_BLACKLIST_ASNS\s*=\s*\[.*?\];',
+            gen_blacklist(blocked_asns),
+            old,
+            flags=re.S,
+        )
         with open('/etc/bird/config/blacklist.conf', 'w') as f:
             f.write(new)
     except BaseException:
@@ -98,7 +115,12 @@ async def unblock(request):
     try:
         with open('/etc/bird/config/blacklist.conf', 'r') as f:
             old = f.read()
-        new = re.sub(r'define DN42_BLACKLIST_ASNS\s*=\s*\[.*?\];', gen_blacklist(blocked_asns), old, flags=re.S)
+        new = re.sub(
+            r'define DN42_BLACKLIST_ASNS\s*=\s*\[.*?\];',
+            gen_blacklist(blocked_asns),
+            old,
+            flags=re.S,
+        )
         with open('/etc/bird/config/blacklist.conf', 'w') as f:
             f.write(new)
     except BaseException:
@@ -116,7 +138,12 @@ async def unblock_all(request):
     try:
         with open('/etc/bird/config/blacklist.conf', 'r') as f:
             old = f.read()
-        new = re.sub(r'define DN42_BLACKLIST_ASNS\s*=\s*\[.*?\];', gen_blacklist({}), old, flags=re.S)
+        new = re.sub(
+            r'define DN42_BLACKLIST_ASNS\s*=\s*\[.*?\];',
+            gen_blacklist({}),
+            old,
+            flags=re.S,
+        )
         with open('/etc/bird/config/blacklist.conf', 'w') as f:
             f.write(new)
     except BaseException:

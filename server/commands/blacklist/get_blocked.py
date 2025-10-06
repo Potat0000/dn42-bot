@@ -15,10 +15,7 @@ PAGE_SIZE = 15
 cache = ExpiringDict(max_len=20, max_age_seconds=259200)
 
 
-def get_blocked_text(data_id, node, page=0, rank_by_time=False):
-    data = cache.get(data_id)
-    if not data or node not in data:
-        return 'Cache expired. Please try again.\n缓存已过期，请重试。'
+def get_blocked_text(data, node, page=0, rank_by_time=False):
     blocked_asns = data[node]
     if isinstance(blocked_asns, str):
         return blocked_asns
@@ -37,11 +34,8 @@ def get_blocked_text(data_id, node, page=0, rank_by_time=False):
     return msg.strip()
 
 
-def gen_blocked_markup(data_id, node, page=0, rank_by_time=False):
+def gen_blocked_markup(data, data_id, node, page=0, rank_by_time=False):
     markup = InlineKeyboardMarkup()
-    data = cache.get(data_id)
-    if not data or node not in data:
-        return ReplyKeyboardRemove()
     blocked_asns = data[node]
     blocked_num = len(blocked_asns) if isinstance(blocked_asns, dict) else 0
     if blocked_num > PAGE_SIZE:
@@ -90,14 +84,26 @@ def blocked_callback_query(call):
     data_id, node = choice[0], choice[1]
     choice[2] = int(choice[2])
     choice[3] = bool(int(choice[3]))
-    blocked_text = get_blocked_text(data_id, node, choice[2], choice[3])
+    try:
+        data = cache.get(data_id)
+        if not data or node not in data:
+            raise RuntimeError()
+    except BaseException:
+        bot.edit_message_text(
+            'The result is expired, please run it again.\n结果已失效，请重新运行。',
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=None,
+        )
+        return
+    blocked_text = get_blocked_text(data, node, choice[2], choice[3])
     try:
         bot.edit_message_text(
             f'```BlockedASNs-{node.upper()}\n{blocked_text}```',
             parse_mode='Markdown',
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=gen_blocked_markup(data_id, node, choice[2], choice[3]),
+            reply_markup=gen_blocked_markup(data, data_id, node, choice[2], choice[3]),
         )
     except BaseException:
         pass
@@ -138,10 +144,10 @@ def get_blocked(message, nodes=None):
     data_id = str(uuid4()).replace('-', '')
     cache[data_id] = data
     node = specific_server[0]
-    text = get_blocked_text(data_id, node)
+    text = get_blocked_text(data, node)
     bot.send_message(
         message.chat.id,
         f'```BlockedASNs-{node.upper()}\n{text}```',
         parse_mode='Markdown',
-        reply_markup=gen_blocked_markup(data_id, node),
+        reply_markup=gen_blocked_markup(data, data_id, node),
     )
