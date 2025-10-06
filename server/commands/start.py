@@ -6,20 +6,20 @@ from commands.user_manage.login import start_login
 from commands.user_manage.whoami import whoami
 
 
-@bot.message_handler(commands=['start'], is_private_chat=True)
+@bot.message_handler(commands=["start"], is_private_chat=True)
 def startup(message):
     try:
         command = message.text.split()[1]
-        if command.startswith('whoami_'):
-            whoami(message, *command[7:].split('_'))
-        elif command == 'info':
+        if command.startswith("whoami_"):
+            whoami(message, *command[7:].split("_"))
+        elif command == "info":
             get_info(message)
-        elif command.startswith('info_'):
-            _, asn, node = command.split('_', 3)
+        elif command.startswith("info_"):
+            _, asn, node = command.split("_", 3)
             get_info(message, int(asn), node)
-        elif command == 'login':
+        elif command == "login":
             start_login(message)
-        elif command == 'peer':
+        elif command == "peer":
             start_peer(message)
     except BaseException:
         send_welcome(message)

@@ -12,7 +12,7 @@ if base.SENTRY_DSN:
     )
 
 
-@base.routes.post('/version')
+@base.routes.post("/version")
 async def version(request):
     return web.Response(body=str(base.AGENT_VERSION))
 

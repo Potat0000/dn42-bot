@@ -24,7 +24,7 @@ ChinaIPv6 = []
 ChinaWhitelist = [ip_network(i) for i in config.CN_WHITELIST_IP]
 
 try:
-    with open('./user_db.pkl', 'rb') as f:
+    with open("./user_db.pkl", "rb") as f:
         db, db_privilege = pickle.load(f)
 except BaseException:
     db = {}

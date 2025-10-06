@@ -45,38 +45,38 @@ def gen_get_map():
     def get_map(*, update=None):
         nonlocal data, peer_map, update_time, as_name, last_as_name_update_time
         if not update:
-            map_result = namedtuple('MapResult', ['update_time', 'data', 'peer_map'])
+            map_result = namedtuple("MapResult", ["update_time", "data", "peer_map"])
             return map_result(update_time, data, peer_map)
         if isinstance(update, tuple):
             update_time, data, peer_map = update
             return
         try:
             G = rx.PyGraph()
-            result = requests.get('https://api.iedon.com/dn42/map?type=json', timeout=30).json()
-            if result['metadata']['data_timestamp'] <= update_time:
+            result = requests.get("https://api.iedon.com/dn42/map?type=json", timeout=30).json()
+            if result["metadata"]["data_timestamp"] <= update_time:
                 return
             asn_to_index = {}
             index_to_asn = {}
-            for node in result['nodes']:
-                idx = G.add_node(node['asn'])
-                asn_to_index[node['asn']] = idx
-                index_to_asn[idx] = node['asn']
-            for i in result['links']:
-                if i['source'] != i['target']:
-                    G.add_edge(i['source'], i['target'], None)
+            for node in result["nodes"]:
+                idx = G.add_node(node["asn"])
+                asn_to_index[node["asn"]] = idx
+                index_to_asn[idx] = node["asn"]
+            for i in result["links"]:
+                if i["source"] != i["target"]:
+                    G.add_edge(i["source"], i["target"], None)
             if len(G.nodes()) == 0:
                 raise RuntimeError
         except BaseException:
             return
         temp_data = {
-            'closeness': {index_to_asn[idx]: value for idx, value in rx.closeness_centrality(G).items()},
-            'betweenness': {index_to_asn[idx]: value for idx, value in rx.betweenness_centrality(G).items()},
-            'peer': {asn: len(G.neighbors(idx)) for asn, idx in asn_to_index.items()},
+            "closeness": {index_to_asn[idx]: value for idx, value in rx.closeness_centrality(G).items()},
+            "betweenness": {index_to_asn[idx]: value for idx, value in rx.betweenness_centrality(G).items()},
+            "peer": {asn: len(G.neighbors(idx)) for asn, idx in asn_to_index.items()},
         }
-        temp_data['centrality'] = calculate_centrality(
+        temp_data["centrality"] = calculate_centrality(
             list(asn_to_index.keys()),
-            temp_data['closeness'],
-            temp_data['betweenness'],
+            temp_data["closeness"],
+            temp_data["betweenness"],
         )
         if time() - last_as_name_update_time > 3600:
             as_name.clear()
@@ -92,7 +92,7 @@ def gen_get_map():
                     rank_now = index
                 last_value = value
                 if asn not in as_name:
-                    as_name[asn] = get_whoisinfo_by_asn(asn, 'as-name')
+                    as_name[asn] = get_whoisinfo_by_asn(asn, "as-name")
                 out.append((rank_now, asn, as_name[asn], value))
             temp_data[rank_type] = out
         temp_peer_map = {}
@@ -100,10 +100,10 @@ def gen_get_map():
             temp_peer_map[asn] = set(index_to_asn[neighbor] for neighbor in G.neighbors(idx))
         data, update_time, peer_map = (
             temp_data,
-            result['metadata']['data_timestamp'],
+            result["metadata"]["data_timestamp"],
             temp_peer_map,
         )
-        with open('./map.pkl', 'wb') as f:
+        with open("./map.pkl", "wb") as f:
             pickle.dump((update_time, data, peer_map), f)
 
     return get_map
