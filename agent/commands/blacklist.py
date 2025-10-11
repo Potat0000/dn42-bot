@@ -62,6 +62,7 @@ async def block(request):
             asn_info = await request.json()
             asn = int(asn_info["ASN"])
             name = asn_info["Name"]
+            time = int(asn_info["Time"])
         except BaseException:
             return web.Response(status=400)
     else:
@@ -71,7 +72,7 @@ async def block(request):
         return web.Response(body="blacklist parse error", status=500)
     if asn in blocked_asns:
         return web.Response(status=409)
-    blocked_asns[asn] = (int(datetime.now().timestamp()), name)
+    blocked_asns[asn] = (time, name)
     try:
         with open("/etc/bird/config/blacklist.conf", "r") as f:
             old = f.read()

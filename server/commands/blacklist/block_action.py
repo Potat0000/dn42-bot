@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from functools import partial
 
 import base
@@ -57,7 +58,17 @@ def block_action(message):
         specific_server = list(base.servers.keys())
     if not command.startswith("un"):
         text = f"Blocking AS{asn} ({asn_name})\n\n"
-        result = tools.get_from_agent("block", json.dumps({"ASN": asn, "Name": asn_name}), specific_server)
+        result = tools.get_from_agent(
+            "block",
+            json.dumps(
+                {
+                    "ASN": asn,
+                    "Name": asn_name,
+                    "Time": int(datetime.now().timestamp()),
+                }
+            ),
+            specific_server,
+        )
     else:
         text = f"Unblocking AS{asn} ({asn_name})\n\n"
         result = tools.get_from_agent("unblock", str(asn), specific_server)

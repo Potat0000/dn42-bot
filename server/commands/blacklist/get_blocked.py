@@ -9,19 +9,19 @@ from base import bot
 from expiringdict import ExpiringDict
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
-PAGE_SIZE = 15
+PAGE_SIZE = 8
 
 
 cache = ExpiringDict(max_len=20, max_age_seconds=259200)
 
 
 def get_blocked_text(data, node, page=0, rank_by_time=False):
+    msg = f"<b>Blocked ASN on {node.upper()}</b>\n"
     blocked_asns = data[node]
     if isinstance(blocked_asns, str):
         return blocked_asns
     if not blocked_asns:
-        return "- No blocked ASNs\n  无封禁ASN"
-    msg = ""
+        return msg + "<blockquote><code>No blocked ASNs</code>\n<code>无封禁ASN</code></blockquote>"
     if rank_by_time and len(blocked_asns) >= 3:
         key_func = lambda x: -x[1]  # noqa: E731
     else:
@@ -30,7 +30,7 @@ def get_blocked_text(data, node, page=0, rank_by_time=False):
     blocked_asns = blocked_asns[page * PAGE_SIZE : (page + 1) * PAGE_SIZE]
     for asn, time, name in blocked_asns:
         time_str = datetime.fromtimestamp(time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        msg += f"- AS{asn:<10} {name}\n  {time_str}\n"
+        msg += f"<blockquote><code>AS{asn:<10} {name}</code>\n<code>{time_str}</code></blockquote>\n"
     return msg.strip()
 
 
@@ -95,11 +95,10 @@ def blocked_callback_query(call):
             message_id=call.message.message_id,
         )
         return
-    blocked_text = get_blocked_text(data, node, choice[2], choice[3])
     try:
         bot.edit_message_text(
-            f"```BlockedASNs-{node.upper()}\n{blocked_text}```",
-            parse_mode="Markdown",
+            get_blocked_text(data, node, choice[2], choice[3]),
+            parse_mode="HTML",
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             reply_markup=gen_blocked_markup(data, data_id, node, choice[2], choice[3]),
@@ -114,7 +113,6 @@ def get_blocked(message, nodes=None):
         bot.send_message(
             message.chat.id,
             f"No available nodes. Please contact {config.CONTACT}\n当前无可用节点，请联系 {config.CONTACT}",
-            parse_mode="Markdown",
             reply_markup=ReplyKeyboardRemove(),
         )
         return
@@ -152,10 +150,9 @@ def get_blocked(message, nodes=None):
     data_id = str(uuid4()).replace("-", "")
     cache[data_id] = data
     node = specific_server[0]
-    text = get_blocked_text(data, node)
     bot.send_message(
         message.chat.id,
-        f"```BlockedASNs-{node.upper()}\n{text}```",
-        parse_mode="Markdown",
+        get_blocked_text(data, node),
+        parse_mode="HTML",
         reply_markup=gen_blocked_markup(data, data_id, node),
     )
