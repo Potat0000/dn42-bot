@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+import time
 from functools import partial
 
 import base
@@ -64,7 +64,7 @@ def block_action(message):
                 {
                     "ASN": asn,
                     "Name": asn_name,
-                    "Time": int(datetime.now().timestamp()),
+                    "Time": int(time.time()),
                 }
             ),
             specific_server,

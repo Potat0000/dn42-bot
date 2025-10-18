@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -9,28 +10,32 @@ from base import bot
 from expiringdict import ExpiringDict
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
-PAGE_SIZE = 8
+PAGE_SIZE = 10
 
 
 cache = ExpiringDict(max_len=20, max_age_seconds=259200)
 
 
-def get_blocked_text(data, node, page=0, rank_by_time=False):
-    msg = f"<b>Blocked ASN on {node.upper()}</b>\n"
+def get_blocked_text(data, update_time, node, page=0, rank_by_time=False):
+    time_delta = int(time.time()) - update_time
+    update_time = datetime.fromtimestamp(update_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    msg = f"<b>Blocked ASN on {node.upper()}</b>\nUpdated {time_delta}s ago\n({update_time})\n"
     blocked_asns = data[node]
     if isinstance(blocked_asns, str):
         return blocked_asns
     if not blocked_asns:
         return msg + "<blockquote><code>No blocked ASNs</code>\n<code>无封禁ASN</code></blockquote>"
+    else:
+        msg += f"Total Blocked ASNs: <code>{len(blocked_asns)}</code>\n"
     if rank_by_time and len(blocked_asns) >= 3:
         key_func = lambda x: -x[1]  # noqa: E731
     else:
         key_func = lambda x: x[0]  # noqa: E731
     blocked_asns = sorted([(asn, time, name) for asn, (time, name) in blocked_asns.items()], key=key_func)
     blocked_asns = blocked_asns[page * PAGE_SIZE : (page + 1) * PAGE_SIZE]
-    for asn, time, name in blocked_asns:
-        time_str = datetime.fromtimestamp(time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        msg += f"<blockquote><code>AS{asn:<10} {name}</code>\n<code>{time_str}</code></blockquote>\n"
+    for asn, blocked_time, name in blocked_asns:
+        time_str = datetime.fromtimestamp(blocked_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        msg += f"<blockquote><code>AS{asn:<10} {name}</code>\n<code>{time_str}</code></blockquote>"
     return msg.strip()
 
 
@@ -85,7 +90,7 @@ def blocked_callback_query(call):
     choice[2] = int(choice[2])
     choice[3] = bool(int(choice[3]))
     try:
-        data = cache.get(data_id)
+        data, update_time = cache.get(data_id)
         if not data or node not in data:
             raise RuntimeError()
     except BaseException:
@@ -97,7 +102,7 @@ def blocked_callback_query(call):
         return
     try:
         bot.edit_message_text(
-            get_blocked_text(data, node, choice[2], choice[3]),
+            get_blocked_text(data, update_time, node, choice[2], choice[3]),
             parse_mode="HTML",
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -148,11 +153,12 @@ def get_blocked(message, nodes=None):
         )
         return False
     data_id = str(uuid4()).replace("-", "")
-    cache[data_id] = data
+    now = int(time.time())
+    cache[data_id] = (data, now)
     node = specific_server[0]
     bot.send_message(
         message.chat.id,
-        get_blocked_text(data, node),
+        get_blocked_text(data, now, node),
         parse_mode="HTML",
         reply_markup=gen_blocked_markup(data, data_id, node),
     )

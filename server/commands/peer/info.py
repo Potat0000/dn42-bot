@@ -1,4 +1,5 @@
 import math
+import time
 from datetime import datetime, timezone
 from ipaddress import IPv4Network, IPv6Network, ip_address
 
@@ -21,8 +22,7 @@ def convert_size(size_bytes):
 
 
 # https://stackoverflow.com/a/13756038
-def td_format(td_object):
-    seconds = int(td_object.total_seconds())
+def td_format(seconds):
     if seconds <= 0:
         return "now"
     periods = [
@@ -202,8 +202,8 @@ def get_info_text(chatid, asn, node):
         detail_text += "WireGuard Status:\n" "    Latest handshake:\n" "        Never\n" "    Transfer:\n"
     else:
         latest_handshake = datetime.fromtimestamp(peer_info["wg_last_handshake"], tz=timezone.utc)
-        latest_handshake_td = td_format(datetime.now(tz=timezone.utc) - latest_handshake)
         latest_handshake = latest_handshake.isoformat().replace("+00:00", "Z")
+        latest_handshake_td = td_format(int(time.time()) - peer_info["wg_last_handshake"])
         detail_text += (
             "WireGuard Status:\n"
             "    Latest handshake:\n"
