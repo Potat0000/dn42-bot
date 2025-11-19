@@ -5,7 +5,7 @@ import config
 import tools
 from base import bot, db, db_privilege
 from expiringdict import ExpiringDict
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 cache = ExpiringDict(max_len=500, max_age_seconds=259200)
 
@@ -14,7 +14,7 @@ def gen_generaltest_markup(chat, data_id, node, available_nodes):
     markup = InlineKeyboardMarkup()
     for n in available_nodes:
         selected = "✅ " if n == node else ""
-        markup.row(InlineKeyboardButton(f"{selected}{base.servers[n]}", callback_data=f"generaltest_{data_id}_{n}"))
+        markup.row(InlineKeyboardButton(f"{selected}{config.SERVERS[n]}", callback_data=f"generaltest_{data_id}_{n}"))
     if chat.id in db_privilege:
         return markup
     if chat.type == "private" and chat.id in db:
@@ -29,7 +29,7 @@ def generaltest_callback_query(call):
     data_id = call.data.split("_", 2)[1]
     node = call.data.split("_", 2)[2]
     try:
-        data_type, data = cache.get(data_id)
+        data = cache.get(data_id)
     except BaseException:
         bot.edit_message_text(
             "The result is expired, please run it again.\n结果已失效，请重新运行。",
@@ -38,15 +38,13 @@ def generaltest_callback_query(call):
             reply_markup=tools.gen_peer_me_markup(call.message),
         )
         return
-    available_nodes = list(data.keys())
-    data = data[node]
     try:
         bot.edit_message_text(
-            f"```{data_type}Result-{node.upper()}\n{data.strip()}\n```",
+            data[node],
             parse_mode="Markdown",
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            reply_markup=gen_generaltest_markup(call.message.chat, data_id, node, available_nodes),
+            reply_markup=gen_generaltest_markup(call.message.chat, data_id, node, list(data.keys())),
         )
     except BaseException:
         pass
@@ -122,14 +120,6 @@ def generaltest(message):
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return
-    if not base.servers:
-        bot.send_message(
-            message.chat.id,
-            f"No available nodes. Please contact {config.CONTACT}\n当前无可用节点，请联系 {config.CONTACT}",
-            parse_mode="Markdown",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        return
     if command.endswith("4"):
         command = command[:-1]
         if parsed_info.ipv4:
@@ -194,17 +184,25 @@ def generaltest(message):
     )
     bot.send_chat_action(chat_id=message.chat.id, action="typing", timeout=20 if command == "trace" else 10)
     try:
-        available_server = [j.lower() for j in base.servers.keys()]
-        specific_server = [i for i in available_server if i in server_list]
+        specific_server = [i for i in config.SERVERS if i in server_list]
         if not specific_server:
-            specific_server = [i for i in available_server if any(i.startswith(k) for k in server_list)]
+            specific_server = [i for i in config.SERVERS if any(i.startswith(k) for k in server_list)]
         if not specific_server:
             raise RuntimeError()
     except BaseException:
-        specific_server = list(base.servers.keys())
-    raw = tools.get_from_agent(command, command_data, specific_server, timeout=timeout)
+        specific_server = list(config.SERVERS.keys())
+    available_server = [i for i in specific_server if i in base.servers]
+    raw = tools.get_from_agent(command, command_data, available_server, timeout=timeout)
     data = {}
-    for k, v in raw.items():
+    for k in specific_server:
+        if k in raw:
+            v = raw[k]
+        elif k not in base.servers:
+            data[k] = "Node is offline.\n节点离线。"
+            continue
+        else:
+            data[k] = "Something went wrong.\n发生了一些错误。"
+            continue
         if v.status == 200:
             if command == "ping":
                 if v.text.strip().startswith("PING "):
@@ -239,15 +237,21 @@ def generaltest(message):
             data[k] = "Not found 未找到"
         else:
             data[k] = "Something went wrong.\n发生了一些错误。"
-    data_id = str(uuid4()).replace("-", "")
     command_text = command_text.split()[0].replace("-", "")
-    cache[data_id] = (command_text, data)
-    node = specific_server[0]
-    text = data[node]
+    data = {k: f"```{command_text}Result-{k.upper()}\n{v.strip()}\n```" for k, v in data.items()}
+    if command == "route":
+        for k, v in data.items():
+            if "BGP.local_pref: 0" in v:
+                data[k] += (
+                    "Note: The route has local preference 0, which indicates it has been blocked. "
+                    f"Contact {config.CONTACT} for more information."
+                )
+    data_id = str(uuid4()).replace("-", "")
+    cache[data_id] = data
     bot.edit_message_text(
-        f"```{command_text}Result-{node.upper()}\n{text.strip()}\n```",
+        data[specific_server[0]],
         parse_mode="Markdown",
         chat_id=message.chat.id,
         message_id=msg.message_id,
-        reply_markup=gen_generaltest_markup(message.chat, data_id, node, specific_server),
+        reply_markup=gen_generaltest_markup(message.chat, data_id, specific_server[0], specific_server),
     )

@@ -126,7 +126,7 @@ def remove_peer_choose(removable, chosen, message):
         bot.send_message(
             message.chat.id,
             (
-                "**Attention 注意**\n\n"
+                "Attention 注意\n\n"
                 "Your ASN is not in standard DN42 format (`AS424242xxxx`), so it cannot be auto-peered\n"
                 "你的 ASN 不是标准 DN42 格式 (`AS424242xxxx`)，因此无法进行 AutoPeer\n"
                 f"After deleting peer information, you need to contact {config.CONTACT} for manual operation if you need to re-peer.\n"
