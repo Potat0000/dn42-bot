@@ -35,7 +35,7 @@ def get_blocked_text(data, update_time, node, page=0, rank_by_time=False):
     blocked_asns = blocked_asns[page * PAGE_SIZE : (page + 1) * PAGE_SIZE]
     for asn, blocked_time, name in blocked_asns:
         time_str = datetime.fromtimestamp(blocked_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        msg += f"<blockquote><code>AS{asn:<10} {name}</code>\n<code>{time_str}</code></blockquote>"
+        msg += f"<blockquote><code>AS{asn:<10} {name}</code>\n<code>{time_str}</code></blockquote>\n"
     return msg.strip()
 
 

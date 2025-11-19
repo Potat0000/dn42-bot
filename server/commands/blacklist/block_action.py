@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime, timezone
 from functools import partial
 
 import base
@@ -7,6 +8,7 @@ import config
 import tools
 from base import bot
 from commands.blacklist.get_blocked import get_blocked
+from commands.statistics.stats import get_stats
 from telebot.types import ReplyKeyboardRemove
 
 
@@ -56,6 +58,27 @@ def block_action(message):
             raise RuntimeError()
     except BaseException:
         specific_server = list(base.servers.keys())
+    update_time, stats_result = get_stats(asn)
+    if stats_result:
+        time_delta = int(time.time()) - update_time
+        update_time = datetime.fromtimestamp(update_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        update_str = f"Updated {time_delta}s ago\n({update_time})"
+        bot.send_message(
+            message.chat.id,
+            (
+                "```Statistics\n"
+                f'asn          {stats_result["asn"]}\n'
+                f'mnt          {stats_result["mnt"]}\n'
+                f'centrality   {stats_result["centrality"]}\n'
+                f'closeness    {stats_result["closeness"]}\n'
+                f'betweenness  {stats_result["betweenness"]}\n'
+                f'peer count   {stats_result["peer"]}'
+                "```"
+                f"{update_str}"
+            ),
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove(),
+        )
     if not command.startswith("un"):
         text = f"Blocking AS{asn} ({asn_name})\n\n"
         result = tools.get_from_agent(

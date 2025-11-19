@@ -16,7 +16,7 @@ def get_blacklist():
                 name.strip(),
             )
             for asn, time, name in re.findall(
-                r"\s*(\d+)[, ]   # (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})   (.+)",
+                r"\s*(\d+),? +# (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})   (.+)",
                 match.group(1),
             )
         }
@@ -34,9 +34,9 @@ def gen_blacklist(blocked_asns):
         )
         for asn, time, name in asns[:-1]:
             time_str = datetime.fromtimestamp(time, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
-            text += f"    {asn},   # {time_str}   {name}\n"
+            text += f"    {str(asn) + "," :<14}# {time_str}   {name}\n"
         time_str = datetime.fromtimestamp(asns[-1][1], tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
-        text += f"    {asns[-1][0]}    # {time_str}   {asns[-1][2]}\n"
+        text += f"    {asns[-1][0] :<14}# {time_str}   {asns[-1][2]}\n"
     text += "];"
     return text
 
