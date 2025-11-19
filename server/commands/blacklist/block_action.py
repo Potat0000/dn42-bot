@@ -58,27 +58,6 @@ def block_action(message):
             raise RuntimeError()
     except BaseException:
         specific_server = list(base.servers.keys())
-    update_time, stats_result = get_stats(asn)
-    if stats_result:
-        time_delta = int(time.time()) - update_time
-        update_time = datetime.fromtimestamp(update_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        update_str = f"Updated {time_delta}s ago\n({update_time})"
-        bot.send_message(
-            message.chat.id,
-            (
-                "```Statistics\n"
-                f'asn          {stats_result["asn"]}\n'
-                f'mnt          {stats_result["mnt"]}\n'
-                f'centrality   {stats_result["centrality"]}\n'
-                f'closeness    {stats_result["closeness"]}\n'
-                f'betweenness  {stats_result["betweenness"]}\n'
-                f'peer count   {stats_result["peer"]}'
-                "```"
-                f"{update_str}"
-            ),
-            parse_mode="Markdown",
-            reply_markup=ReplyKeyboardRemove(),
-        )
     if not command.startswith("un"):
         text = f"Blocking AS{asn} ({asn_name})\n\n"
         result = tools.get_from_agent(
@@ -110,6 +89,27 @@ def block_action(message):
             text += f"❌ {result[node].text.capitalize()}\n"
         else:
             text += f"❌ Error: {result[node].status}\n"
+    update_time, stats_result = get_stats(asn)
+    if stats_result:
+        time_delta = int(time.time()) - update_time
+        update_time = datetime.fromtimestamp(update_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        update_str = f"Updated {time_delta}s ago\n({update_time})"
+        bot.send_message(
+            message.chat.id,
+            (
+                "```Statistics\n"
+                f'asn          {stats_result["asn"]}\n'
+                f'mnt          {stats_result["mnt"]}\n'
+                f'centrality   {stats_result["centrality"]}\n'
+                f'closeness    {stats_result["closeness"]}\n'
+                f'betweenness  {stats_result["betweenness"]}\n'
+                f'peer count   {stats_result["peer"]}'
+                "```"
+                f"{update_str}"
+            ),
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove(),
+        )
     bot.send_message(
         message.chat.id,
         f"```BlockActionResult\n{text}```",
