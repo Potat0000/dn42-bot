@@ -33,6 +33,10 @@ async def pre_peer(request):
     current_peer_num = get_current_peer_num()
     if current_peer_num is None:
         return web.Response(body="wireguard and bird config not match", status=500)
+    if (b := get_blacklist()) is not None:
+        blocked_time = b.get(asn, (None,))[0]
+    else:
+        blocked_time = None
     return web.json_response(
         {
             "existed": current_peer_num,
@@ -41,7 +45,7 @@ async def pre_peer(request):
             "net_support": base.NET_SUPPORT,
             "lla": str(base.MY_DN42_LINK_LOCAL_ADDRESS),
             "msg": base.EXTRA_MSG,
-            "blocked_time": get_blacklist().get(asn, (None,))[0],
+            "blocked_time": blocked_time,
         }
     )
 
@@ -199,6 +203,10 @@ async def get_info(request):
             for k, v in out.items():
                 if v["State"] == "UP" and v["Output filter"] == "(unnamed)":
                     bird_status[the_session][2][k[3]] = v["Routes"]
+    if (b := get_blacklist()) is not None:
+        blocked_time = b.get(asn, (None,))[0]
+    else:
+        blocked_time = None
 
     return web.json_response(
         {
@@ -218,7 +226,7 @@ async def get_info(request):
             "bird_status": bird_status,
             "net_support": base.NET_SUPPORT,
             "lla": str(base.MY_DN42_LINK_LOCAL_ADDRESS),
-            "blocked_time": get_blacklist().get(asn, (None,))[0],
+            "blocked_time": blocked_time,
         }
     )
 
