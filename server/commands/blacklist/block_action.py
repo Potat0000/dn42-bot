@@ -20,6 +20,7 @@ def block_action(message):
             "You are not allowed to use this command.\n你无权使用此命令。",
             reply_markup=ReplyKeyboardRemove(),
         )
+        return
     command = message.text.split()[0].split("@")[0][1:]
     if len(message.text.split()) < 2:
         bot.send_message(
