@@ -292,10 +292,16 @@ def post_enh(message, peer_info):
 
 
 def pre_ipv6(message, peer_info):
+    button_text = []
     if peer_info["IPv6"] != "Not enabled":
+        button_text.append(peer_info["IPv6"])
+    if 4242420000 <= peer_info["ASN"] <= 4242429999:
+        button_text.append(f"fe80::{peer_info['ASN'] % 10000}")
+    if button_text:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row_width = 1
-        markup.add(KeyboardButton(peer_info["IPv6"]))
+        for t in button_text:
+            markup.add(KeyboardButton(t))
     else:
         markup = ReplyKeyboardRemove()
     msg = bot.send_message(
@@ -488,10 +494,6 @@ def pre_clearnet(message, peer_info):
                 "If your peer don't have a clearnet address or is behind NAT, please enter `none`\n"
                 "如果对方没有公网地址，或对方的服务器在 NAT 网络中，请输入 `none`"
             )
-            if isinstance(markup, ReplyKeyboardRemove):
-                markup = ReplyKeyboardMarkup(resize_keyboard=True)
-                markup.row_width = 1
-            markup.add(KeyboardButton("none"))
         else:
             msg += (
                 "\n\n"
@@ -532,7 +534,7 @@ def post_clearnet(message, peer_info):
                 message.chat.id,
                 f"Port number `{port_part}` detected, automatically separated.\n"
                 f"识别到端口号 `{port_part}`，已自动分离。\n\n"
-                f"If this is not the correct port number, please try to restart the process, do not include the port number here, and contact {config.CONTACT} for help to improve the recognition accuracy.\n"
+                f"If this is not the correct port number, please try to restart the process, do not include the port number here, and contact {config.CONTACT} to help improving the recognition accuracy.\n"
                 f"识别可能有误。如果这不是正确的端口号，请尝试重新开始流程，在此处输入时不要包含端口号，并联系 {config.CONTACT} 以帮助提升识别准确性。\n",
                 parse_mode="Markdown",
                 reply_markup=ReplyKeyboardRemove(),
