@@ -26,6 +26,7 @@ def pre_region(message, peer_info):
     msg = ""
     peer_info["Region"] = {}
     use_privilege = False
+    have_unpeerable = False
     try:
         existed_peers = next(i[3] for i in tools.get_map()[1]["peer"] if i[1] == db[message.chat.id])
     except StopIteration:
@@ -85,14 +86,17 @@ def pre_region(message, peer_info):
         if data["msg"]:
             msg += f'  {data["msg"]}\n'
         msg += "\n"
-        if data["open"] and k not in peered:
-            if (data["max"] == 0 or data["existed"] < data["max"]) and (
-                data["requirement"] == 0 or existed_peers >= data["requirement"]
+        if k not in peered:
+            if (
+                data["open"]
+                and (data["max"] == 0 or data["existed"] < data["max"])
+                and (data["requirement"] == 0 or existed_peers >= data["requirement"])
             ):
                 pass
             elif message.chat.id in db_privilege:
                 use_privilege = True
             else:
+                have_unpeerable = True
                 continue
             could_peer.append(k)
             peer_info["Region"][base.servers[k]] = (k, data["lla"], data["net_support"])
@@ -108,6 +112,14 @@ def pre_region(message, peer_info):
             "*[Privilege]*\n"
             "Some nodes do not meet the requirements, using privilege to continue. Use /cancel to exit if not wanted.\n"
             "部分节点不符合要求，使用特权继续。如不应继续请使用 /cancel 退出。",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+    elif have_unpeerable:
+        bot.send_message(
+            message.chat.id,
+            f"Some nodes do not meet peer requirements. If you really need a peer, please contact {config.CONTACT}\n"
+            f"部分节点不符合 Peer 要求。如您确实需要 Peer，请联系 {config.CONTACT}",
             parse_mode="Markdown",
             reply_markup=ReplyKeyboardRemove(),
         )
