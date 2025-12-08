@@ -25,6 +25,7 @@ def pre_region(message, peer_info):
     could_peer = []
     msg = ""
     peer_info["Region"] = {}
+    use_privilege = False
     try:
         existed_peers = next(i[3] for i in tools.get_map()[1]["peer"] if i[1] == db[message.chat.id])
     except StopIteration:
@@ -58,6 +59,13 @@ def pre_region(message, peer_info):
                 msg += f'  ✔️ Capacity: {data["existed"]} / {data["max"]}\n'
             else:
                 msg += f'  ❌ Capacity: {data["existed"]} / {data["max"]}\n'
+        if data["requirement"] == 0:
+            msg += "  ✔️ No minimum number of peers requirement\n"
+        else:
+            if existed_peers >= data["requirement"]:
+                msg += f'  ✔️ You have {existed_peers} peers (minimum required: {data["requirement"]})\n'
+            else:
+                msg += f'  ❌ You have {existed_peers} peers (minimum required: {data["requirement"]})\n'
         if data["net_support"]["ipv4"]:
             if data["net_support"]["ipv4_nat"]:
                 msg += "  ⚠️ IPv4: Behind NAT\n"
@@ -71,33 +79,38 @@ def pre_region(message, peer_info):
             msg += "  ⚠️ IPv6: No\n"
         if not data["net_support"]["cn"]:
             msg += "  ⚠️ Not allowed to peer with Chinese Mainland\n"
-        if data["requirement"] == 0:
-            msg += "  ✔️ No minimum number of peers requirement\n"
-        else:
-            if existed_peers >= data["requirement"]:
-                msg += f'  ✔️ You have {existed_peers} peers (minimum required: {data["requirement"]})\n'
-            else:
-                msg += f'  ❌ You have {existed_peers} peers (minimum required: {data["requirement"]})\n'
         if data["blocked_time"]:
             time_str = datetime.fromtimestamp(data["blocked_time"], tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
             msg += f"  ⚠️ ASN been blocked since {time_str}\n"
         if data["msg"]:
             msg += f'  {data["msg"]}\n'
         msg += "\n"
-        if (
-            data["open"]
-            and k not in peered
-            and (data["max"] == 0 or data["existed"] < data["max"])
-            and (data["requirement"] == 0 or existed_peers >= data["requirement"])
-        ):
+        if data["open"] and k not in peered:
+            if (data["max"] == 0 or data["existed"] < data["max"]) and (
+                data["requirement"] == 0 or existed_peers >= data["requirement"]
+            ):
+                pass
+            elif message.chat.id in db_privilege:
+                use_privilege = True
+            else:
+                continue
             could_peer.append(k)
             peer_info["Region"][base.servers[k]] = (k, data["lla"], data["net_support"])
-    msg = bot.send_message(
+    bot.send_message(
         message.chat.id,
         f"Node List 节点列表\n{msg.strip()}",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardRemove(),
     )
+    if use_privilege:
+        bot.send_message(
+            message.chat.id,
+            "*[Privilege]*\n"
+            "Some nodes do not meet the requirements, using privilege to continue. Use /cancel to exit if not wanted.\n"
+            "部分节点不符合要求，使用特权继续。如不应继续请使用 /cancel 退出。",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove(),
+        )
     if not could_peer:
         bot.send_message(
             message.chat.id,
@@ -624,7 +637,7 @@ def post_clearnet(message, peer_info):
                     f"{msg[0]}.\n"
                     f"{msg[1]}。\n\n"
                     "Use the privilege to continue the process. Use /cancel to exit if there is a mistake.\n"
-                    "使用特权，流程继续。如确认有误使用 /cancel 退出。"
+                    "使用特权，流程继续。如确认有误请使用 /cancel 退出。"
                 ),
                 parse_mode="Markdown",
                 reply_markup=ReplyKeyboardRemove(),
