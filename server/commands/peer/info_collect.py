@@ -25,6 +25,10 @@ def pre_region(message, peer_info):
     could_peer = []
     msg = ""
     peer_info["Region"] = {}
+    try:
+        existed_peers = next(i[3] for i in tools.get_map()[1]["peer"] if i[1] == db[message.chat.id])
+    except StopIteration:
+        existed_peers = 0
     for k in config.SERVERS:
         msg += f"- `{config.SERVERS[k]}`\n"
         try:
@@ -67,13 +71,25 @@ def pre_region(message, peer_info):
             msg += "  ⚠️ IPv6: No\n"
         if not data["net_support"]["cn"]:
             msg += "  ⚠️ Not allowed to peer with Chinese Mainland\n"
+        if data["requirement"] == 0:
+            msg += "  ✔️ No minimum number of peers requirement\n"
+        else:
+            if existed_peers >= data["requirement"]:
+                msg += f'  ✔️ You have {existed_peers} peers (minimum required: {data["requirement"]})\n'
+            else:
+                msg += f'  ❌ You have {existed_peers} peers (minimum required: {data["requirement"]})\n'
         if data["blocked_time"]:
             time_str = datetime.fromtimestamp(data["blocked_time"], tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
             msg += f"  ⚠️ ASN been blocked since {time_str}\n"
         if data["msg"]:
             msg += f'  {data["msg"]}\n'
         msg += "\n"
-        if data["open"] and k not in peered and (data["max"] == 0 or data["existed"] < data["max"]):
+        if (
+            data["open"]
+            and k not in peered
+            and (data["max"] == 0 or data["existed"] < data["max"])
+            and (data["requirement"] == 0 or existed_peers >= data["requirement"])
+        ):
             could_peer.append(k)
             peer_info["Region"][base.servers[k]] = (k, data["lla"], data["net_support"])
     msg = bot.send_message(

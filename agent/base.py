@@ -3,7 +3,7 @@ from ipaddress import ip_address
 
 from aiohttp import web
 
-AGENT_VERSION = 25
+AGENT_VERSION = 26
 
 try:
     with open("agent_config.json", "r") as f:
@@ -13,6 +13,7 @@ try:
     SECRET = raw_config["SECRET"]
     OPEN = raw_config["OPEN"]
     MAX_PEERS = raw_config["MAX_PEERS"] if raw_config["MAX_PEERS"] > 0 else 0
+    MIN_PEER_REQUIREMENT = raw_config["MIN_PEER_REQUIREMENT"] if raw_config["MIN_PEER_REQUIREMENT"] > 0 else 0
     NET_SUPPORT = raw_config["NET_SUPPORT"]
     EXTRA_MSG = raw_config["EXTRA_MSG"]
     MY_DN42_LINK_LOCAL_ADDRESS = ip_address(raw_config["MY_DN42_LINK_LOCAL_ADDRESS"])

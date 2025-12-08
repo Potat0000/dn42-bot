@@ -4,6 +4,7 @@
     "SECRET": "secret_token",
     "OPEN": true,
     "MAX_PEERS": 0,
+    "MIN_PEER_REQUIREMENT": 0,
     "NET_SUPPORT": {
         "ipv4": true,
         "ipv6": true,

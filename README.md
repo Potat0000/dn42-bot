@@ -90,6 +90,7 @@ Config items are located at `agent/agent_config.json`.
 | SECRET                     | API Token                                                    |
 | OPEN                       | Whether open peer                                            |
 | MAX_PEERS                  | Maximum number of Peer (0 for no limit)                      |
+| MIN_PEER_REQUIREMENT       | Minimum number of peers required to peer with this node      |
 | NET_SUPPORT                | Net supported by this agent                                  |
 | EXTRA_MSG                  | Extra message of this agent                                  |
 | MY_DN42_LINK_LOCAL_ADDRESS | The DN42 IPv6 Link-Local Address of this agent               |
