@@ -213,7 +213,7 @@ def login_verify_code(asn, code, message):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-    if message.text.strip() == code:
+    if message.text.strip().lower() == code.lower():
         db[message.chat.id] = asn
         with open("./user_db.pkl", "wb") as f:
             pickle.dump((db, db_privilege), f)
