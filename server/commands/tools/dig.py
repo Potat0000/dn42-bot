@@ -13,8 +13,8 @@ def dig(message):
     dig_type_whitelist = ["ANY", "A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "SRV", "PTR"]
     help_text = ", ".join(f"`{i}`" for i in dig_type_whitelist)
     help_text = (
-        "Usage: /dig [domain] {type} {@dns_server}\n"
-        "用法：/dig [domain] {type} {@dns_server}\n\n"
+        "Usage: /dig [domain] {type} {@dns\\_server}\n"
+        "用法：/dig [domain] {type} {@dns\\_server}\n\n"
         "Only accept following types\n"
         "只接受以下类型的查询\n"
         f"{help_text}"
