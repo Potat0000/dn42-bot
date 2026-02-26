@@ -3,8 +3,6 @@
 import commands.cancel
 import commands.help
 import commands.start
-import commands.blacklist.block_action
-import commands.blacklist.get_blocked
 import commands.peer.info
 import commands.peer.modify
 import commands.peer.peer

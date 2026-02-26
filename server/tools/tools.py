@@ -4,7 +4,6 @@ import shlex
 import socket
 import subprocess
 from collections import namedtuple
-from datetime import datetime, timezone
 from ipaddress import IPv4Network, IPv6Network, ip_address
 
 import base
@@ -332,10 +331,6 @@ def get_info(asn):
         if v.status == 200:
             try:
                 data[k] = json.loads(v.text)
-                if data[k]["blocked_time"]:
-                    data[k]["blocked_time"] = datetime.fromtimestamp(data[k]["blocked_time"], tz=timezone.utc).strftime(
-                        "%Y-%m-%d %H:%M:%S UTC"
-                    )
             except BaseException:
                 data[k] = "Error"
         elif v.status == 500:

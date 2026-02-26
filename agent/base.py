@@ -3,7 +3,7 @@ from ipaddress import ip_address
 
 from aiohttp import web
 
-AGENT_VERSION = 26
+AGENT_VERSION = 27
 
 try:
     with open("agent_config.json", "r") as f:
