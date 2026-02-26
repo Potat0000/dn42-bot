@@ -1,7 +1,6 @@
 import json
 import socket
 import string
-from datetime import datetime, timezone
 from ipaddress import IPv4Network, IPv6Network, ip_address
 from time import sleep
 

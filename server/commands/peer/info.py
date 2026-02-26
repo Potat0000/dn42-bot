@@ -141,17 +141,23 @@ def get_info_text(chatid, asn, node):
                     text="Peer now | 立即 Peer", url=f"https://t.me/{bot.get_me().username}?start=peer"
                 )
             )
-            return (
-                "You are not peer with me yet, you can use /peer to start.\n你还没有与我 Peer，可以使用 /peer 开始。",
-                markup,
-            )
+            msg = "You are not peer with me yet, you can use /peer to start.\n你还没有与我 Peer，可以使用 /peer 开始。"
+            if flap_prefix := tools.get_flaps(asn=asn):
+                msg += "\n\nHowever, the following prefix(es) of your ASN have been blocked due to recent flaps:\n然而，你的 ASN 的以下前缀由于近期抖动已经被封锁："
+                for prefix in flap_prefix:
+                    msg += f"\n`{prefix}`"
+            return msg, markup
         else:
-            return (
+            msg = (
                 "*[Privilege]*\n"
                 "This user has no peer at the moment, may have been deleted already.\n"
-                "该用户目前无 Peer，可能已经被对方删除",
-                None,
+                "该用户目前无 Peer，可能已经被对方删除"
             )
+            if flap_prefix := tools.get_flaps(asn=asn):
+                msg += "\n\nThe following prefix(es) of this ASN have been blocked due to recent flaps:\n该 ASN 的以下前缀由于近期抖动已经被封锁："
+                for prefix in flap_prefix:
+                    msg += f"\n`{prefix}`"
+            return msg, None
     if not node:
         if len(available_node) == 1:
             node = list(available_node)[0]
@@ -234,6 +240,11 @@ def get_info_text(chatid, asn, node):
                 detail_text += f"        {bird_status[1]}\n"
             if session in bird_status[2]:
                 detail_text += f"        {bird_status[2][session]}\n"
+    if flap_prefix := tools.get_flaps(asn=asn):
+        detail_text += "[!] The following prefix(es) have been blocked\n"
+        detail_text += "    due to recent flaps:\n"
+        for prefix in flap_prefix:
+            detail_text += f"    - {prefix}\n"
 
     if tools.get_whoisinfo_by_asn(asn).lower() == peer_info["desc"].lower():
         detail_text += "Contact:\n" f"    {peer_info['desc']}\n"
@@ -249,7 +260,7 @@ def get_info_text(chatid, asn, node):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("info_"))
 def info_callback_query(call):
-    _, asn, node = call.data.split("_", 3)
+    _, asn, node = call.data.split("_", 2)
     info_text = get_info_text(call.message.chat.id, int(asn), node)
     try:
         bot.edit_message_text(

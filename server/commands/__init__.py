@@ -8,6 +8,7 @@ import commands.peer.modify
 import commands.peer.peer
 import commands.peer.remove
 import commands.peer.restart
+import commands.statistics.flaps
 import commands.statistics.peer_list
 import commands.statistics.rank
 import commands.statistics.stats

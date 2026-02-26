@@ -1,3 +1,4 @@
+import tools.get_flaps as get_flaps
 import tools.get_map as get_map
 import tools.servers_check as servers_check
 import tools.tools as tools
@@ -5,6 +6,7 @@ import tools.update_as_route_table as update_as_route_table
 import tools.update_china_ip as update_china_ip
 
 extract_asn = tools.extract_asn
+get_flaps = get_flaps.get_flaps
 gen_login_message = tools.gen_login_message
 gen_peer_me_markup = tools.gen_peer_me_markup
 gen_random_code = tools.gen_random_code

@@ -41,6 +41,7 @@ WEBHOOK_LISTEN_PORT = 3443
 LG_DOMAIN = "https://lg.dn42.domain.tld"
 PRIVILEGE_CODE = "123456"
 SINGLE_PRIVILEGE = False
+FLAPALERTED_URL = "https://flap-dn42.potat0.cc/"
 CN_WHITELIST_IP = ["8.8.8.8", "2001:4860:4860::8888"]
 SENTRY_DSN = None
 

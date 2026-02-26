@@ -26,8 +26,7 @@ def gen_generaltest_markup(chat, data_id, node, available_nodes):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("generaltest_"))
 def generaltest_callback_query(call):
-    data_id = call.data.split("_", 2)[1]
-    node = call.data.split("_", 2)[2]
+    _, data_id, node = call.data.split("_", 2)
     try:
         data = cache.get(data_id)
     except BaseException:

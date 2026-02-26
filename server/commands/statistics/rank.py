@@ -8,12 +8,12 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 PAGE_SIZE = 30
 
-rank_type_dict = {
-    "centrality": "Centrality",
-    "peer": "Peer count",
-    "closeness": "Closeness",
-    "betweenness": "Betweenness",
-}
+rank_type_list = [
+    ("centrality", "Centrality"),
+    ("peer", "Peer count"),
+    ("closeness", "Closeness"),
+    ("betweenness", "Betweenness"),
+]
 
 
 def gen_rank_markup(page, rank_type):
@@ -23,24 +23,31 @@ def gen_rank_markup(page, rank_type):
     if page == 0:
         markup.row(
             InlineKeyboardButton(" ", callback_data=" "),
-            InlineKeyboardButton(str(page + 1), callback_data=" "),
+            InlineKeyboardButton("1", callback_data=f"rank_0_{rank_type}"),
             InlineKeyboardButton("➡️", callback_data=f"rank_1_{rank_type}"),
         )
     elif page == last_page:
         markup.row(
             InlineKeyboardButton("⬅️", callback_data=f"rank_{page - 1}_{rank_type}"),
-            InlineKeyboardButton(str(page + 1), callback_data=" "),
+            InlineKeyboardButton(str(page + 1), callback_data=f"rank_{page}_{rank_type}"),
             InlineKeyboardButton(" ", callback_data=" "),
         )
     else:
         markup.row(
             InlineKeyboardButton("⬅️", callback_data=f"rank_{page - 1}_{rank_type}"),
-            InlineKeyboardButton(str(page + 1), callback_data=" "),
+            InlineKeyboardButton(str(page + 1), callback_data=f"rank_{page}_{rank_type}"),
             InlineKeyboardButton("➡️", callback_data=f"rank_{page + 1}_{rank_type}"),
         )
-    for k, v in rank_type_dict.items():
-        selected = "✅ " if k == rank_type else ""
-        markup.row(InlineKeyboardButton(f"{selected}{v}", callback_data=f"rank_0_{k}"))
+    for i in range(0, len(rank_type_list), 2):
+        bottons = []
+        if i + 1 < len(rank_type_list):
+            key = rank_type_list[i : i + 2]
+        else:
+            key = rank_type_list[i : i + 1]
+        for k, v in key:
+            selected = "✅ " if k == rank_type else ""
+            bottons.append(InlineKeyboardButton(f"{selected}{v}", callback_data=f"rank_0_{k}"))
+        markup.row(*bottons)
     return markup
 
 
@@ -51,7 +58,7 @@ def get_rank_text(page, rank_type):
     data = data[rank_type][PAGE_SIZE * page : PAGE_SIZE * (page + 1)]
     mnt_len = 20
     msg = "DN42 Global Rank".center(25 + mnt_len) + "\n"
-    msg += rank_type_dict[rank_type].center(25 + mnt_len) + "\n\n"
+    msg += next(v for k, v in rank_type_list if k == rank_type).center(25 + mnt_len) + "\n\n"
     msg += f"Rank  {'ASN':10}  {'MNT':{mnt_len}}  Value"
     for rank, asn, mnt, value in data:
         if len(mnt) > mnt_len:
@@ -65,8 +72,8 @@ def get_rank_text(page, rank_type):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("rank_"))
 def rank_callback_query(call):
-    choice = call.data.split("_", 4)[1:3]
-    choice[0] = int(choice[0])
+    _, page, rank_type = call.data.split("_", 2)
+    choice = int(page), rank_type
     rank_text = get_rank_text(*choice)
     try:
         bot.edit_message_text(
