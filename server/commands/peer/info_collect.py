@@ -20,7 +20,7 @@ from telebot.types import (
 
 def pre_region(message, peer_info):
     peered = set(tools.get_info(db[message.chat.id]).keys())
-    pre_peer_info = tools.get_from_agent("pre_peer")
+    pre_peer_info = tools.get_from_agent("pre_peer", None)
     could_peer = []
     msg = ""
     peer_info["Region"] = {}
