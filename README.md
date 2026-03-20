@@ -110,7 +110,7 @@ Config items are located at `agent/agent_config.json`.
 
 #### TCPing
 
-You should install a `tcping` command in the system. Currently, the agent only supports [nodeseeker/tcping](https://github.com/nodeseeker/tcping). You can modify the `tcping_test()` function to use other TCPing tools.
+You should install a `tcping` command in the system. Currently, the agent only supports [pouriyajamshidi/tcping](https://github.com/pouriyajamshidi/tcping). You can modify the `tcping_test()` function to use other TCPing tools.
 
 ## Have a try
 
