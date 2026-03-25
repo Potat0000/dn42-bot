@@ -108,7 +108,7 @@ def generaltest(message):
     if not parsed_info:
         bot.reply_to(
             message,
-            "IP is incorrect or domain can'no't be resolved\nIP 不正确或域名无法被解析",
+            "IP is incorrect or domain can't be resolved\nIP 不正确或域名无法被解析",
             reply_markup=tools.gen_peer_me_markup(message),
         )
         return

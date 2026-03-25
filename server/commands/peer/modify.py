@@ -266,7 +266,7 @@ def pre_first_action_choose(message, peer_info):
             "  修改 DN42 IP 地址 (含 IPv6 及 IPv4)\n"
             "- `Clearnet Endpoint`\n"
             "  Change clearnet endpoint and port of WireGuard tunnel\n"
-            "  修改用于 WireGurad 隧道的公网地址及端口\n"
+            "  修改用于 WireGuard 隧道的公网地址及端口\n"
             "- `WireGuard PublicKey`\n"
             "  Change public key of WireGuard tunnel\n"
             "  修改 WireGuard 公钥\n"

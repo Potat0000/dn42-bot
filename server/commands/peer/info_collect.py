@@ -539,7 +539,7 @@ def pre_clearnet(message, peer_info):
             )
     msg = bot.send_message(
         message.chat.id,
-        ("Input your clearnet address for WireGuard tunnel.\n" "请输入你用于 WireGurad 隧道的公网地址。\n\n" f"{msg}"),
+        ("Input your clearnet address for WireGuard tunnel.\n" "请输入你用于 WireGuard 隧道的公网地址。\n\n" f"{msg}"),
         parse_mode="Markdown",
         reply_markup=markup,
     )
@@ -665,7 +665,7 @@ def pre_clearnet_port(message, peer_info):
         markup.add(KeyboardButton(str(config.DN42_ASN % 100000)))
     msg = bot.send_message(
         message.chat.id,
-        "Input your port for WireGuard tunnel.\n请输入你用于 WireGurad 隧道的端口。",
+        "Input your port for WireGuard tunnel.\n请输入你用于 WireGuard 隧道的端口。",
         reply_markup=markup,
     )
     return "post_clearnet_port", peer_info, msg
